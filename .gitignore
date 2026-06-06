@@ -1,0 +1,11 @@
+# Sitio estático sin build: no hay node_modules ni artefactos de compilación.
+
+# Bandeja de submissions del admin: nunca se versiona (datos crudos de usuarios)
+scripts/emails/
+
+# Specs y reglamento: material de trabajo, no se publica en GitHub Pages
+docs/
+
+# Sistema
+.DS_Store
+Thumbs.db

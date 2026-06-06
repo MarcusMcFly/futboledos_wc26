@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-05-28T11:00:00+02:00",
+  "participants": [
+    {
+      "nickname": "marcos",
+      "pool_name": "champions_friends",
+      "submitted_at": "2026-05-28T10:12:00+02:00",
+      "predictions": ["winner_real_madrid", "top_scorer_mbappe", "finalist_city"]
+    },
+    {
+      "nickname": "ana",
+      "pool_name": "champions_friends",
+      "submitted_at": "2026-05-28T10:45:00+02:00",
+      "predictions": ["winner_man_city", "top_scorer_haaland", "finalist_city"]
+    },
+    {
+      "nickname": "lucia",
+      "submitted_at": "2026-05-29T09:00:00+02:00",
+      "predictions": ["winner_real_madrid", "top_scorer_haaland", "finalist_madrid"]
+    }
+  ]
+}

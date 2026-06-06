@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "competition": "Group Stage",
+  "groups": [
+    {
+      "group_id": "A",
+      "matches": [
+        { "match_id": "A_01", "home_team": "México", "away_team": "Sudáfrica" },
+        { "match_id": "A_02", "home_team": "Corea del Sur", "away_team": "República Checa" },
+        { "match_id": "A_03", "home_team": "República Checa", "away_team": "Sudáfrica" },
+        { "match_id": "A_04", "home_team": "México", "away_team": "Corea del Sur" },
+        { "match_id": "A_05", "home_team": "República Checa", "away_team": "México" },
+        { "match_id": "A_06", "home_team": "Sudáfrica", "away_team": "Corea del Sur" }
+      ]
+    },
+    {
+      "group_id": "B",
+      "matches": [
+        { "match_id": "B_01", "home_team": "Canadá", "away_team": "Bosnia y Herzegovina" },
+        { "match_id": "B_02", "home_team": "Catar", "away_team": "Suiza" },
+        { "match_id": "B_03", "home_team": "Suiza", "away_team": "Bosnia y Herzegovina" },
+        { "match_id": "B_04", "home_team": "Canadá", "away_team": "Catar" },
+        { "match_id": "B_05", "home_team": "Suiza", "away_team": "Canadá" },
+        { "match_id": "B_06", "home_team": "Bosnia y Herzegovina", "away_team": "Catar" }
+      ]
+    },
+    {
+      "group_id": "C",
+      "matches": [
+        { "match_id": "C_01", "home_team": "Brasil", "away_team": "Marruecos" },
+        { "match_id": "C_02", "home_team": "Haití", "away_team": "Escocia" },
+        { "match_id": "C_03", "home_team": "Escocia", "away_team": "Marruecos" },
+        { "match_id": "C_04", "home_team": "Brasil", "away_team": "Haití" },
+        { "match_id": "C_05", "home_team": "Escocia", "away_team": "Brasil" },
+        { "match_id": "C_06", "home_team": "Marruecos", "away_team": "Haití" }
+      ]
+    },
+    {
+      "group_id": "D",
+      "matches": [
+        { "match_id": "D_01", "home_team": "Estados Unidos", "away_team": "Paraguay" },
+        { "match_id": "D_02", "home_team": "Australia", "away_team": "Turquía" },
+        { "match_id": "D_03", "home_team": "Estados Unidos", "away_team": "Australia" },
+        { "match_id": "D_04", "home_team": "Turquía", "away_team": "Paraguay" },
+        { "match_id": "D_05", "home_team": "Turquía", "away_team": "Estados Unidos" },
+        { "match_id": "D_06", "home_team": "Paraguay", "away_team": "Australia" }
+      ]
+    },
+    {
+      "group_id": "E",
+      "matches": [
+        { "match_id": "E_01", "home_team": "Alemania", "away_team": "Curazao" },
+        { "match_id": "E_02", "home_team": "Costa de Marfil", "away_team": "Ecuador" },
+        { "match_id": "E_03", "home_team": "Alemania", "away_team": "Costa de Marfil" },
+        { "match_id": "E_04", "home_team": "Ecuador", "away_team": "Curazao" },
+        { "match_id": "E_05", "home_team": "Curazao", "away_team": "Costa de Marfil" },
+        { "match_id": "E_06", "home_team": "Ecuador", "away_team": "Alemania" }
+      ]
+    },
+    {
+      "group_id": "F",
+      "matches": [
+        { "match_id": "F_01", "home_team": "Países Bajos", "away_team": "Japón" },
+        { "match_id": "F_02", "home_team": "Suecia", "away_team": "Túnez" },
+        { "match_id": "F_03", "home_team": "Países Bajos", "away_team": "Suecia" },
+        { "match_id": "F_04", "home_team": "Túnez", "away_team": "Japón" },
+        { "match_id": "F_05", "home_team": "Japón", "away_team": "Suecia" },
+        { "match_id": "F_06", "home_team": "Túnez", "away_team": "Países Bajos" }
+      ]
+    },
+    {
+      "group_id": "G",
+      "matches": [
+        { "match_id": "G_01", "home_team": "Bélgica", "away_team": "Egipto" },
+        { "match_id": "G_02", "home_team": "Irán", "away_team": "Nueva Zelanda" },
+        { "match_id": "G_03", "home_team": "Bélgica", "away_team": "Irán" },
+        { "match_id": "G_04", "home_team": "Nueva Zelanda", "away_team": "Egipto" },
+        { "match_id": "G_05", "home_team": "Egipto", "away_team": "Irán" },
+        { "match_id": "G_06", "home_team": "Nueva Zelanda", "away_team": "Bélgica" }
+      ]
+    },
+    {
+      "group_id": "H",
+      "matches": [
+        { "match_id": "H_01", "home_team": "España", "away_team": "Cabo Verde" },
+        { "match_id": "H_02", "home_team": "Arabia Saudita", "away_team": "Uruguay" },
+        { "match_id": "H_03", "home_team": "España", "away_team": "Arabia Saudita" },
+        { "match_id": "H_04", "home_team": "Uruguay", "away_team": "Cabo Verde" },
+        { "match_id": "H_05", "home_team": "Cabo Verde", "away_team": "Arabia Saudita" },
+        { "match_id": "H_06", "home_team": "Uruguay", "away_team": "España" }
+      ]
+    },
+    {
+      "group_id": "I",
+      "matches": [
+        { "match_id": "I_01", "home_team": "Francia", "away_team": "Senegal" },
+        { "match_id": "I_02", "home_team": "Irak", "away_team": "Noruega" },
+        { "match_id": "I_03", "home_team": "Francia", "away_team": "Irak" },
+        { "match_id": "I_04", "home_team": "Noruega", "away_team": "Senegal" },
+        { "match_id": "I_05", "home_team": "Noruega", "away_team": "Francia" },
+        { "match_id": "I_06", "home_team": "Senegal", "away_team": "Irak" }
+      ]
+    },
+    {
+      "group_id": "J",
+      "matches": [
+        { "match_id": "J_01", "home_team": "Argentina", "away_team": "Argelia" },
+        { "match_id": "J_02", "home_team": "Austria", "away_team": "Jordania" },
+        { "match_id": "J_03", "home_team": "Argentina", "away_team": "Austria" },
+        { "match_id": "J_04", "home_team": "Jordania", "away_team": "Argelia" },
+        { "match_id": "J_05", "home_team": "Argelia", "away_team": "Austria" },
+        { "match_id": "J_06", "home_team": "Jordania", "away_team": "Argentina" }
+      ]
+    },
+    {
+      "group_id": "K",
+      "matches": [
+        { "match_id": "K_01", "home_team": "Portugal", "away_team": "RD Congo" },
+        { "match_id": "K_02", "home_team": "Uzbekistán", "away_team": "Colombia" },
+        { "match_id": "K_03", "home_team": "Portugal", "away_team": "Uzbekistán" },
+        { "match_id": "K_04", "home_team": "Colombia", "away_team": "RD Congo" },
+        { "match_id": "K_05", "home_team": "Colombia", "away_team": "Portugal" },
+        { "match_id": "K_06", "home_team": "RD Congo", "away_team": "Uzbekistán" }
+      ]
+    },
+    {
+      "group_id": "L",
+      "matches": [
+        { "match_id": "L_01", "home_team": "Inglaterra", "away_team": "Croacia" },
+        { "match_id": "L_02", "home_team": "Ghana", "away_team": "Panamá" },
+        { "match_id": "L_03", "home_team": "Inglaterra", "away_team": "Ghana" },
+        { "match_id": "L_04", "home_team": "Panamá", "away_team": "Croacia" },
+        { "match_id": "L_05", "home_team": "Panamá", "away_team": "Inglaterra" },
+        { "match_id": "L_06", "home_team": "Croacia", "away_team": "Ghana" }
+      ]
+    }
+  ]
+}

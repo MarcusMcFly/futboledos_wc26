@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pronóstico fase de grupos — Futboledos</title>
+    <style>
+      :root {
+        --bg: #0f1419;
+        --panel: #1a2029;
+        --border: #2a323d;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --accent: #2ea043;
+        --danger: #f85149;
+        --warn: #d29922;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .container { max-width: 920px; margin: 0 auto; padding: 1.1rem; }
+      h1 { font-size: 1.35rem; margin: 0.2rem 0 0.6rem; }
+      .muted { color: var(--muted); }
+      .sr-only {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+      }
+      a { color: var(--accent); }
+
+      /* Identidad */
+      .identity {
+        background: var(--panel); border: 1px solid var(--border);
+        border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 1rem;
+      }
+      .identity .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.6rem; }
+      .identity label { font-size: 0.85rem; color: var(--muted); }
+      .identity input {
+        padding: 0.6rem; background: var(--bg); border: 1px solid var(--border);
+        border-radius: 7px; color: var(--text); font-size: 1rem;
+      }
+      .identity input.invalid { border-color: var(--danger); }
+      .field-error { color: var(--danger); font-size: 0.8rem; min-height: 1rem; }
+
+      .progress {
+        display: flex; gap: 1rem; flex-wrap: wrap;
+        font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem;
+      }
+      .progress strong { color: var(--text); }
+
+      /* Tarjeta de grupo */
+      .group-card {
+        background: var(--panel); border: 1px solid var(--border);
+        border-radius: 12px; padding: 0.9rem 1rem 1.1rem; margin-bottom: 1.25rem;
+      }
+      .group-card > h2 { margin: 0 0 0.6rem; font-size: 1.05rem; }
+      .section-title { margin: 0.95rem 0 0.45rem; font-size: 0.74rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+
+      .matches { display: flex; flex-direction: column; gap: 0.1rem; }
+      .match {
+        display: grid; grid-template-columns: 1fr 2.5rem 0.5rem 2.5rem 1fr;
+        align-items: center; gap: 0.35rem; padding: 0.3rem 0;
+      }
+      .match .home { text-align: right; }
+      .match .away { text-align: left; }
+      .match .team { font-size: 0.92rem; }
+      .match .sep { text-align: center; color: var(--muted); }
+      .score-input {
+        width: 2.5rem; min-height: 2.4rem; text-align: center; font-size: 1rem;
+        background: var(--bg); border: 1px solid var(--border); border-radius: 7px; color: var(--text);
+      }
+      .score-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+      .score-input.invalid { border-color: var(--danger); }
+      .score-input::-webkit-outer-spin-button,
+      .score-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+      .results-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+      .standings-wrap { flex: 1 1 360px; overflow-x: auto; }
+      .tiebreak-wrap { flex: 1 1 230px; }
+
+      table.standings { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+      table.standings th, table.standings td {
+        padding: 0.38rem 0.4rem; border-bottom: 1px solid var(--border);
+        text-align: center; white-space: nowrap;
+      }
+      table.standings th { color: var(--muted); font-weight: 600; }
+      table.standings td.sel { text-align: left; }
+      table.standings td.pts { font-weight: 700; color: var(--accent); }
+      table.standings tbody tr.qualifies td.pos,
+      table.standings tbody tr.qualifies td.sel { color: var(--text); font-weight: 700; }
+      table.standings tbody tr.third td.pos::after { content: " ³"; color: var(--warn); }
+      table.standings tbody tr.tied td.sel::after { content: " •"; color: var(--warn); }
+
+      .tiebreak-panel {
+        border: 1px solid var(--warn); background: rgba(210,153,34,0.10);
+        border-radius: 10px; padding: 0.75rem 0.85rem;
+      }
+      .tiebreak-panel h3 { margin: 0 0 0.25rem; font-size: 0.92rem; color: var(--warn); }
+      .tiebreak-panel p { margin: 0.15rem 0 0.5rem; font-size: 0.82rem; }
+      .tb-set { margin-bottom: 0.7rem; }
+      .tb-set-label { font-size: 0.76rem; color: var(--muted); margin-bottom: 0.25rem; }
+      .tb-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.18rem 0; }
+      .tb-row .tb-team { flex: 1; font-size: 0.88rem; }
+      .tb-row select {
+        padding: 0.3rem 0.4rem; min-height: 2.1rem; background: var(--bg);
+        border: 1px solid var(--border); border-radius: 6px; color: var(--text);
+      }
+      .tb-error { color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem; min-height: 1rem; }
+
+      /* Caja dataset */
+      .dataset {
+        background: var(--panel); border: 1px solid var(--border);
+        border-radius: 12px; padding: 1rem 1.1rem; margin: 1.5rem 0 2rem;
+      }
+      .dataset h2 { margin: 0 0 0.4rem; font-size: 1.05rem; }
+      .dataset textarea {
+        width: 100%; min-height: 320px; resize: vertical;
+        background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+        color: var(--text); padding: 0.8rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.82rem; line-height: 1.45; white-space: pre;
+      }
+      .dataset .actions { display: flex; gap: 0.6rem; align-items: center; margin-top: 0.6rem; flex-wrap: wrap; }
+      button {
+        background: var(--accent); color: #fff; border: 0; border-radius: 7px;
+        padding: 0.6rem 1rem; cursor: pointer; font-weight: 600; font-size: 0.92rem;
+      }
+      button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+      button.ghost:hover { color: var(--text); border-color: var(--muted); }
+      .copied { color: var(--accent); font-size: 0.85rem; }
+
+      .quick-fills { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+      .note { font-size: 0.82rem; color: var(--muted); border-left: 3px solid var(--border); padding-left: 0.75rem; margin: 0.6rem 0 1.2rem; }
+
+      /* Dieciseisavos (R32) */
+      .r32-card {
+        background: var(--panel); border: 1px solid var(--border);
+        border-radius: 12px; padding: 0.9rem 1rem 1.1rem; margin-bottom: 1.25rem;
+      }
+      .r32-card > h2 { margin: 0 0 0.2rem; font-size: 1.1rem; }
+      .r32-pending { color: var(--muted); font-size: 0.9rem; padding: 0.6rem 0; }
+      .r32-banner { border-radius: 8px; padding: 0.6rem 0.8rem; margin: 0.5rem 0; font-size: 0.84rem; }
+      .r32-banner.warn { background: rgba(210,153,34,0.12); border: 1px solid var(--warn); }
+      .r32-banner.danger { background: rgba(248,81,73,0.12); border: 1px solid var(--danger); color: var(--text); }
+
+      /* Tabla de mejores terceros */
+      table.thirds { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 0.4rem; }
+      table.thirds th, table.thirds td { padding: 0.32rem 0.4rem; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; }
+      table.thirds th { color: var(--muted); font-weight: 600; }
+      table.thirds td.tname { text-align: left; }
+      table.thirds tr.qual td.tname, table.thirds tr.qual td.tpos { color: var(--text); font-weight: 700; }
+      table.thirds tr.cut { border-top: 2px solid var(--warn); }
+      table.thirds td.qbadge { color: var(--accent); font-weight: 700; }
+      table.thirds select { padding: 0.2rem 0.3rem; min-height: 1.9rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); }
+
+      /* Cruces R32 */
+      .r32-matches { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; }
+      .ko { border-bottom: 1px solid var(--border); padding: 0.45rem 0; }
+      .ko-row {
+        display: grid; grid-template-columns: 1fr 1.4rem 2.5rem 0.5rem 2.5rem 1.4rem 1fr;
+        align-items: center; gap: 0.3rem;
+      }
+      .ko-row .home { text-align: right; }
+      .ko-row .away { text-align: left; }
+      .ko-row .team { font-size: 0.92rem; }
+      .ko-row .sep { text-align: center; color: var(--muted); }
+      .ko-x { text-align: center; font-weight: 700; color: var(--accent); min-height: 1rem; }
+      .ko-slots { font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 0.15rem; }
+      .ko-qual {
+        margin-top: 0.4rem; padding: 0.4rem 0.55rem; border: 1px solid var(--warn);
+        background: rgba(210,153,34,0.10); border-radius: 8px; font-size: 0.85rem;
+      }
+      .ko-qual legend { padding: 0; color: var(--warn); font-weight: 600; }
+      .ko-qual label { display: inline-flex; align-items: center; gap: 0.3rem; margin: 0.2rem 0.9rem 0 0; }
+      fieldset.ko-qual { min-inline-size: auto; }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1>⚽ Pronóstico · Fase de grupos</h1>
+      <p class="note">
+        Introduce los marcadores de los 72 partidos. La clasificación de cada grupo se recalcula sola
+        (no se edita a mano). Si completas un grupo y queda algún empate exacto (Pts, DG y GF), aparece
+        el panel de desempate manual. Al final, la <strong>caja de pronóstico</strong> se va rellenando
+        sola: cópiala y envíamela. Todo se guarda en este navegador.
+      </p>
+
+      <div class="identity">
+        <div class="field">
+          <label for="nick">Nick (2–30 · letras, números, _ o -) *</label>
+          <input id="nick" type="text" autocomplete="off" maxlength="30" placeholder="p. ej. marcos" />
+          <div class="field-error" id="nick-error"></div>
+        </div>
+        <div class="field">
+          <label for="pool">Nombre de grupo / pool (opcional, máx 40)</label>
+          <input id="pool" type="text" autocomplete="off" maxlength="40" placeholder="p. ej. amigos_del_finde" />
+        </div>
+      </div>
+
+      <div class="progress">
+        <span>Partidos predichos: <strong id="p-matches">0/72</strong></span>
+        <span>Grupos completos: <strong id="p-groups">0/12</strong></span>
+      </div>
+
+      <div class="quick-fills">
+        <button class="ghost" data-fill="decisive">Demo: resultados decisivos (genera R32)</button>
+        <button class="ghost" data-fill="draws">Demo: todos 1-1 (fuerza empates)</button>
+        <button class="ghost" data-fill="clear">Vaciar todo</button>
+      </div>
+
+      <div id="groups-root"></div>
+
+      <div id="r32-root"></div>
+
+      <div class="dataset">
+        <h2>📋 Tu pronóstico (cópialo y envíamelo)</h2>
+        <p class="muted" style="font-size:0.82rem;margin:0 0 0.6rem">
+          Texto generado automáticamente con todo lo de arriba. Se irá ampliando con las eliminatorias
+          en próximas fases. Pégalo en un email o mensaje tal cual.
+        </p>
+        <textarea id="dataset-box" readonly spellcheck="false"></textarea>
+        <div class="actions">
+          <button id="copy-btn">Copiar al portapapeles</button>
+          <span class="copied" id="copied-msg" hidden>¡Copiado!</span>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // ───────────────────────────────────────────────────────────────────
+      // Datos: 12 grupos con team_id canónico (derivados de data/groups.json).
+      // Inline para que la página funcione sin servidor (file://).
+      // ───────────────────────────────────────────────────────────────────
+      const GROUPS = [{"groupId":"A","teams":[{"id":"MX","name":"México"},{"id":"ZA","name":"Sudáfrica"},{"id":"KR","name":"Corea del Sur"},{"id":"CZ","name":"República Checa"}],"matches":[{"id":"A_01","home":"MX","away":"ZA"},{"id":"A_02","home":"KR","away":"CZ"},{"id":"A_03","home":"CZ","away":"ZA"},{"id":"A_04","home":"MX","away":"KR"},{"id":"A_05","home":"CZ","away":"MX"},{"id":"A_06","home":"ZA","away":"KR"}]},{"groupId":"B","teams":[{"id":"CA","name":"Canadá"},{"id":"BA","name":"Bosnia y Herzegovina"},{"id":"QA","name":"Catar"},{"id":"CH","name":"Suiza"}],"matches":[{"id":"B_01","home":"CA","away":"BA"},{"id":"B_02","home":"QA","away":"CH"},{"id":"B_03","home":"CH","away":"BA"},{"id":"B_04","home":"CA","away":"QA"},{"id":"B_05","home":"CH","away":"CA"},{"id":"B_06","home":"BA","away":"QA"}]},{"groupId":"C","teams":[{"id":"BR","name":"Brasil"},{"id":"MA","name":"Marruecos"},{"id":"HT","name":"Haití"},{"id":"SCO","name":"Escocia"}],"matches":[{"id":"C_01","home":"BR","away":"MA"},{"id":"C_02","home":"HT","away":"SCO"},{"id":"C_03","home":"SCO","away":"MA"},{"id":"C_04","home":"BR","away":"HT"},{"id":"C_05","home":"SCO","away":"BR"},{"id":"C_06","home":"MA","away":"HT"}]},{"groupId":"D","teams":[{"id":"US","name":"Estados Unidos"},{"id":"PY","name":"Paraguay"},{"id":"AU","name":"Australia"},{"id":"TR","name":"Turquía"}],"matches":[{"id":"D_01","home":"US","away":"PY"},{"id":"D_02","home":"AU","away":"TR"},{"id":"D_03","home":"US","away":"AU"},{"id":"D_04","home":"TR","away":"PY"},{"id":"D_05","home":"TR","away":"US"},{"id":"D_06","home":"PY","away":"AU"}]},{"groupId":"E","teams":[{"id":"DE","name":"Alemania"},{"id":"CW","name":"Curazao"},{"id":"CI","name":"Costa de Marfil"},{"id":"EC","name":"Ecuador"}],"matches":[{"id":"E_01","home":"DE","away":"CW"},{"id":"E_02","home":"CI","away":"EC"},{"id":"E_03","home":"DE","away":"CI"},{"id":"E_04","home":"EC","away":"CW"},{"id":"E_05","home":"CW","away":"CI"},{"id":"E_06","home":"EC","away":"DE"}]},{"groupId":"F","teams":[{"id":"NL","name":"Países Bajos"},{"id":"JP","name":"Japón"},{"id":"SE","name":"Suecia"},{"id":"TN","name":"Túnez"}],"matches":[{"id":"F_01","home":"NL","away":"JP"},{"id":"F_02","home":"SE","away":"TN"},{"id":"F_03","home":"NL","away":"SE"},{"id":"F_04","home":"TN","away":"JP"},{"id":"F_05","home":"JP","away":"SE"},{"id":"F_06","home":"TN","away":"NL"}]},{"groupId":"G","teams":[{"id":"BE","name":"Bélgica"},{"id":"EG","name":"Egipto"},{"id":"IR","name":"Irán"},{"id":"NZ","name":"Nueva Zelanda"}],"matches":[{"id":"G_01","home":"BE","away":"EG"},{"id":"G_02","home":"IR","away":"NZ"},{"id":"G_03","home":"BE","away":"IR"},{"id":"G_04","home":"NZ","away":"EG"},{"id":"G_05","home":"EG","away":"IR"},{"id":"G_06","home":"NZ","away":"BE"}]},{"groupId":"H","teams":[{"id":"ES","name":"España"},{"id":"CV","name":"Cabo Verde"},{"id":"SA","name":"Arabia Saudita"},{"id":"UY","name":"Uruguay"}],"matches":[{"id":"H_01","home":"ES","away":"CV"},{"id":"H_02","home":"SA","away":"UY"},{"id":"H_03","home":"ES","away":"SA"},{"id":"H_04","home":"UY","away":"CV"},{"id":"H_05","home":"CV","away":"SA"},{"id":"H_06","home":"UY","away":"ES"}]},{"groupId":"I","teams":[{"id":"FR","name":"Francia"},{"id":"SN","name":"Senegal"},{"id":"IQ","name":"Irak"},{"id":"NO","name":"Noruega"}],"matches":[{"id":"I_01","home":"FR","away":"SN"},{"id":"I_02","home":"IQ","away":"NO"},{"id":"I_03","home":"FR","away":"IQ"},{"id":"I_04","home":"NO","away":"SN"},{"id":"I_05","home":"NO","away":"FR"},{"id":"I_06","home":"SN","away":"IQ"}]},{"groupId":"J","teams":[{"id":"AR","name":"Argentina"},{"id":"DZ","name":"Argelia"},{"id":"AT","name":"Austria"},{"id":"JO","name":"Jordania"}],"matches":[{"id":"J_01","home":"AR","away":"DZ"},{"id":"J_02","home":"AT","away":"JO"},{"id":"J_03","home":"AR","away":"AT"},{"id":"J_04","home":"JO","away":"DZ"},{"id":"J_05","home":"DZ","away":"AT"},{"id":"J_06","home":"JO","away":"AR"}]},{"groupId":"K","teams":[{"id":"PT","name":"Portugal"},{"id":"CD","name":"RD Congo"},{"id":"UZ","name":"Uzbekistán"},{"id":"CO","name":"Colombia"}],"matches":[{"id":"K_01","home":"PT","away":"CD"},{"id":"K_02","home":"UZ","away":"CO"},{"id":"K_03","home":"PT","away":"UZ"},{"id":"K_04","home":"CO","away":"CD"},{"id":"K_05","home":"CO","away":"PT"},{"id":"K_06","home":"CD","away":"UZ"}]},{"groupId":"L","teams":[{"id":"ENG","name":"Inglaterra"},{"id":"HR","name":"Croacia"},{"id":"GH","name":"Ghana"},{"id":"PA","name":"Panamá"}],"matches":[{"id":"L_01","home":"ENG","away":"HR"},{"id":"L_02","home":"GH","away":"PA"},{"id":"L_03","home":"ENG","away":"GH"},{"id":"L_04","home":"PA","away":"HR"},{"id":"L_05","home":"PA","away":"ENG"},{"id":"L_06","home":"HR","away":"GH"}]}];
+
+      // Bracket oficial R32 (data/round_of_32.json, §12.6 reglamento FIFA).
+      const R32_BRACKET = {
+  "schema_version": 1,
+  "round_id": "R32",
+  "round_label": "Dieciseisavos de final",
+  "source": "FWC26_regulations_EN.pdf §12.6 (p.23)",
+  "third_place_receiver_slots": ["1A", "1B", "1D", "1E", "1G", "1I", "1K", "1L"],
+  "winner_vs_runner_up_slots": ["1C", "1F", "1H", "1J"],
+  "matches": [
+    { "match_id": "R32_01", "fifa_match": "M73", "winner_code": "W73", "home_slot": "2A", "away_slot": "2B" },
+    { "match_id": "R32_02", "fifa_match": "M74", "winner_code": "W74", "home_slot": "1E", "away_slot": "3ABCDF" },
+    { "match_id": "R32_03", "fifa_match": "M75", "winner_code": "W75", "home_slot": "1F", "away_slot": "2C" },
+    { "match_id": "R32_04", "fifa_match": "M76", "winner_code": "W76", "home_slot": "1C", "away_slot": "2F" },
+    { "match_id": "R32_05", "fifa_match": "M77", "winner_code": "W77", "home_slot": "1I", "away_slot": "3CDFGH" },
+    { "match_id": "R32_06", "fifa_match": "M78", "winner_code": "W78", "home_slot": "2E", "away_slot": "2I" },
+    { "match_id": "R32_07", "fifa_match": "M79", "winner_code": "W79", "home_slot": "1A", "away_slot": "3CEFHI" },
+    { "match_id": "R32_08", "fifa_match": "M80", "winner_code": "W80", "home_slot": "1L", "away_slot": "3EHIJK" },
+    { "match_id": "R32_09", "fifa_match": "M81", "winner_code": "W81", "home_slot": "1D", "away_slot": "3BEFIJ" },
+    { "match_id": "R32_10", "fifa_match": "M82", "winner_code": "W82", "home_slot": "1G", "away_slot": "3AEHIJ" },
+    { "match_id": "R32_11", "fifa_match": "M83", "winner_code": "W83", "home_slot": "2K", "away_slot": "2L" },
+    { "match_id": "R32_12", "fifa_match": "M84", "winner_code": "W84", "home_slot": "1H", "away_slot": "2J" },
+    { "match_id": "R32_13", "fifa_match": "M85", "winner_code": "W85", "home_slot": "1B", "away_slot": "3EFGIJ" },
+    { "match_id": "R32_14", "fifa_match": "M86", "winner_code": "W86", "home_slot": "1J", "away_slot": "2H" },
+    { "match_id": "R32_15", "fifa_match": "M87", "winner_code": "W87", "home_slot": "1K", "away_slot": "3DEIJL" },
+    { "match_id": "R32_16", "fifa_match": "M88", "winner_code": "W88", "home_slot": "2D", "away_slot": "2G" }
+  ]
+};
+      // Tabla oficial de asignación de terceros (Annexe C, 495 combinaciones).
+      const THIRD_TABLE = {"columns":["1A","1B","1D","1E","1G","1I","1K","1L"],"schema_version":1,"source":"FWC26_regulations_EN.pdf Annexe C (p.80-97)","table":{"ABCDEFGH":["3H","3G","3B","3C","3A","3F","3D","3E"],"ABCDEFGI":["3C","3G","3B","3D","3A","3F","3E","3I"],"ABCDEFGJ":["3C","3G","3B","3D","3A","3F","3E","3J"],"ABCDEFGK":["3C","3G","3B","3D","3A","3F","3E","3K"],"ABCDEFGL":["3C","3G","3B","3D","3A","3F","3L","3E"],"ABCDEFHI":["3H","3E","3B","3C","3A","3F","3D","3I"],"ABCDEFHJ":["3H","3J","3B","3C","3A","3F","3D","3E"],"ABCDEFHK":["3H","3E","3B","3C","3A","3F","3D","3K"],"ABCDEFHL":["3H","3F","3B","3C","3A","3D","3L","3E"],"ABCDEFIJ":["3C","3J","3B","3D","3A","3F","3E","3I"],"ABCDEFIK":["3C","3E","3B","3D","3A","3F","3I","3K"],"ABCDEFIL":["3C","3E","3B","3D","3A","3F","3L","3I"],"ABCDEFJK":["3C","3J","3B","3D","3A","3F","3E","3K"],"ABCDEFJL":["3C","3J","3B","3D","3A","3F","3L","3E"],"ABCDEFKL":["3C","3E","3B","3D","3A","3F","3L","3K"],"ABCDEGHI":["3H","3G","3B","3C","3A","3D","3E","3I"],"ABCDEGHJ":["3H","3G","3B","3C","3A","3D","3E","3J"],"ABCDEGHK":["3H","3G","3B","3C","3A","3D","3E","3K"],"ABCDEGHL":["3H","3G","3B","3C","3A","3D","3L","3E"],"ABCDEGIJ":["3E","3G","3B","3C","3A","3D","3I","3J"],"ABCDEGIK":["3E","3G","3B","3C","3A","3D","3I","3K"],"ABCDEGIL":["3E","3G","3B","3C","3A","3D","3L","3I"],"ABCDEGJK":["3E","3G","3B","3C","3A","3D","3J","3K"],"ABCDEGJL":["3E","3G","3B","3C","3A","3D","3L","3J"],"ABCDEGKL":["3E","3G","3B","3C","3A","3D","3L","3K"],"ABCDEHIJ":["3H","3J","3B","3C","3A","3D","3E","3I"],"ABCDEHIK":["3H","3E","3B","3C","3A","3D","3I","3K"],"ABCDEHIL":["3H","3E","3B","3C","3A","3D","3L","3I"],"ABCDEHJK":["3H","3J","3B","3C","3A","3D","3E","3K"],"ABCDEHJL":["3H","3J","3B","3C","3A","3D","3L","3E"],"ABCDEHKL":["3H","3E","3B","3C","3A","3D","3L","3K"],"ABCDEIJK":["3E","3J","3B","3C","3A","3D","3I","3K"],"ABCDEIJL":["3E","3J","3B","3C","3A","3D","3L","3I"],"ABCDEIKL":["3E","3I","3B","3C","3A","3D","3L","3K"],"ABCDEJKL":["3E","3J","3B","3C","3A","3D","3L","3K"],"ABCDFGHI":["3H","3G","3B","3C","3A","3F","3D","3I"],"ABCDFGHJ":["3H","3G","3B","3C","3A","3F","3D","3J"],"ABCDFGHK":["3H","3G","3B","3C","3A","3F","3D","3K"],"ABCDFGHL":["3C","3G","3B","3D","3A","3F","3L","3H"],"ABCDFGIJ":["3C","3G","3B","3D","3A","3F","3I","3J"],"ABCDFGIK":["3C","3G","3B","3D","3A","3F","3I","3K"],"ABCDFGIL":["3C","3G","3B","3D","3A","3F","3L","3I"],"ABCDFGJK":["3C","3G","3B","3D","3A","3F","3J","3K"],"ABCDFGJL":["3C","3G","3B","3D","3A","3F","3L","3J"],"ABCDFGKL":["3C","3G","3B","3D","3A","3F","3L","3K"],"ABCDFHIJ":["3H","3J","3B","3C","3A","3F","3D","3I"],"ABCDFHIK":["3H","3F","3B","3C","3A","3D","3I","3K"],"ABCDFHIL":["3H","3F","3B","3C","3A","3D","3L","3I"],"ABCDFHJK":["3H","3J","3B","3C","3A","3F","3D","3K"],"ABCDFHJL":["3C","3J","3B","3D","3A","3F","3L","3H"],"ABCDFHKL":["3H","3F","3B","3C","3A","3D","3L","3K"],"ABCDFIJK":["3C","3J","3B","3D","3A","3F","3I","3K"],"ABCDFIJL":["3C","3J","3B","3D","3A","3F","3L","3I"],"ABCDFIKL":["3C","3I","3B","3D","3A","3F","3L","3K"],"ABCDFJKL":["3C","3J","3B","3D","3A","3F","3L","3K"],"ABCDGHIJ":["3H","3G","3B","3C","3A","3D","3I","3J"],"ABCDGHIK":["3H","3G","3B","3C","3A","3D","3I","3K"],"ABCDGHIL":["3H","3G","3B","3C","3A","3D","3L","3I"],"ABCDGHJK":["3H","3G","3B","3C","3A","3D","3J","3K"],"ABCDGHJL":["3H","3G","3B","3C","3A","3D","3L","3J"],"ABCDGHKL":["3H","3G","3B","3C","3A","3D","3L","3K"],"ABCDGIJK":["3C","3J","3B","3D","3A","3G","3I","3K"],"ABCDGIJL":["3C","3J","3B","3D","3A","3G","3L","3I"],"ABCDGIKL":["3I","3G","3B","3C","3A","3D","3L","3K"],"ABCDGJKL":["3C","3J","3B","3D","3A","3G","3L","3K"],"ABCDHIJK":["3H","3J","3B","3C","3A","3D","3I","3K"],"ABCDHIJL":["3H","3J","3B","3C","3A","3D","3L","3I"],"ABCDHIKL":["3H","3I","3B","3C","3A","3D","3L","3K"],"ABCDHJKL":["3H","3J","3B","3C","3A","3D","3L","3K"],"ABCDIJKL":["3I","3J","3B","3C","3A","3D","3L","3K"],"ABCEFGHI":["3H","3G","3B","3C","3A","3F","3E","3I"],"ABCEFGHJ":["3H","3G","3B","3C","3A","3F","3E","3J"],"ABCEFGHK":["3H","3G","3B","3C","3A","3F","3E","3K"],"ABCEFGHL":["3H","3G","3B","3C","3A","3F","3L","3E"],"ABCEFGIJ":["3E","3G","3B","3C","3A","3F","3I","3J"],"ABCEFGIK":["3E","3G","3B","3C","3A","3F","3I","3K"],"ABCEFGIL":["3E","3G","3B","3C","3A","3F","3L","3I"],"ABCEFGJK":["3E","3G","3B","3C","3A","3F","3J","3K"],"ABCEFGJL":["3E","3G","3B","3C","3A","3F","3L","3J"],"ABCEFGKL":["3E","3G","3B","3C","3A","3F","3L","3K"],"ABCEFHIJ":["3H","3J","3B","3C","3A","3F","3E","3I"],"ABCEFHIK":["3H","3E","3B","3C","3A","3F","3I","3K"],"ABCEFHIL":["3H","3E","3B","3C","3A","3F","3L","3I"],"ABCEFHJK":["3H","3J","3B","3C","3A","3F","3E","3K"],"ABCEFHJL":["3H","3J","3B","3C","3A","3F","3L","3E"],"ABCEFHKL":["3H","3E","3B","3C","3A","3F","3L","3K"],"ABCEFIJK":["3E","3J","3B","3C","3A","3F","3I","3K"],"ABCEFIJL":["3E","3J","3B","3C","3A","3F","3L","3I"],"ABCEFIKL":["3E","3I","3B","3C","3A","3F","3L","3K"],"ABCEFJKL":["3E","3J","3B","3C","3A","3F","3L","3K"],"ABCEGHIJ":["3H","3J","3B","3C","3A","3G","3E","3I"],"ABCEGHIK":["3E","3G","3B","3C","3A","3H","3I","3K"],"ABCEGHIL":["3E","3G","3B","3C","3A","3H","3L","3I"],"ABCEGHJK":["3H","3J","3B","3C","3A","3G","3E","3K"],"ABCEGHJL":["3H","3J","3B","3C","3A","3G","3L","3E"],"ABCEGHKL":["3E","3G","3B","3C","3A","3H","3L","3K"],"ABCEGIJK":["3E","3J","3B","3C","3A","3G","3I","3K"],"ABCEGIJL":["3E","3J","3B","3C","3A","3G","3L","3I"],"ABCEGIKL":["3E","3G","3B","3A","3I","3C","3L","3K"],"ABCEGJKL":["3E","3J","3B","3C","3A","3G","3L","3K"],"ABCEHIJK":["3E","3J","3B","3C","3A","3H","3I","3K"],"ABCEHIJL":["3E","3J","3B","3C","3A","3H","3L","3I"],"ABCEHIKL":["3E","3I","3B","3C","3A","3H","3L","3K"],"ABCEHJKL":["3E","3J","3B","3C","3A","3H","3L","3K"],"ABCEIJKL":["3E","3J","3B","3A","3I","3C","3L","3K"],"ABCFGHIJ":["3H","3G","3B","3C","3A","3F","3I","3J"],"ABCFGHIK":["3H","3G","3B","3C","3A","3F","3I","3K"],"ABCFGHIL":["3H","3G","3B","3C","3A","3F","3L","3I"],"ABCFGHJK":["3H","3G","3B","3C","3A","3F","3J","3K"],"ABCFGHJL":["3H","3G","3B","3C","3A","3F","3L","3J"],"ABCFGHKL":["3H","3G","3B","3C","3A","3F","3L","3K"],"ABCFGIJK":["3C","3J","3B","3F","3A","3G","3I","3K"],"ABCFGIJL":["3C","3J","3B","3F","3A","3G","3L","3I"],"ABCFGIKL":["3I","3G","3B","3C","3A","3F","3L","3K"],"ABCFGJKL":["3C","3J","3B","3F","3A","3G","3L","3K"],"ABCFHIJK":["3H","3J","3B","3C","3A","3F","3I","3K"],"ABCFHIJL":["3H","3J","3B","3C","3A","3F","3L","3I"],"ABCFHIKL":["3H","3I","3B","3C","3A","3F","3L","3K"],"ABCFHJKL":["3H","3J","3B","3C","3A","3F","3L","3K"],"ABCFIJKL":["3I","3J","3B","3C","3A","3F","3L","3K"],"ABCGHIJK":["3H","3J","3B","3C","3A","3G","3I","3K"],"ABCGHIJL":["3H","3J","3B","3C","3A","3G","3L","3I"],"ABCGHIKL":["3I","3G","3B","3C","3A","3H","3L","3K"],"ABCGHJKL":["3H","3J","3B","3C","3A","3G","3L","3K"],"ABCGIJKL":["3I","3J","3B","3C","3A","3G","3L","3K"],"ABCHIJKL":["3I","3J","3B","3C","3A","3H","3L","3K"],"ABDEFGHI":["3H","3G","3B","3D","3A","3F","3E","3I"],"ABDEFGHJ":["3H","3G","3B","3D","3A","3F","3E","3J"],"ABDEFGHK":["3H","3G","3B","3D","3A","3F","3E","3K"],"ABDEFGHL":["3H","3G","3B","3D","3A","3F","3L","3E"],"ABDEFGIJ":["3E","3G","3B","3D","3A","3F","3I","3J"],"ABDEFGIK":["3E","3G","3B","3D","3A","3F","3I","3K"],"ABDEFGIL":["3E","3G","3B","3D","3A","3F","3L","3I"],"ABDEFGJK":["3E","3G","3B","3D","3A","3F","3J","3K"],"ABDEFGJL":["3E","3G","3B","3D","3A","3F","3L","3J"],"ABDEFGKL":["3E","3G","3B","3D","3A","3F","3L","3K"],"ABDEFHIJ":["3H","3J","3B","3D","3A","3F","3E","3I"],"ABDEFHIK":["3H","3E","3B","3D","3A","3F","3I","3K"],"ABDEFHIL":["3H","3E","3B","3D","3A","3F","3L","3I"],"ABDEFHJK":["3H","3J","3B","3D","3A","3F","3E","3K"],"ABDEFHJL":["3H","3J","3B","3D","3A","3F","3L","3E"],"ABDEFHKL":["3H","3E","3B","3D","3A","3F","3L","3K"],"ABDEFIJK":["3E","3J","3B","3D","3A","3F","3I","3K"],"ABDEFIJL":["3E","3J","3B","3D","3A","3F","3L","3I"],"ABDEFIKL":["3E","3I","3B","3D","3A","3F","3L","3K"],"ABDEFJKL":["3E","3J","3B","3D","3A","3F","3L","3K"],"ABDEGHIJ":["3H","3J","3B","3D","3A","3G","3E","3I"],"ABDEGHIK":["3E","3G","3B","3D","3A","3H","3I","3K"],"ABDEGHIL":["3E","3G","3B","3D","3A","3H","3L","3I"],"ABDEGHJK":["3H","3J","3B","3D","3A","3G","3E","3K"],"ABDEGHJL":["3H","3J","3B","3D","3A","3G","3L","3E"],"ABDEGHKL":["3E","3G","3B","3D","3A","3H","3L","3K"],"ABDEGIJK":["3E","3J","3B","3D","3A","3G","3I","3K"],"ABDEGIJL":["3E","3J","3B","3D","3A","3G","3L","3I"],"ABDEGIKL":["3E","3G","3B","3A","3I","3D","3L","3K"],"ABDEGJKL":["3E","3J","3B","3D","3A","3G","3L","3K"],"ABDEHIJK":["3E","3J","3B","3D","3A","3H","3I","3K"],"ABDEHIJL":["3E","3J","3B","3D","3A","3H","3L","3I"],"ABDEHIKL":["3E","3I","3B","3D","3A","3H","3L","3K"],"ABDEHJKL":["3E","3J","3B","3D","3A","3H","3L","3K"],"ABDEIJKL":["3E","3J","3B","3A","3I","3D","3L","3K"],"ABDFGHIJ":["3H","3G","3B","3D","3A","3F","3I","3J"],"ABDFGHIK":["3H","3G","3B","3D","3A","3F","3I","3K"],"ABDFGHIL":["3H","3G","3B","3D","3A","3F","3L","3I"],"ABDFGHJK":["3H","3G","3B","3D","3A","3F","3J","3K"],"ABDFGHJL":["3H","3G","3B","3D","3A","3F","3L","3J"],"ABDFGHKL":["3H","3G","3B","3D","3A","3F","3L","3K"],"ABDFGIJK":["3F","3J","3B","3D","3A","3G","3I","3K"],"ABDFGIJL":["3F","3J","3B","3D","3A","3G","3L","3I"],"ABDFGIKL":["3I","3G","3B","3D","3A","3F","3L","3K"],"ABDFGJKL":["3F","3J","3B","3D","3A","3G","3L","3K"],"ABDFHIJK":["3H","3J","3B","3D","3A","3F","3I","3K"],"ABDFHIJL":["3H","3J","3B","3D","3A","3F","3L","3I"],"ABDFHIKL":["3H","3I","3B","3D","3A","3F","3L","3K"],"ABDFHJKL":["3H","3J","3B","3D","3A","3F","3L","3K"],"ABDFIJKL":["3I","3J","3B","3D","3A","3F","3L","3K"],"ABDGHIJK":["3H","3J","3B","3D","3A","3G","3I","3K"],"ABDGHIJL":["3H","3J","3B","3D","3A","3G","3L","3I"],"ABDGHIKL":["3I","3G","3B","3D","3A","3H","3L","3K"],"ABDGHJKL":["3H","3J","3B","3D","3A","3G","3L","3K"],"ABDGIJKL":["3I","3J","3B","3D","3A","3G","3L","3K"],"ABDHIJKL":["3I","3J","3B","3D","3A","3H","3L","3K"],"ABEFGHIJ":["3H","3J","3B","3F","3A","3G","3E","3I"],"ABEFGHIK":["3E","3G","3B","3F","3A","3H","3I","3K"],"ABEFGHIL":["3E","3G","3B","3F","3A","3H","3L","3I"],"ABEFGHJK":["3H","3J","3B","3F","3A","3G","3E","3K"],"ABEFGHJL":["3H","3J","3B","3F","3A","3G","3L","3E"],"ABEFGHKL":["3E","3G","3B","3F","3A","3H","3L","3K"],"ABEFGIJK":["3E","3J","3B","3F","3A","3G","3I","3K"],"ABEFGIJL":["3E","3J","3B","3F","3A","3G","3L","3I"],"ABEFGIKL":["3E","3G","3B","3A","3I","3F","3L","3K"],"ABEFGJKL":["3E","3J","3B","3F","3A","3G","3L","3K"],"ABEFHIJK":["3E","3J","3B","3F","3A","3H","3I","3K"],"ABEFHIJL":["3E","3J","3B","3F","3A","3H","3L","3I"],"ABEFHIKL":["3E","3I","3B","3F","3A","3H","3L","3K"],"ABEFHJKL":["3E","3J","3B","3F","3A","3H","3L","3K"],"ABEFIJKL":["3E","3J","3B","3A","3I","3F","3L","3K"],"ABEGHIJK":["3E","3J","3B","3A","3H","3G","3I","3K"],"ABEGHIJL":["3E","3J","3B","3A","3H","3G","3L","3I"],"ABEGHIKL":["3E","3G","3B","3A","3I","3H","3L","3K"],"ABEGHJKL":["3E","3J","3B","3A","3H","3G","3L","3K"],"ABEGIJKL":["3E","3J","3B","3A","3I","3G","3L","3K"],"ABEHIJKL":["3E","3J","3B","3A","3I","3H","3L","3K"],"ABFGHIJK":["3H","3J","3B","3F","3A","3G","3I","3K"],"ABFGHIJL":["3H","3J","3B","3F","3A","3G","3L","3I"],"ABFGHIKL":["3H","3G","3B","3A","3I","3F","3L","3K"],"ABFGHJKL":["3H","3J","3B","3F","3A","3G","3L","3K"],"ABFGIJKL":["3I","3J","3B","3F","3A","3G","3L","3K"],"ABFHIJKL":["3H","3J","3B","3A","3I","3F","3L","3K"],"ABGHIJKL":["3H","3J","3B","3A","3I","3G","3L","3K"],"ACDEFGHI":["3H","3G","3E","3C","3A","3F","3D","3I"],"ACDEFGHJ":["3H","3G","3J","3C","3A","3F","3D","3E"],"ACDEFGHK":["3H","3G","3E","3C","3A","3F","3D","3K"],"ACDEFGHL":["3H","3G","3F","3C","3A","3D","3L","3E"],"ACDEFGIJ":["3C","3G","3J","3D","3A","3F","3E","3I"],"ACDEFGIK":["3C","3G","3E","3D","3A","3F","3I","3K"],"ACDEFGIL":["3C","3G","3E","3D","3A","3F","3L","3I"],"ACDEFGJK":["3C","3G","3J","3D","3A","3F","3E","3K"],"ACDEFGJL":["3C","3G","3J","3D","3A","3F","3L","3E"],"ACDEFGKL":["3C","3G","3E","3D","3A","3F","3L","3K"],"ACDEFHIJ":["3H","3J","3E","3C","3A","3F","3D","3I"],"ACDEFHIK":["3H","3E","3F","3C","3A","3D","3I","3K"],"ACDEFHIL":["3H","3E","3F","3C","3A","3D","3L","3I"],"ACDEFHJK":["3H","3J","3E","3C","3A","3F","3D","3K"],"ACDEFHJL":["3H","3J","3F","3C","3A","3D","3L","3E"],"ACDEFHKL":["3H","3E","3F","3C","3A","3D","3L","3K"],"ACDEFIJK":["3C","3J","3E","3D","3A","3F","3I","3K"],"ACDEFIJL":["3C","3J","3E","3D","3A","3F","3L","3I"],"ACDEFIKL":["3C","3E","3I","3D","3A","3F","3L","3K"],"ACDEFJKL":["3C","3J","3E","3D","3A","3F","3L","3K"],"ACDEGHIJ":["3H","3G","3J","3C","3A","3D","3E","3I"],"ACDEGHIK":["3H","3G","3E","3C","3A","3D","3I","3K"],"ACDEGHIL":["3H","3G","3E","3C","3A","3D","3L","3I"],"ACDEGHJK":["3H","3G","3J","3C","3A","3D","3E","3K"],"ACDEGHJL":["3H","3G","3J","3C","3A","3D","3L","3E"],"ACDEGHKL":["3H","3G","3E","3C","3A","3D","3L","3K"],"ACDEGIJK":["3E","3G","3J","3C","3A","3D","3I","3K"],"ACDEGIJL":["3E","3G","3J","3C","3A","3D","3L","3I"],"ACDEGIKL":["3E","3G","3I","3C","3A","3D","3L","3K"],"ACDEGJKL":["3E","3G","3J","3C","3A","3D","3L","3K"],"ACDEHIJK":["3H","3J","3E","3C","3A","3D","3I","3K"],"ACDEHIJL":["3H","3J","3E","3C","3A","3D","3L","3I"],"ACDEHIKL":["3H","3E","3I","3C","3A","3D","3L","3K"],"ACDEHJKL":["3H","3J","3E","3C","3A","3D","3L","3K"],"ACDEIJKL":["3E","3J","3I","3C","3A","3D","3L","3K"],"ACDFGHIJ":["3H","3G","3J","3C","3A","3F","3D","3I"],"ACDFGHIK":["3H","3G","3F","3C","3A","3D","3I","3K"],"ACDFGHIL":["3H","3G","3F","3C","3A","3D","3L","3I"],"ACDFGHJK":["3H","3G","3J","3C","3A","3F","3D","3K"],"ACDFGHJL":["3C","3G","3J","3D","3A","3F","3L","3H"],"ACDFGHKL":["3H","3G","3F","3C","3A","3D","3L","3K"],"ACDFGIJK":["3C","3G","3J","3D","3A","3F","3I","3K"],"ACDFGIJL":["3C","3G","3J","3D","3A","3F","3L","3I"],"ACDFGIKL":["3C","3G","3I","3D","3A","3F","3L","3K"],"ACDFGJKL":["3C","3G","3J","3D","3A","3F","3L","3K"],"ACDFHIJK":["3H","3J","3F","3C","3A","3D","3I","3K"],"ACDFHIJL":["3H","3J","3F","3C","3A","3D","3L","3I"],"ACDFHIKL":["3H","3F","3I","3C","3A","3D","3L","3K"],"ACDFHJKL":["3H","3J","3F","3C","3A","3D","3L","3K"],"ACDFIJKL":["3C","3J","3I","3D","3A","3F","3L","3K"],"ACDGHIJK":["3H","3G","3J","3C","3A","3D","3I","3K"],"ACDGHIJL":["3H","3G","3J","3C","3A","3D","3L","3I"],"ACDGHIKL":["3H","3G","3I","3C","3A","3D","3L","3K"],"ACDGHJKL":["3H","3G","3J","3C","3A","3D","3L","3K"],"ACDGIJKL":["3I","3G","3J","3C","3A","3D","3L","3K"],"ACDHIJKL":["3H","3J","3I","3C","3A","3D","3L","3K"],"ACEFGHIJ":["3H","3G","3J","3C","3A","3F","3E","3I"],"ACEFGHIK":["3H","3G","3E","3C","3A","3F","3I","3K"],"ACEFGHIL":["3H","3G","3E","3C","3A","3F","3L","3I"],"ACEFGHJK":["3H","3G","3J","3C","3A","3F","3E","3K"],"ACEFGHJL":["3H","3G","3J","3C","3A","3F","3L","3E"],"ACEFGHKL":["3H","3G","3E","3C","3A","3F","3L","3K"],"ACEFGIJK":["3E","3G","3J","3C","3A","3F","3I","3K"],"ACEFGIJL":["3E","3G","3J","3C","3A","3F","3L","3I"],"ACEFGIKL":["3E","3G","3I","3C","3A","3F","3L","3K"],"ACEFGJKL":["3E","3G","3J","3C","3A","3F","3L","3K"],"ACEFHIJK":["3H","3J","3E","3C","3A","3F","3I","3K"],"ACEFHIJL":["3H","3J","3E","3C","3A","3F","3L","3I"],"ACEFHIKL":["3H","3E","3I","3C","3A","3F","3L","3K"],"ACEFHJKL":["3H","3J","3E","3C","3A","3F","3L","3K"],"ACEFIJKL":["3E","3J","3I","3C","3A","3F","3L","3K"],"ACEGHIJK":["3E","3G","3J","3C","3A","3H","3I","3K"],"ACEGHIJL":["3E","3G","3J","3C","3A","3H","3L","3I"],"ACEGHIKL":["3E","3G","3I","3C","3A","3H","3L","3K"],"ACEGHJKL":["3E","3G","3J","3C","3A","3H","3L","3K"],"ACEGIJKL":["3E","3J","3I","3C","3A","3G","3L","3K"],"ACEHIJKL":["3E","3J","3I","3C","3A","3H","3L","3K"],"ACFGHIJK":["3H","3G","3J","3C","3A","3F","3I","3K"],"ACFGHIJL":["3H","3G","3J","3C","3A","3F","3L","3I"],"ACFGHIKL":["3H","3G","3I","3C","3A","3F","3L","3K"],"ACFGHJKL":["3H","3G","3J","3C","3A","3F","3L","3K"],"ACFGIJKL":["3I","3G","3J","3C","3A","3F","3L","3K"],"ACFHIJKL":["3H","3J","3I","3C","3A","3F","3L","3K"],"ACGHIJKL":["3H","3J","3I","3C","3A","3G","3L","3K"],"ADEFGHIJ":["3H","3G","3J","3D","3A","3F","3E","3I"],"ADEFGHIK":["3H","3G","3E","3D","3A","3F","3I","3K"],"ADEFGHIL":["3H","3G","3E","3D","3A","3F","3L","3I"],"ADEFGHJK":["3H","3G","3J","3D","3A","3F","3E","3K"],"ADEFGHJL":["3H","3G","3J","3D","3A","3F","3L","3E"],"ADEFGHKL":["3H","3G","3E","3D","3A","3F","3L","3K"],"ADEFGIJK":["3E","3G","3J","3D","3A","3F","3I","3K"],"ADEFGIJL":["3E","3G","3J","3D","3A","3F","3L","3I"],"ADEFGIKL":["3E","3G","3I","3D","3A","3F","3L","3K"],"ADEFGJKL":["3E","3G","3J","3D","3A","3F","3L","3K"],"ADEFHIJK":["3H","3J","3E","3D","3A","3F","3I","3K"],"ADEFHIJL":["3H","3J","3E","3D","3A","3F","3L","3I"],"ADEFHIKL":["3H","3E","3I","3D","3A","3F","3L","3K"],"ADEFHJKL":["3H","3J","3E","3D","3A","3F","3L","3K"],"ADEFIJKL":["3E","3J","3I","3D","3A","3F","3L","3K"],"ADEGHIJK":["3E","3G","3J","3D","3A","3H","3I","3K"],"ADEGHIJL":["3E","3G","3J","3D","3A","3H","3L","3I"],"ADEGHIKL":["3E","3G","3I","3D","3A","3H","3L","3K"],"ADEGHJKL":["3E","3G","3J","3D","3A","3H","3L","3K"],"ADEGIJKL":["3E","3J","3I","3D","3A","3G","3L","3K"],"ADEHIJKL":["3E","3J","3I","3D","3A","3H","3L","3K"],"ADFGHIJK":["3H","3G","3J","3D","3A","3F","3I","3K"],"ADFGHIJL":["3H","3G","3J","3D","3A","3F","3L","3I"],"ADFGHIKL":["3H","3G","3I","3D","3A","3F","3L","3K"],"ADFGHJKL":["3H","3G","3J","3D","3A","3F","3L","3K"],"ADFGIJKL":["3I","3G","3J","3D","3A","3F","3L","3K"],"ADFHIJKL":["3H","3J","3I","3D","3A","3F","3L","3K"],"ADGHIJKL":["3H","3J","3I","3D","3A","3G","3L","3K"],"AEFGHIJK":["3E","3G","3J","3F","3A","3H","3I","3K"],"AEFGHIJL":["3E","3G","3J","3F","3A","3H","3L","3I"],"AEFGHIKL":["3E","3G","3I","3F","3A","3H","3L","3K"],"AEFGHJKL":["3E","3G","3J","3F","3A","3H","3L","3K"],"AEFGIJKL":["3E","3J","3I","3F","3A","3G","3L","3K"],"AEFHIJKL":["3E","3J","3I","3F","3A","3H","3L","3K"],"AEGHIJKL":["3E","3J","3I","3A","3H","3G","3L","3K"],"AFGHIJKL":["3H","3J","3I","3F","3A","3G","3L","3K"],"BCDEFGHI":["3C","3G","3B","3D","3H","3F","3E","3I"],"BCDEFGHJ":["3H","3G","3B","3C","3J","3F","3D","3E"],"BCDEFGHK":["3C","3G","3B","3D","3H","3F","3E","3K"],"BCDEFGHL":["3C","3G","3B","3D","3H","3F","3L","3E"],"BCDEFGIJ":["3C","3G","3B","3D","3J","3F","3E","3I"],"BCDEFGIK":["3C","3G","3B","3D","3E","3F","3I","3K"],"BCDEFGIL":["3C","3G","3B","3D","3E","3F","3L","3I"],"BCDEFGJK":["3C","3G","3B","3D","3J","3F","3E","3K"],"BCDEFGJL":["3C","3G","3B","3D","3J","3F","3L","3E"],"BCDEFGKL":["3C","3G","3B","3D","3E","3F","3L","3K"],"BCDEFHIJ":["3C","3J","3B","3D","3H","3F","3E","3I"],"BCDEFHIK":["3C","3E","3B","3D","3H","3F","3I","3K"],"BCDEFHIL":["3C","3E","3B","3D","3H","3F","3L","3I"],"BCDEFHJK":["3C","3J","3B","3D","3H","3F","3E","3K"],"BCDEFHJL":["3C","3J","3B","3D","3H","3F","3L","3E"],"BCDEFHKL":["3C","3E","3B","3D","3H","3F","3L","3K"],"BCDEFIJK":["3C","3J","3B","3D","3E","3F","3I","3K"],"BCDEFIJL":["3C","3J","3B","3D","3E","3F","3L","3I"],"BCDEFIKL":["3C","3E","3B","3D","3I","3F","3L","3K"],"BCDEFJKL":["3C","3J","3B","3D","3E","3F","3L","3K"],"BCDEGHIJ":["3H","3G","3B","3C","3J","3D","3E","3I"],"BCDEGHIK":["3E","3G","3B","3C","3H","3D","3I","3K"],"BCDEGHIL":["3E","3G","3B","3C","3H","3D","3L","3I"],"BCDEGHJK":["3H","3G","3B","3C","3J","3D","3E","3K"],"BCDEGHJL":["3H","3G","3B","3C","3J","3D","3L","3E"],"BCDEGHKL":["3E","3G","3B","3C","3H","3D","3L","3K"],"BCDEGIJK":["3E","3G","3B","3C","3J","3D","3I","3K"],"BCDEGIJL":["3E","3G","3B","3C","3J","3D","3L","3I"],"BCDEGIKL":["3E","3G","3B","3C","3I","3D","3L","3K"],"BCDEGJKL":["3E","3G","3B","3C","3J","3D","3L","3K"],"BCDEHIJK":["3E","3J","3B","3C","3H","3D","3I","3K"],"BCDEHIJL":["3E","3J","3B","3C","3H","3D","3L","3I"],"BCDEHIKL":["3E","3I","3B","3C","3H","3D","3L","3K"],"BCDEHJKL":["3E","3J","3B","3C","3H","3D","3L","3K"],"BCDEIJKL":["3E","3J","3B","3C","3I","3D","3L","3K"],"BCDFGHIJ":["3H","3G","3B","3C","3J","3F","3D","3I"],"BCDFGHIK":["3C","3G","3B","3D","3H","3F","3I","3K"],"BCDFGHIL":["3C","3G","3B","3D","3H","3F","3L","3I"],"BCDFGHJK":["3H","3G","3B","3C","3J","3F","3D","3K"],"BCDFGHJL":["3C","3G","3B","3D","3H","3F","3L","3J"],"BCDFGHKL":["3C","3G","3B","3D","3H","3F","3L","3K"],"BCDFGIJK":["3C","3G","3B","3D","3J","3F","3I","3K"],"BCDFGIJL":["3C","3G","3B","3D","3J","3F","3L","3I"],"BCDFGIKL":["3C","3G","3B","3D","3I","3F","3L","3K"],"BCDFGJKL":["3C","3G","3B","3D","3J","3F","3L","3K"],"BCDFHIJK":["3C","3J","3B","3D","3H","3F","3I","3K"],"BCDFHIJL":["3C","3J","3B","3D","3H","3F","3L","3I"],"BCDFHIKL":["3C","3I","3B","3D","3H","3F","3L","3K"],"BCDFHJKL":["3C","3J","3B","3D","3H","3F","3L","3K"],"BCDFIJKL":["3C","3J","3B","3D","3I","3F","3L","3K"],"BCDGHIJK":["3H","3G","3B","3C","3J","3D","3I","3K"],"BCDGHIJL":["3H","3G","3B","3C","3J","3D","3L","3I"],"BCDGHIKL":["3H","3G","3B","3C","3I","3D","3L","3K"],"BCDGHJKL":["3H","3G","3B","3C","3J","3D","3L","3K"],"BCDGIJKL":["3I","3G","3B","3C","3J","3D","3L","3K"],"BCDHIJKL":["3H","3J","3B","3C","3I","3D","3L","3K"],"BCEFGHIJ":["3H","3G","3B","3C","3J","3F","3E","3I"],"BCEFGHIK":["3E","3G","3B","3C","3H","3F","3I","3K"],"BCEFGHIL":["3E","3G","3B","3C","3H","3F","3L","3I"],"BCEFGHJK":["3H","3G","3B","3C","3J","3F","3E","3K"],"BCEFGHJL":["3H","3G","3B","3C","3J","3F","3L","3E"],"BCEFGHKL":["3E","3G","3B","3C","3H","3F","3L","3K"],"BCEFGIJK":["3E","3G","3B","3C","3J","3F","3I","3K"],"BCEFGIJL":["3E","3G","3B","3C","3J","3F","3L","3I"],"BCEFGIKL":["3E","3G","3B","3C","3I","3F","3L","3K"],"BCEFGJKL":["3E","3G","3B","3C","3J","3F","3L","3K"],"BCEFHIJK":["3E","3J","3B","3C","3H","3F","3I","3K"],"BCEFHIJL":["3E","3J","3B","3C","3H","3F","3L","3I"],"BCEFHIKL":["3E","3I","3B","3C","3H","3F","3L","3K"],"BCEFHJKL":["3E","3J","3B","3C","3H","3F","3L","3K"],"BCEFIJKL":["3E","3J","3B","3C","3I","3F","3L","3K"],"BCEGHIJK":["3E","3J","3B","3C","3H","3G","3I","3K"],"BCEGHIJL":["3E","3J","3B","3C","3H","3G","3L","3I"],"BCEGHIKL":["3E","3G","3B","3C","3I","3H","3L","3K"],"BCEGHJKL":["3E","3J","3B","3C","3H","3G","3L","3K"],"BCEGIJKL":["3E","3J","3B","3C","3I","3G","3L","3K"],"BCEHIJKL":["3E","3J","3B","3C","3I","3H","3L","3K"],"BCFGHIJK":["3H","3G","3B","3C","3J","3F","3I","3K"],"BCFGHIJL":["3H","3G","3B","3C","3J","3F","3L","3I"],"BCFGHIKL":["3H","3G","3B","3C","3I","3F","3L","3K"],"BCFGHJKL":["3H","3G","3B","3C","3J","3F","3L","3K"],"BCFGIJKL":["3I","3G","3B","3C","3J","3F","3L","3K"],"BCFHIJKL":["3H","3J","3B","3C","3I","3F","3L","3K"],"BCGHIJKL":["3H","3J","3B","3C","3I","3G","3L","3K"],"BDEFGHIJ":["3H","3G","3B","3D","3J","3F","3E","3I"],"BDEFGHIK":["3E","3G","3B","3D","3H","3F","3I","3K"],"BDEFGHIL":["3E","3G","3B","3D","3H","3F","3L","3I"],"BDEFGHJK":["3H","3G","3B","3D","3J","3F","3E","3K"],"BDEFGHJL":["3H","3G","3B","3D","3J","3F","3L","3E"],"BDEFGHKL":["3E","3G","3B","3D","3H","3F","3L","3K"],"BDEFGIJK":["3E","3G","3B","3D","3J","3F","3I","3K"],"BDEFGIJL":["3E","3G","3B","3D","3J","3F","3L","3I"],"BDEFGIKL":["3E","3G","3B","3D","3I","3F","3L","3K"],"BDEFGJKL":["3E","3G","3B","3D","3J","3F","3L","3K"],"BDEFHIJK":["3E","3J","3B","3D","3H","3F","3I","3K"],"BDEFHIJL":["3E","3J","3B","3D","3H","3F","3L","3I"],"BDEFHIKL":["3E","3I","3B","3D","3H","3F","3L","3K"],"BDEFHJKL":["3E","3J","3B","3D","3H","3F","3L","3K"],"BDEFIJKL":["3E","3J","3B","3D","3I","3F","3L","3K"],"BDEGHIJK":["3E","3J","3B","3D","3H","3G","3I","3K"],"BDEGHIJL":["3E","3J","3B","3D","3H","3G","3L","3I"],"BDEGHIKL":["3E","3G","3B","3D","3I","3H","3L","3K"],"BDEGHJKL":["3E","3J","3B","3D","3H","3G","3L","3K"],"BDEGIJKL":["3E","3J","3B","3D","3I","3G","3L","3K"],"BDEHIJKL":["3E","3J","3B","3D","3I","3H","3L","3K"],"BDFGHIJK":["3H","3G","3B","3D","3J","3F","3I","3K"],"BDFGHIJL":["3H","3G","3B","3D","3J","3F","3L","3I"],"BDFGHIKL":["3H","3G","3B","3D","3I","3F","3L","3K"],"BDFGHJKL":["3H","3G","3B","3D","3J","3F","3L","3K"],"BDFGIJKL":["3I","3G","3B","3D","3J","3F","3L","3K"],"BDFHIJKL":["3H","3J","3B","3D","3I","3F","3L","3K"],"BDGHIJKL":["3H","3J","3B","3D","3I","3G","3L","3K"],"BEFGHIJK":["3E","3J","3B","3F","3H","3G","3I","3K"],"BEFGHIJL":["3E","3J","3B","3F","3H","3G","3L","3I"],"BEFGHIKL":["3E","3G","3B","3F","3I","3H","3L","3K"],"BEFGHJKL":["3E","3J","3B","3F","3H","3G","3L","3K"],"BEFGIJKL":["3E","3J","3B","3F","3I","3G","3L","3K"],"BEFHIJKL":["3E","3J","3B","3F","3I","3H","3L","3K"],"BEGHIJKL":["3E","3J","3I","3B","3H","3G","3L","3K"],"BFGHIJKL":["3H","3J","3B","3F","3I","3G","3L","3K"],"CDEFGHIJ":["3C","3G","3J","3D","3H","3F","3E","3I"],"CDEFGHIK":["3C","3G","3E","3D","3H","3F","3I","3K"],"CDEFGHIL":["3C","3G","3E","3D","3H","3F","3L","3I"],"CDEFGHJK":["3C","3G","3J","3D","3H","3F","3E","3K"],"CDEFGHJL":["3C","3G","3J","3D","3H","3F","3L","3E"],"CDEFGHKL":["3C","3G","3E","3D","3H","3F","3L","3K"],"CDEFGIJK":["3C","3G","3E","3D","3J","3F","3I","3K"],"CDEFGIJL":["3C","3G","3E","3D","3J","3F","3L","3I"],"CDEFGIKL":["3C","3G","3E","3D","3I","3F","3L","3K"],"CDEFGJKL":["3C","3G","3E","3D","3J","3F","3L","3K"],"CDEFHIJK":["3C","3J","3E","3D","3H","3F","3I","3K"],"CDEFHIJL":["3C","3J","3E","3D","3H","3F","3L","3I"],"CDEFHIKL":["3C","3E","3I","3D","3H","3F","3L","3K"],"CDEFHJKL":["3C","3J","3E","3D","3H","3F","3L","3K"],"CDEFIJKL":["3C","3J","3E","3D","3I","3F","3L","3K"],"CDEGHIJK":["3E","3G","3J","3C","3H","3D","3I","3K"],"CDEGHIJL":["3E","3G","3J","3C","3H","3D","3L","3I"],"CDEGHIKL":["3E","3G","3I","3C","3H","3D","3L","3K"],"CDEGHJKL":["3E","3G","3J","3C","3H","3D","3L","3K"],"CDEGIJKL":["3E","3G","3I","3C","3J","3D","3L","3K"],"CDEHIJKL":["3E","3J","3I","3C","3H","3D","3L","3K"],"CDFGHIJK":["3C","3G","3J","3D","3H","3F","3I","3K"],"CDFGHIJL":["3C","3G","3J","3D","3H","3F","3L","3I"],"CDFGHIKL":["3C","3G","3I","3D","3H","3F","3L","3K"],"CDFGHJKL":["3C","3G","3J","3D","3H","3F","3L","3K"],"CDFGIJKL":["3C","3G","3I","3D","3J","3F","3L","3K"],"CDFHIJKL":["3C","3J","3I","3D","3H","3F","3L","3K"],"CDGHIJKL":["3H","3G","3I","3C","3J","3D","3L","3K"],"CEFGHIJK":["3E","3G","3J","3C","3H","3F","3I","3K"],"CEFGHIJL":["3E","3G","3J","3C","3H","3F","3L","3I"],"CEFGHIKL":["3E","3G","3I","3C","3H","3F","3L","3K"],"CEFGHJKL":["3E","3G","3J","3C","3H","3F","3L","3K"],"CEFGIJKL":["3E","3G","3I","3C","3J","3F","3L","3K"],"CEFHIJKL":["3E","3J","3I","3C","3H","3F","3L","3K"],"CEGHIJKL":["3E","3J","3I","3C","3H","3G","3L","3K"],"CFGHIJKL":["3H","3G","3I","3C","3J","3F","3L","3K"],"DEFGHIJK":["3E","3G","3J","3D","3H","3F","3I","3K"],"DEFGHIJL":["3E","3G","3J","3D","3H","3F","3L","3I"],"DEFGHIKL":["3E","3G","3I","3D","3H","3F","3L","3K"],"DEFGHJKL":["3E","3G","3J","3D","3H","3F","3L","3K"],"DEFGIJKL":["3E","3G","3I","3D","3J","3F","3L","3K"],"DEFHIJKL":["3E","3J","3I","3D","3H","3F","3L","3K"],"DEGHIJKL":["3E","3J","3I","3D","3H","3G","3L","3K"],"DFGHIJKL":["3H","3G","3I","3D","3J","3F","3L","3K"],"EFGHIJKL":["3E","3J","3I","3F","3H","3G","3L","3K"]}};
+
+      const STORAGE_KEY = "prediction_pool_state_v1";
+      const DATASET_VERSION = "FUTBOLEDOS_PRED_V1";
+
+      // Índices globales para resolver nombres y orden de dataset por team_id.
+      const TEAM_NAME = new Map();
+      for (const g of GROUPS) for (const t of g.teams) TEAM_NAME.set(t.id, t.name);
+      const nameOf = (id) => TEAM_NAME.get(id) || id;
+
+      // Estado persistente.
+      const state = loadState() || {
+        nickname: "", poolName: "", scores: {}, tiebreaks: {},
+        thirdsManual: {}, knockout: { bracketSignature: null, predictions: {} },
+      };
+
+      // ── Validación de marcadores (spec §4.2 / §17) ──────────────────────
+      function parseGoal(raw) {
+        const s = String(raw).trim();
+        if (s === "") return { value: null, invalid: false };
+        if (!/^\d+$/.test(s)) return { value: null, invalid: true };
+        const n = Number(s);
+        if (n < 0 || n > 99) return { value: null, invalid: true };
+        return { value: n, invalid: false };
+      }
+      const isComplete = (s) =>
+        s && typeof s.home === "number" && typeof s.away === "number";
+
+      // ── Clasificación (spec §5/§6/§7) ───────────────────────────────────
+      function computeStandings(group) {
+        const datasetIndex = new Map(group.teams.map((t, i) => [t.id, i]));
+        const table = new Map();
+        for (const t of group.teams)
+          table.set(t.id, { id: t.id, name: t.name, pts: 0, J: 0, G: 0, E: 0, P: 0, GF: 0, GC: 0, DG: 0 });
+        for (const m of group.matches) {
+          const score = state.scores[m.id];
+          if (!isComplete(score)) continue;
+          const h = table.get(m.home), a = table.get(m.away);
+          h.J++; a.J++;
+          h.GF += score.home; h.GC += score.away;
+          a.GF += score.away; a.GC += score.home;
+          if (score.home > score.away) { h.pts += 3; h.G++; a.P++; }
+          else if (score.home < score.away) { a.pts += 3; a.G++; h.P++; }
+          else { h.pts++; a.pts++; h.E++; a.E++; }
+        }
+        const rows = [...table.values()];
+        for (const r of rows) r.DG = r.GF - r.GC;
+        // Pts → DG → GF → orden del dataset (estable, §7).
+        rows.sort((a, b) =>
+          b.pts - a.pts || b.DG - a.DG || b.GF - a.GF ||
+          datasetIndex.get(a.id) - datasetIndex.get(b.id));
+        return rows;
+      }
+
+      const groupComplete = (group) =>
+        group.matches.every((m) => isComplete(state.scores[m.id]));
+
+      // ── Empates (spec §8) y firma determinista (§10) ────────────────────
+      function detectTieSets(rows) {
+        const sets = [];
+        let i = 0;
+        while (i < rows.length) {
+          let j = i + 1;
+          while (j < rows.length &&
+            rows[j].pts === rows[i].pts && rows[j].DG === rows[i].DG && rows[j].GF === rows[i].GF) j++;
+          if (j - i >= 2) sets.push(rows.slice(i, j));
+          i = j;
+        }
+        return sets;
+      }
+      function tieSignature(groupId, set) {
+        const ids = set.map((r) => r.id).slice().sort().join(",");
+        const { pts, DG, GF } = set[0];
+        return `group:${groupId}|teams:${ids}|pts:${pts}|dg:${DG}|gf:${GF}`;
+      }
+
+      // ── Overrides manuales válidos (§9.6/§9.7) ──────────────────────────
+      function applyOverrides(groupId, rows, tieSets) {
+        const result = rows.slice();
+        for (const set of tieSets) {
+          const override = state.tiebreaks[tieSignature(groupId, set)];
+          if (!override) continue;
+          const order = set.map((r) => r.id);
+          const pos = order.map((id) => override[id]);
+          const valid = pos.every((p) => Number.isInteger(p) && p >= 1 && p <= order.length) &&
+            new Set(pos).size === order.length;
+          if (!valid) continue;
+          const reordered = order.slice().sort((x, y) => override[x] - override[y]);
+          const start = result.findIndex((r) => r.id === set[0].id);
+          for (let k = 0; k < reordered.length; k++)
+            result[start + k] = rows.find((r) => r.id === reordered[k]);
+        }
+        return result;
+      }
+
+      // Limpia overrides cuya firma ya no existe en ningún grupo (§10).
+      function pruneStaleOverrides() {
+        const active = new Set();
+        for (const g of GROUPS)
+          for (const set of detectTieSets(computeStandings(g)))
+            active.add(tieSignature(g.groupId, set));
+        for (const sig of Object.keys(state.tiebreaks))
+          if (!active.has(sig)) delete state.tiebreaks[sig];
+      }
+
+      // ── Persistencia (spec §18) ─────────────────────────────────────────
+      function saveState() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+      }
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          const p = JSON.parse(raw);
+          return {
+            nickname: p.nickname || "", poolName: p.poolName || "",
+            scores: p.scores || {}, tiebreaks: p.tiebreaks || {},
+            thirdsManual: p.thirdsManual || {},
+            knockout: p.knockout && typeof p.knockout === "object"
+              ? { bracketSignature: p.knockout.bracketSignature || null, predictions: p.knockout.predictions || {} }
+              : { bracketSignature: null, predictions: {} },
+          };
+        } catch { return null; }
+      }
+
+      // ── Helpers de render ───────────────────────────────────────────────
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const cssEsc = (s) => (window.CSS && CSS.escape ? CSS.escape(s) : s.replace(/["\\]/g, "\\$&"));
+
+      // ── Validación del nick ─────────────────────────────────────────────
+      function nickError(v) {
+        if (v === "") return "";
+        if (!/^[A-Za-z0-9_-]{2,30}$/.test(v))
+          return "2–30 caracteres: letras, números, guion bajo o guion.";
+        return "";
+      }
+
+      // ═══════════════ DIECISEISAVOS / ROUND OF 32 (spec 02) ═══════════════
+      // Orden final de un grupo: auto (Pts/DG/GF/orden) + desempates manuales.
+      function finalStandings(group) {
+        const rows = computeStandings(group);
+        return applyOverrides(group.groupId, rows, detectTieSets(rows));
+      }
+      const allGroupsComplete = () => GROUPS.every(groupComplete);
+
+      const GROUP_ORDER = "ABCDEFGHIJKL";
+      // Los 12 terceros, ordenados Pts→DG→GF→orden de grupo A-L (spec 02 §6.2).
+      function thirdsBase() {
+        return GROUPS.map((g) => {
+          const r = finalStandings(g)[2];
+          return { group: g.groupId, id: r.id, name: r.name, pts: r.pts, dg: r.DG, gf: r.GF };
+        }).sort((a, b) =>
+          b.pts - a.pts || b.dg - a.dg || b.gf - a.gf ||
+          GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group));
+      }
+      // Sets de terceros empatados en (Pts, DG) → reordenables a mano (tu paso 3).
+      function thirdsTieSets(ranked) {
+        const sets = [];
+        let i = 0;
+        while (i < ranked.length) {
+          let j = i + 1;
+          while (j < ranked.length && ranked[j].pts === ranked[i].pts && ranked[j].dg === ranked[i].dg) j++;
+          if (j - i >= 2) sets.push(ranked.slice(i, j));
+          i = j;
+        }
+        return sets;
+      }
+      function thirdsSignature(set) {
+        const groups = set.map((t) => t.group).slice().sort().join(",");
+        return `thirds|groups:${groups}|pts:${set[0].pts}|dg:${set[0].dg}`;
+      }
+      // Ranking con reordenación manual aplicada dentro de cada set empatado.
+      function thirdsRanked() {
+        const ranked = thirdsBase();
+        const result = ranked.slice();
+        for (const set of thirdsTieSets(ranked)) {
+          const override = state.thirdsManual[thirdsSignature(set)];
+          if (!override) continue;
+          const order = set.map((t) => t.group);
+          const pos = order.map((g) => override[g]);
+          const valid = pos.every((p) => Number.isInteger(p) && p >= 1 && p <= order.length) &&
+            new Set(pos).size === order.length;
+          if (!valid) continue;
+          const reordered = order.slice().sort((x, y) => override[x] - override[y]);
+          const start = result.findIndex((t) => t.group === set[0].group);
+          for (let k = 0; k < reordered.length; k++)
+            result[start + k] = ranked.find((t) => t.group === reordered[k]);
+        }
+        return result;
+      }
+      function pruneStaleThirds() {
+        const active = new Set(thirdsTieSets(thirdsBase()).map(thirdsSignature));
+        for (const sig of Object.keys(state.thirdsManual))
+          if (!active.has(sig)) delete state.thirdsManual[sig];
+      }
+      // ¿Empate (Pts,DG) en la frontera 8/9? → ambigüedad sobre quién clasifica.
+      function thirdsBoundaryTie(ranked) {
+        if (ranked.length < 9) return false;
+        return ranked[7].pts === ranked[8].pts && ranked[7].dg === ranked[8].dg;
+      }
+
+      // Resuelve el bracket desde el ranking actual del usuario.
+      function resolveBracket() {
+        const order = {};
+        for (const g of GROUPS) order[g.groupId] = finalStandings(g); // [1º,2º,3º,4º]
+        const ranked = thirdsRanked();
+        const qualified = ranked.slice(0, 8);
+        const key = qualified.map((t) => t.group).slice().sort().join("");
+        const assignment = THIRD_TABLE.table[key];
+        if (!assignment) return { ok: false, error: "missing_key", key, qualified };
+        const colMap = {};
+        THIRD_TABLE.columns.forEach((c, i) => (colMap[c] = assignment[i])); // "1A" → "3X"
+        const teamOfSlot = (slot, homeWinnerSlot) => {
+          if (/^[12][A-L]$/.test(slot)) return order[slot[1]][Number(slot[0]) - 1].id;
+          if (slot[0] === "3") return order[colMap[homeWinnerSlot][1]][2].id; // tercero de la columna del local
+          return null;
+        };
+        const matches = R32_BRACKET.matches.map((m) => ({
+          match_id: m.match_id, fifa: m.fifa_match,
+          home_slot: m.home_slot, away_slot: m.away_slot,
+          home: teamOfSlot(m.home_slot, m.home_slot),
+          away: teamOfSlot(m.away_slot, m.home_slot),
+        }));
+        return { ok: true, key, assignment, colMap, qualified, matches };
+      }
+
+      const bracketSignature = (matches) =>
+        "R32|" + matches.map((m) => `${m.match_id}:${m.home}-${m.away}`).join("|");
+
+      // Invalidación (§16): si cambia el bracket, se descartan las predicciones R32.
+      function syncKnockout(matches) {
+        const sig = bracketSignature(matches);
+        if (state.knockout.bracketSignature !== sig) {
+          state.knockout.bracketSignature = sig;
+          state.knockout.predictions = {};
+          saveState();
+        }
+      }
+      const koPred = (id) => {
+        if (!state.knockout.predictions[id])
+          state.knockout.predictions[id] = { home: null, away: null, qualified: null };
+        return state.knockout.predictions[id];
+      };
+      // Recalcula el clasificado tras cambiar goles (auto si hay ganador, §11.4).
+      function recomputeQualified(m) {
+        const p = koPred(m.match_id);
+        if (typeof p.home === "number" && typeof p.away === "number") {
+          if (p.home > p.away) p.qualified = m.home;
+          else if (p.away > p.home) p.qualified = m.away;
+          else if (p.qualified !== m.home && p.qualified !== m.away) p.qualified = null; // empate: a elegir
+        } else p.qualified = null;
+      }
+      const koComplete = (m) => {
+        const p = koPred(m.match_id);
+        return typeof p.home === "number" && typeof p.away === "number" &&
+          (p.qualified === m.home || p.qualified === m.away);
+      };
+
+      function renderR32() {
+        const root = document.getElementById("r32-root");
+        if (!allGroupsComplete()) {
+          root.innerHTML = `<section class="r32-card">
+            <h2>Dieciseisavos de final</h2>
+            <p class="r32-pending">Pendiente de completar todos los grupos. Los enfrentamientos se calcularán automáticamente con tu predicción de fase de grupos.</p>
+          </section>`;
+          return;
+        }
+        pruneStaleThirds();
+        const res = resolveBracket();
+        if (!res.ok) {
+          root.innerHTML = `<section class="r32-card">
+            <h2>Dieciseisavos de final</h2>
+            <div class="r32-banner danger">No se ha encontrado una combinación válida para los mejores terceros. Revisa la tabla de asignación de terceros.</div>
+          </section>`;
+          console.error("Missing third-place assignment key:", res.key);
+          return;
+        }
+        syncKnockout(res.matches);
+        const ranked = thirdsRanked();
+        const boundaryWarn = thirdsBoundaryTie(ranked)
+          ? `<div class="r32-banner warn">Hay terceros empatados en puntos y diferencia de goles en la frontera de clasificación. Ajusta el orden abajo si quieres decidir qué 8 clasifican.</div>`
+          : "";
+        const kdone = res.matches.filter(koComplete).length;
+        root.innerHTML = `<section class="r32-card">
+          <h2>Dieciseisavos de final</h2>
+          <p class="muted" style="font-size:0.82rem;margin:0 0 0.4rem">Generados desde TU clasificación de grupos · clave de terceros <strong>${esc(res.key)}</strong> · completados ${kdone}/16.</p>
+          <div class="section-title">Mejores terceros (8 de 12 clasifican)</div>
+          ${boundaryWarn}
+          ${thirdsTableHtml(ranked, res.qualified)}
+          <div class="section-title">Cruces</div>
+          <div class="r32-matches">${res.matches.map(koRowHtml).join("")}</div>
+        </section>`;
+        wireThirds();
+        wireKnockout(res.matches);
+      }
+
+      function thirdsTableHtml(ranked, qualified) {
+        const qids = new Set(qualified.map((t) => t.id));
+        const selMeta = {}; // group → { sig, n, cur }
+        for (const set of thirdsTieSets(thirdsBase())) {
+          const sig = thirdsSignature(set);
+          const groupsInSet = set.map((t) => t.group);
+          const orderInRanked = ranked.filter((t) => groupsInSet.includes(t.group)).map((t) => t.group);
+          orderInRanked.forEach((grp, idx) => { selMeta[grp] = { sig, n: orderInRanked.length, cur: idx + 1 }; });
+        }
+        const body = ranked.map((t, i) => {
+          const qual = qids.has(t.id);
+          const cls = [qual ? "qual" : "", i === 8 ? "cut" : ""].filter(Boolean).join(" ");
+          let control = "";
+          const meta = selMeta[t.group];
+          if (meta) {
+            const opts = Array.from({ length: meta.n }, (_, k) =>
+              `<option value="${k + 1}" ${meta.cur === k + 1 ? "selected" : ""}>${k + 1}</option>`).join("");
+            control = `<select data-tsig="${esc(meta.sig)}" data-tgroup="${t.group}" aria-label="Orden manual del tercero del grupo ${t.group}">${opts}</select>`;
+          }
+          return `<tr class="${cls}">
+            <td class="tpos">${i + 1}</td>
+            <td class="tname">${esc(t.name)} <span class="muted">(${t.group})</span></td>
+            <td>${t.pts}</td><td>${t.dg}</td><td>${t.gf}</td>
+            <td class="qbadge">${qual ? "✓" : ""}</td>
+            <td>${control}</td>
+          </tr>`;
+        }).join("");
+        return `<table class="thirds">
+          <thead><tr><th>#</th><th>Tercero</th><th>Pts</th><th>DG</th><th>GF</th><th>Clasifica</th><th>Orden</th></tr></thead>
+          <tbody>${body}</tbody>
+        </table>`;
+      }
+
+      function koRowHtml(m) {
+        const p = koPred(m.match_id);
+        const hv = typeof p.home === "number" ? p.home : "";
+        const av = typeof p.away === "number" ? p.away : "";
+        const isDraw = typeof p.home === "number" && typeof p.away === "number" && p.home === p.away;
+        const xHome = p.qualified === m.home ? "✓" : "";
+        const xAway = p.qualified === m.away ? "✓" : "";
+        let qualBlock = "";
+        if (isDraw) {
+          qualBlock = `<fieldset class="ko-qual" data-koq="${m.match_id}">
+            <legend>Partido empatado. Selecciona qué equipo se clasifica.</legend>
+            <label><input type="radio" name="${m.match_id}_q" value="${m.home}" ${p.qualified === m.home ? "checked" : ""}> ${esc(nameOf(m.home))}</label>
+            <label><input type="radio" name="${m.match_id}_q" value="${m.away}" ${p.qualified === m.away ? "checked" : ""}> ${esc(nameOf(m.away))}</label>
+          </fieldset>`;
+        }
+        return `<div class="ko" data-ko="${m.match_id}">
+          <div class="ko-row">
+            <span class="team home">${esc(nameOf(m.home))}</span>
+            <span class="ko-x" aria-label="${xHome ? "clasifica " + esc(nameOf(m.home)) : ""}">${xHome}</span>
+            <label class="sr-only" for="${m.match_id}_kh">Goles de ${esc(nameOf(m.home))} en dieciseisavos contra ${esc(nameOf(m.away))}</label>
+            <input class="score-input" id="${m.match_id}_kh" type="number" inputmode="numeric" min="0" max="99" value="${hv}" data-ko="${m.match_id}" data-side="home">
+            <span class="sep">×</span>
+            <label class="sr-only" for="${m.match_id}_ka">Goles de ${esc(nameOf(m.away))} en dieciseisavos contra ${esc(nameOf(m.home))}</label>
+            <input class="score-input" id="${m.match_id}_ka" type="number" inputmode="numeric" min="0" max="99" value="${av}" data-ko="${m.match_id}" data-side="away">
+            <span class="ko-x" aria-label="${xAway ? "clasifica " + esc(nameOf(m.away)) : ""}">${xAway}</span>
+            <span class="team away">${esc(nameOf(m.away))}</span>
+          </div>
+          <div class="ko-slots">${esc(m.fifa)} · ${esc(m.home_slot)} vs ${esc(m.away_slot)}</div>
+          ${qualBlock}
+        </div>`;
+      }
+
+      function wireThirds() {
+        document.querySelectorAll(".thirds select").forEach((sel) => {
+          sel.addEventListener("change", () => {
+            const sig = sel.dataset.tsig;
+            const picks = {};
+            document.querySelectorAll(`.thirds select[data-tsig="${cssEsc(sig)}"]`)
+              .forEach((s) => { picks[s.dataset.tgroup] = Number(s.value); });
+            const vals = Object.values(picks);
+            if (new Set(vals).size !== vals.length) { render(); return; } // duplicado: revertir
+            state.thirdsManual[sig] = picks;
+            saveState();
+            render();
+          });
+        });
+      }
+
+      function wireKnockout(matches) {
+        const byId = new Map(matches.map((m) => [m.match_id, m]));
+        document.querySelectorAll("#r32-root .score-input").forEach((input) => {
+          input.addEventListener("input", () => {
+            const id = input.dataset.ko, side = input.dataset.side;
+            const { value, invalid } = parseGoal(input.value);
+            input.classList.toggle("invalid", invalid);
+            if (invalid) return;
+            koPred(id)[side] = value;
+            recomputeQualified(byId.get(id));
+            saveState();
+            render();
+            const again = document.getElementById(`${id}_${side === "home" ? "kh" : "ka"}`);
+            if (again) { again.focus(); const v = again.value; again.value = ""; again.value = v; }
+          });
+        });
+        document.querySelectorAll('#r32-root .ko-qual input[type="radio"]').forEach((radio) => {
+          radio.addEventListener("change", () => {
+            const id = radio.closest(".ko-qual").dataset.koq;
+            koPred(id).qualified = radio.value;
+            saveState();
+            render();
+          });
+        });
+      }
+
+      // ── Render global ───────────────────────────────────────────────────
+      function render() {
+        pruneStaleOverrides();
+        const root = document.getElementById("groups-root");
+        root.innerHTML = GROUPS.map(groupCardHtml).join("");
+        for (const g of GROUPS) { wireInputs(g); wireTiebreak(g); }
+        renderR32();
+        renderProgress();
+        renderDataset();
+      }
+
+      function groupCardHtml(group) {
+        const rows = computeStandings(group);
+        const complete = groupComplete(group);
+        const tieSets = detectTieSets(rows);
+        const ordered = applyOverrides(group.groupId, rows, tieSets);
+        const showTiebreak = complete && tieSets.length > 0;
+        const tiedIds = new Set(showTiebreak ? tieSets.flat().map((r) => r.id) : []);
+
+        return `<section class="group-card" data-group="${group.groupId}">
+          <h2>Grupo ${group.groupId}</h2>
+          <div class="section-title">Predicción de partidos</div>
+          <div class="matches">${group.matches.map((m) => matchRowHtml(group, m)).join("")}</div>
+          <div class="results-row">
+            <div class="standings-wrap">
+              <div class="section-title">Clasificación</div>
+              ${standingsHtml(ordered, tiedIds)}
+            </div>
+            ${showTiebreak
+              ? `<div class="tiebreak-wrap">
+                   <div class="section-title">Desempate</div>
+                   ${tiebreakPanelHtml(group.groupId, tieSets)}
+                 </div>`
+              : ""}
+          </div>
+        </section>`;
+      }
+
+      function matchRowHtml(group, m) {
+        const s = state.scores[m.id] || {};
+        const hv = s.home ?? "", av = s.away ?? "";
+        return `<div class="match" data-match="${m.id}">
+          <span class="team home">${esc(nameOf(m.home))}</span>
+          <label class="sr-only" for="${m.id}_home">Goles de ${esc(nameOf(m.home))} contra ${esc(nameOf(m.away))}</label>
+          <input class="score-input" id="${m.id}_home" type="number" inputmode="numeric" min="0" max="99"
+                 value="${hv}" data-match="${m.id}" data-side="home" />
+          <span class="sep">×</span>
+          <label class="sr-only" for="${m.id}_away">Goles de ${esc(nameOf(m.away))} contra ${esc(nameOf(m.home))}</label>
+          <input class="score-input" id="${m.id}_away" type="number" inputmode="numeric" min="0" max="99"
+                 value="${av}" data-match="${m.id}" data-side="away" />
+          <span class="team away">${esc(nameOf(m.away))}</span>
+        </div>`;
+      }
+
+      function standingsHtml(rows, tiedIds) {
+        const body = rows.map((r, i) => {
+          const cls = [
+            i < 2 ? "qualifies" : "",
+            i === 2 ? "third" : "",
+            tiedIds.has(r.id) ? "tied" : "",
+          ].filter(Boolean).join(" ");
+          return `<tr class="${cls}">
+            <td class="pos">${i + 1}</td><td class="sel">${esc(r.name)}</td><td class="pts">${r.pts}</td>
+            <td>${r.J}</td><td>${r.G}</td><td>${r.E}</td><td>${r.P}</td>
+            <td>${r.GF}</td><td>${r.GC}</td><td>${r.DG}</td>
+          </tr>`;
+        }).join("");
+        return `<table class="standings">
+          <thead><tr>
+            <th>Pos</th><th>Selección</th><th>Pts</th>
+            <th>J</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th>
+          </tr></thead>
+          <tbody>${body}</tbody>
+        </table>`;
+      }
+
+      function tiebreakPanelHtml(groupId, tieSets) {
+        const sets = tieSets.map((set) => {
+          const sig = tieSignature(groupId, set);
+          const n = set.length;
+          const override = state.tiebreaks[sig] || {};
+          const rowsHtml = set.map((r, i) => {
+            const sel = override[r.id] ?? i + 1;
+            const opts = Array.from({ length: n }, (_, k) =>
+              `<option value="${k + 1}" ${sel === k + 1 ? "selected" : ""}>${k + 1}</option>`).join("");
+            return `<div class="tb-row">
+              <span class="tb-team">${esc(r.name)}</span>
+              <label class="sr-only" for="tb_${sig}_${r.id}">Posición manual de ${esc(r.name)}</label>
+              <select id="tb_${sig}_${r.id}" data-sig="${esc(sig)}" data-team="${r.id}">${opts}</select>
+            </div>`;
+          }).join("");
+          return `<div class="tb-set" data-sig="${esc(sig)}">
+            <div class="tb-set-label">Empate entre ${n} equipos</div>
+            ${rowsHtml}
+            <div class="tb-error" data-sig-error="${esc(sig)}"></div>
+          </div>`;
+        }).join("");
+        return `<div class="tiebreak-panel">
+          <h3>Hay empate</h3>
+          <p>Puedes fijar manualmente el orden final de los equipos empatados.</p>
+          ${sets}
+        </div>`;
+      }
+
+      // ── Wiring ──────────────────────────────────────────────────────────
+      function wireInputs(group) {
+        const card = document.querySelector(`[data-group="${cssEsc(group.groupId)}"]`);
+        card.querySelectorAll(".score-input").forEach((input) => {
+          input.addEventListener("input", () => {
+            const id = input.dataset.match, side = input.dataset.side;
+            const { value, invalid } = parseGoal(input.value);
+            input.classList.toggle("invalid", invalid);
+            if (invalid) return;
+            if (!state.scores[id]) state.scores[id] = { home: null, away: null };
+            state.scores[id][side] = value;
+            saveState();
+            render();
+            const again = document.getElementById(`${id}_${side}`);
+            if (again) { again.focus(); const v = again.value; again.value = ""; again.value = v; }
+          });
+        });
+      }
+
+      function wireTiebreak(group) {
+        const card = document.querySelector(`[data-group="${cssEsc(group.groupId)}"]`);
+        card.querySelectorAll(".tb-set select").forEach((sel) => {
+          sel.addEventListener("change", () => {
+            const sig = sel.dataset.sig;
+            const picks = {};
+            card.querySelectorAll(`.tb-set select[data-sig="${cssEsc(sig)}"]`)
+              .forEach((s) => { picks[s.dataset.team] = Number(s.value); });
+            const values = Object.values(picks);
+            const errEl = card.querySelector(`[data-sig-error="${cssEsc(sig)}"]`);
+            if (new Set(values).size !== values.length) {
+              if (errEl) errEl.textContent = "Cada equipo empatado debe tener una posición única.";
+              return;
+            }
+            if (errEl) errEl.textContent = "";
+            state.tiebreaks[sig] = picks;
+            saveState();
+            render();
+          });
+        });
+      }
+
+      // ── Progreso + dataset ──────────────────────────────────────────────
+      function renderProgress() {
+        const total = GROUPS.reduce((n, g) => n + g.matches.length, 0);
+        const done = GROUPS.reduce((n, g) =>
+          n + g.matches.filter((m) => isComplete(state.scores[m.id])).length, 0);
+        const fullGroups = GROUPS.filter(groupComplete).length;
+        document.getElementById("p-matches").textContent = `${done}/${total}`;
+        document.getElementById("p-groups").textContent = `${fullGroups}/12`;
+      }
+
+      // Genera el bloque de texto tipo dataset. Una línea por partido:
+      //   <match_id> <home_id> <hg> <ag> <away_id>   (goles "-" si falta)
+      // y el orden derivado por grupo (con marca tb:manual si hubo desempate).
+      function buildDataset() {
+        const total = GROUPS.reduce((n, g) => n + g.matches.length, 0);
+        const done = GROUPS.reduce((n, g) =>
+          n + g.matches.filter((m) => isComplete(state.scores[m.id])).length, 0);
+        const fullGroups = GROUPS.filter(groupComplete).length;
+
+        const lines = [];
+        lines.push(DATASET_VERSION);
+        lines.push(`nick: ${state.nickname || "-"}`);
+        lines.push(`pool: ${state.poolName || "-"}`);
+        lines.push(`generado: ${new Date().toISOString()}`);
+        lines.push(`partidos: ${done}/${total}  grupos_completos: ${fullGroups}/12`);
+        lines.push("");
+        lines.push("[PARTIDOS]");
+        for (const g of GROUPS) {
+          for (const m of g.matches) {
+            const s = state.scores[m.id] || {};
+            const hg = typeof s.home === "number" ? s.home : "-";
+            const ag = typeof s.away === "number" ? s.away : "-";
+            lines.push(`${m.id} ${m.home} ${hg} ${ag} ${m.away}`);
+          }
+        }
+        lines.push("");
+        lines.push("[CLASIFICACION]");
+        for (const g of GROUPS) {
+          const rows = computeStandings(g);
+          const tieSets = detectTieSets(rows);
+          const ordered = applyOverrides(g.groupId, rows, tieSets);
+          const manual = groupComplete(g) && tieSets.some((set) => state.tiebreaks[tieSignature(g.groupId, set)]);
+          const order = ordered.map((r, i) => `${i + 1}:${r.id}`).join(" ");
+          const flag = manual ? " tb:manual" : "";
+          const status = groupComplete(g) ? "" : " (incompleto)";
+          lines.push(`${g.groupId} ${order}${flag}${status}`);
+        }
+        lines.push("");
+        lines.push("[DIECISEISAVOS]");
+        if (!allGroupsComplete()) {
+          lines.push("pendiente: completa la fase de grupos");
+        } else {
+          const res = resolveBracket();
+          if (!res.ok) {
+            lines.push(`error: sin asignacion de terceros (clave ${res.key})`);
+          } else {
+            lines.push(`terceros_clave: ${res.key}`);
+            lines.push(`terceros_clasificados: ${res.qualified.map((t) => t.group + ":" + t.id).join(" ")}`);
+            let kdone = 0;
+            for (const m of res.matches) {
+              const p = state.knockout.predictions[m.match_id] || {};
+              const hg = typeof p.home === "number" ? p.home : "-";
+              const ag = typeof p.away === "number" ? p.away : "-";
+              const q = p.qualified === m.home || p.qualified === m.away ? p.qualified : "-";
+              if (hg !== "-" && ag !== "-" && q !== "-") kdone++;
+              lines.push(`${m.match_id} ${m.fifa} ${m.home_slot} ${m.away_slot} ${m.home} ${hg} ${ag} ${m.away} q:${q}`);
+            }
+            lines.push(`r32_completados: ${kdone}/16`);
+          }
+        }
+        lines.push("");
+        lines.push(`END_${DATASET_VERSION}`);
+        return lines.join("\n");
+      }
+
+      function renderDataset() {
+        document.getElementById("dataset-box").value = buildDataset();
+      }
+
+      // ── Identidad ───────────────────────────────────────────────────────
+      const $nick = document.getElementById("nick");
+      const $pool = document.getElementById("pool");
+      $nick.value = state.nickname;
+      $pool.value = state.poolName;
+      $nick.addEventListener("input", () => {
+        const v = $nick.value.trim();
+        const err = nickError(v);
+        document.getElementById("nick-error").textContent = err;
+        $nick.classList.toggle("invalid", !!err);
+        state.nickname = v;
+        saveState();
+        renderDataset();
+      });
+      $pool.addEventListener("input", () => {
+        state.poolName = $pool.value.trim();
+        saveState();
+        renderDataset();
+      });
+
+      // ── Copiar ──────────────────────────────────────────────────────────
+      document.getElementById("copy-btn").addEventListener("click", async () => {
+        const text = document.getElementById("dataset-box").value;
+        try { await navigator.clipboard.writeText(text); }
+        catch {
+          const ta = document.getElementById("dataset-box");
+          ta.removeAttribute("readonly"); ta.select();
+          document.execCommand("copy"); ta.setAttribute("readonly", "");
+        }
+        const msg = document.getElementById("copied-msg");
+        msg.hidden = false; setTimeout(() => (msg.hidden = true), 1500);
+      });
+
+      // ── Rellenos rápidos (demo) ─────────────────────────────────────────
+      document.querySelector('[data-fill="decisive"]').addEventListener("click", () => {
+        // Gana el equipo de menor índice (1-0): 1º/2º/3º/4º claros en cada grupo.
+        for (const g of GROUPS) {
+          const idx = new Map(g.teams.map((t, i) => [t.id, i]));
+          for (const m of g.matches)
+            state.scores[m.id] = idx.get(m.home) < idx.get(m.away) ? { home: 1, away: 0 } : { home: 0, away: 1 };
+        }
+        saveState(); render();
+      });
+      document.querySelector('[data-fill="draws"]').addEventListener("click", () => {
+        for (const g of GROUPS) for (const m of g.matches) state.scores[m.id] = { home: 1, away: 1 };
+        saveState(); render();
+      });
+      document.querySelector('[data-fill="clear"]').addEventListener("click", () => {
+        state.scores = {}; state.tiebreaks = {};
+        state.thirdsManual = {}; state.knockout = { bracketSignature: null, predictions: {} };
+        saveState(); render();
+      });
+
+      render();
+    </script>
+  </body>
+</html>

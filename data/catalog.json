@@ -1,0 +1,14 @@
+{
+  "version": "POOL_CATALOG_V1",
+  "event": "Mundial 2026",
+  "closes_at": "2026-06-15T18:00:00+02:00",
+  "options": [
+    { "id": "winner_real_madrid", "category": "Winner", "exclusive": true, "label": "Gana: Real Madrid" },
+    { "id": "winner_man_city", "category": "Winner", "exclusive": true, "label": "Gana: Manchester City" },
+    { "id": "winner_brazil", "category": "Winner", "exclusive": true, "label": "Gana: Brasil" },
+    { "id": "top_scorer_mbappe", "category": "TopScorer", "exclusive": true, "label": "Pichichi: Mbappé" },
+    { "id": "top_scorer_haaland", "category": "TopScorer", "exclusive": true, "label": "Pichichi: Haaland" },
+    { "id": "finalist_city", "category": "Finalist", "exclusive": false, "label": "Finalista: Manchester City" },
+    { "id": "finalist_madrid", "category": "Finalist", "exclusive": false, "label": "Finalista: Real Madrid" }
+  ]
+}

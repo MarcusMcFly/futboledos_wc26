@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "round_id": "R32",
+  "round_label": "Dieciseisavos de final",
+  "source": "FWC26_regulations_EN.pdf §12.6 (p.23)",
+  "third_place_receiver_slots": ["1A", "1B", "1D", "1E", "1G", "1I", "1K", "1L"],
+  "winner_vs_runner_up_slots": ["1C", "1F", "1H", "1J"],
+  "matches": [
+    { "match_id": "R32_01", "fifa_match": "M73", "winner_code": "W73", "home_slot": "2A", "away_slot": "2B" },
+    { "match_id": "R32_02", "fifa_match": "M74", "winner_code": "W74", "home_slot": "1E", "away_slot": "3ABCDF" },
+    { "match_id": "R32_03", "fifa_match": "M75", "winner_code": "W75", "home_slot": "1F", "away_slot": "2C" },
+    { "match_id": "R32_04", "fifa_match": "M76", "winner_code": "W76", "home_slot": "1C", "away_slot": "2F" },
+    { "match_id": "R32_05", "fifa_match": "M77", "winner_code": "W77", "home_slot": "1I", "away_slot": "3CDFGH" },
+    { "match_id": "R32_06", "fifa_match": "M78", "winner_code": "W78", "home_slot": "2E", "away_slot": "2I" },
+    { "match_id": "R32_07", "fifa_match": "M79", "winner_code": "W79", "home_slot": "1A", "away_slot": "3CEFHI" },
+    { "match_id": "R32_08", "fifa_match": "M80", "winner_code": "W80", "home_slot": "1L", "away_slot": "3EHIJK" },
+    { "match_id": "R32_09", "fifa_match": "M81", "winner_code": "W81", "home_slot": "1D", "away_slot": "3BEFIJ" },
+    { "match_id": "R32_10", "fifa_match": "M82", "winner_code": "W82", "home_slot": "1G", "away_slot": "3AEHIJ" },
+    { "match_id": "R32_11", "fifa_match": "M83", "winner_code": "W83", "home_slot": "2K", "away_slot": "2L" },
+    { "match_id": "R32_12", "fifa_match": "M84", "winner_code": "W84", "home_slot": "1H", "away_slot": "2J" },
+    { "match_id": "R32_13", "fifa_match": "M85", "winner_code": "W85", "home_slot": "1B", "away_slot": "3EFGIJ" },
+    { "match_id": "R32_14", "fifa_match": "M86", "winner_code": "W86", "home_slot": "1J", "away_slot": "2H" },
+    { "match_id": "R32_15", "fifa_match": "M87", "winner_code": "W87", "home_slot": "1K", "away_slot": "3DEIJL" },
+    { "match_id": "R32_16", "fifa_match": "M88", "winner_code": "W88", "home_slot": "2D", "away_slot": "2G" }
+  ]
+}
