@@ -628,13 +628,19 @@
       function wireThirds() {
         document.querySelectorAll(".thirds select").forEach((sel) => {
           sel.addEventListener("change", () => {
-            const sig = sel.dataset.tsig;
-            const picks = {};
-            document.querySelectorAll(`.thirds select[data-tsig="${cssEsc(sig)}"]`)
-              .forEach((s) => { picks[s.dataset.tgroup] = Number(s.value); });
-            const vals = Object.values(picks);
-            if (new Set(vals).size !== vals.length) { render(); return; } // duplicado: revertir
-            state.thirdsManual[sig] = picks;
+            const sig = sel.dataset.tsig, grp = sel.dataset.tgroup, newPos = Number(sel.value);
+            const set = thirdsTieSets(thirdsBase()).find((s) => thirdsSignature(s) === sig);
+            if (!set) return;
+            const groups = set.map((t) => t.group);
+            // Orden efectivo actual del set; intercambia (swap) con quien ocupa newPos.
+            const curOrder = thirdsRanked().filter((t) => groups.includes(t.group)).map((t) => t.group);
+            const oldPos = curOrder.indexOf(grp) + 1;
+            if (newPos === oldPos) return;
+            const other = curOrder[newPos - 1];
+            const map = {};
+            curOrder.forEach((g, i) => (map[g] = i + 1));
+            map[grp] = newPos; map[other] = oldPos;
+            state.thirdsManual[sig] = map;
             saveState();
             render();
           });
@@ -794,18 +800,21 @@
         const card = document.querySelector(`[data-group="${cssEsc(group.groupId)}"]`);
         card.querySelectorAll(".tb-set select").forEach((sel) => {
           sel.addEventListener("change", () => {
-            const sig = sel.dataset.sig;
-            const picks = {};
-            card.querySelectorAll(`.tb-set select[data-sig="${cssEsc(sig)}"]`)
-              .forEach((s) => { picks[s.dataset.team] = Number(s.value); });
-            const values = Object.values(picks);
-            const errEl = card.querySelector(`[data-sig-error="${cssEsc(sig)}"]`);
-            if (new Set(values).size !== values.length) {
-              if (errEl) errEl.textContent = "Cada equipo empatado debe tener una posición única.";
-              return;
-            }
-            if (errEl) errEl.textContent = "";
-            state.tiebreaks[sig] = picks;
+            const sig = sel.dataset.sig, teamId = sel.dataset.team, newPos = Number(sel.value);
+            const rows = computeStandings(group);
+            const set = detectTieSets(rows).find((s) => tieSignature(group.groupId, s) === sig);
+            if (!set) return;
+            const ids = set.map((r) => r.id);
+            // Orden efectivo actual del set; intercambia (swap) con quien ocupa newPos.
+            const curOrder = applyOverrides(group.groupId, rows, detectTieSets(rows))
+              .filter((r) => ids.includes(r.id)).map((r) => r.id);
+            const oldPos = curOrder.indexOf(teamId) + 1;
+            if (newPos === oldPos) return;
+            const other = curOrder[newPos - 1];
+            const map = {};
+            curOrder.forEach((id, i) => (map[id] = i + 1));
+            map[teamId] = newPos; map[other] = oldPos;
+            state.tiebreaks[sig] = map;
             saveState();
             render();
           });
