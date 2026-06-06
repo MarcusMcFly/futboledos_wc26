@@ -175,6 +175,14 @@
       .ko-qual legend { padding: 0; color: var(--warn); font-weight: 600; }
       .ko-qual label { display: inline-flex; align-items: center; gap: 0.3rem; margin: 0.2rem 0.9rem 0 0; }
       fieldset.ko-qual { min-inline-size: auto; }
+      .ko-pens {
+        margin-top: 0.4rem; padding: 0.4rem 0.55rem; border: 1px solid var(--warn);
+        background: rgba(210,153,34,0.10); border-radius: 8px;
+        display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+      }
+      .ko-pens-label { font-size: 0.82rem; color: var(--warn); font-weight: 600; }
+      .ko-pens .score-input { width: 2.4rem; min-height: 2.1rem; }
+      .ko-pens-err { color: var(--danger); font-size: 0.78rem; flex-basis: 100%; }
     </style>
   </head>
   <body>
@@ -291,79 +299,153 @@
       const isComplete = (s) =>
         s && typeof s.home === "number" && typeof s.away === "number";
 
-      // ── Clasificación (spec §5/§6/§7) ───────────────────────────────────
-      function computeStandings(group) {
-        const datasetIndex = new Map(group.teams.map((t, i) => [t.id, i]));
-        const table = new Map();
-        for (const t of group.teams)
-          table.set(t.id, { id: t.id, name: t.name, pts: 0, J: 0, G: 0, E: 0, P: 0, GF: 0, GC: 0, DG: 0 });
-        for (const m of group.matches) {
-          const score = state.scores[m.id];
-          if (!isComplete(score)) continue;
-          const h = table.get(m.home), a = table.get(m.away);
-          h.J++; a.J++;
-          h.GF += score.home; h.GC += score.away;
-          a.GF += score.away; a.GC += score.home;
-          if (score.home > score.away) { h.pts += 3; h.G++; a.P++; }
-          else if (score.home < score.away) { a.pts += 3; a.G++; h.P++; }
-          else { h.pts++; a.pts++; h.E++; a.E++; }
-        }
-        const rows = [...table.values()];
-        for (const r of rows) r.DG = r.GF - r.GC;
-        // Pts → DG → GF → orden del dataset (estable, §7).
-        rows.sort((a, b) =>
-          b.pts - a.pts || b.DG - a.DG || b.GF - a.GF ||
-          datasetIndex.get(a.id) - datasetIndex.get(b.id));
-        return rows;
-      }
-
       const groupComplete = (group) =>
         group.matches.every((m) => isComplete(state.scores[m.id]));
 
-      // ── Empates (spec §8) y firma determinista (§10) ────────────────────
-      function detectTieSets(rows) {
-        const sets = [];
-        let i = 0;
-        while (i < rows.length) {
-          let j = i + 1;
-          while (j < rows.length &&
-            rows[j].pts === rows[i].pts && rows[j].DG === rows[i].DG && rows[j].GF === rows[i].GF) j++;
-          if (j - i >= 2) sets.push(rows.slice(i, j));
-          i = j;
+      // ── Estadísticas base del grupo (todos los partidos, sin ordenar) ────
+      function baseStats(group) {
+        const rows = group.teams.map((t, i) => ({
+          id: t.id, name: t.name, dsIdx: i,
+          pts: 0, J: 0, G: 0, E: 0, P: 0, GF: 0, GC: 0, DG: 0,
+        }));
+        const byId = new Map(rows.map((r) => [r.id, r]));
+        for (const m of group.matches) {
+          const s = state.scores[m.id];
+          if (!isComplete(s)) continue;
+          const h = byId.get(m.home), a = byId.get(m.away);
+          h.J++; a.J++;
+          h.GF += s.home; h.GC += s.away; a.GF += s.away; a.GC += s.home;
+          if (s.home > s.away) { h.pts += 3; h.G++; a.P++; }
+          else if (s.home < s.away) { a.pts += 3; a.G++; h.P++; }
+          else { h.pts++; a.pts++; h.E++; a.E++; }
         }
-        return sets;
-      }
-      function tieSignature(groupId, set) {
-        const ids = set.map((r) => r.id).slice().sort().join(",");
-        const { pts, DG, GF } = set[0];
-        return `group:${groupId}|teams:${ids}|pts:${pts}|dg:${DG}|gf:${GF}`;
+        for (const r of rows) r.DG = r.GF - r.GC;
+        return rows;
       }
 
-      // ── Overrides manuales válidos (§9.6/§9.7) ──────────────────────────
-      function applyOverrides(groupId, rows, tieSets) {
-        const result = rows.slice();
-        for (const set of tieSets) {
-          const override = state.tiebreaks[tieSignature(groupId, set)];
-          if (!override) continue;
-          const order = set.map((r) => r.id);
-          const pos = order.map((id) => override[id]);
-          const valid = pos.every((p) => Number.isInteger(p) && p >= 1 && p <= order.length) &&
-            new Set(pos).size === order.length;
+      // Particiona una lista YA ordenada en grupos de elementos consecutivos iguales.
+      function partitionBy(sorted, equal) {
+        const out = [];
+        for (let i = 0; i < sorted.length; i++) {
+          if (i === 0 || !equal(sorted[i - 1], sorted[i])) out.push([]);
+          out[out.length - 1].push(sorted[i]);
+        }
+        return out;
+      }
+
+      // Mini-tabla head-to-head: solo partidos entre los equipos de `ids` (spec 05 §10).
+      function computeH2H(ids, group) {
+        const set = new Set(ids);
+        const t = new Map(ids.map((id) => [id, { id, pts: 0, gf: 0, ga: 0, gd: 0 }]));
+        for (const m of group.matches) {
+          if (!set.has(m.home) || !set.has(m.away)) continue;
+          const s = state.scores[m.id];
+          if (!isComplete(s)) continue;
+          const h = t.get(m.home), a = t.get(m.away);
+          h.gf += s.home; h.ga += s.away; a.gf += s.away; a.ga += s.home;
+          if (s.home > s.away) h.pts += 3;
+          else if (s.home < s.away) a.pts += 3;
+          else { h.pts++; a.pts++; }
+        }
+        for (const x of t.values()) x.gd = x.gf - x.ga;
+        return t;
+      }
+
+      // Steps 3+F (spec 05): D) DG global, E) GF global, F) manual.
+      function resolveByOverall(ids, byId) {
+        const sorted = ids.slice().sort((x, y) =>
+          byId.get(y).DG - byId.get(x).DG || byId.get(y).GF - byId.get(x).GF);
+        const order = [], manual = [];
+        for (const b of partitionBy(sorted, (x, y) =>
+          byId.get(x).DG === byId.get(y).DG && byId.get(x).GF === byId.get(y).GF)) {
+          if (b.length === 1) { order.push(b[0]); continue; }
+          const ds = b.slice().sort((x, y) => byId.get(x).dsIdx - byId.get(y).dsIdx); // fallback §17
+          order.push(...ds); manual.push(ds);
+        }
+        return { order, manual };
+      }
+
+      // Step 1 (A,B,C head-to-head) + Step 2 (recursión sobre los aún empatados). spec 05.
+      function resolveTie(ids, group, byId) {
+        if (ids.length === 1) return { order: ids.slice(), manual: [] };
+        const h = computeH2H(ids, group);
+        const sorted = ids.slice().sort((x, y) =>
+          h.get(y).pts - h.get(x).pts || h.get(y).gd - h.get(x).gd || h.get(y).gf - h.get(x).gf);
+        const buckets = partitionBy(sorted, (x, y) =>
+          h.get(x).pts === h.get(y).pts && h.get(x).gd === h.get(y).gd && h.get(x).gf === h.get(y).gf);
+        if (buckets.length === 1) return resolveByOverall(ids, byId); // h2h no separa → D/E/F
+        const order = [], manual = [];
+        for (const b of buckets) {
+          const r = resolveTie(b, group, byId); // reaplicar A-C a los restantes (Step 2)
+          order.push(...r.order); manual.push(...r.manual);
+        }
+        return { order, manual };
+      }
+
+      function groupTieSignature(groupId, ids, pts, gd, gf) {
+        return `group:${groupId}|teams:${ids.slice().sort().join(",")}|pts:${pts}|gd:${gd}|gf:${gf}`;
+      }
+
+      // Clasificación final del grupo. Devuelve filas ordenadas + sets de empate
+      // irresolubles (que requieren elección manual, criterio F).
+      function rankGroup(group) {
+        const rows = baseStats(group);
+        const byId = new Map(rows.map((r) => [r.id, r]));
+        if (!groupComplete(group)) {
+          // En vivo (§7): Pts → DG global → GF global → orden del dataset.
+          const order = rows.slice().sort((a, b) =>
+            b.pts - a.pts || b.DG - a.DG || b.GF - a.GF || a.dsIdx - b.dsIdx);
+          return { rows: order, manualSets: [], complete: false };
+        }
+        // Completo (§8): buckets por puntos, luego head-to-head recursivo.
+        const ids = rows.map((r) => r.id).sort((x, y) => byId.get(y).pts - byId.get(x).pts);
+        const orderIds = [], manualSubsets = [];
+        for (const b of partitionBy(ids, (x, y) => byId.get(x).pts === byId.get(y).pts)) {
+          const r = resolveTie(b, group, byId);
+          orderIds.push(...r.order);
+          for (const ms of r.manual) manualSubsets.push(ms);
+        }
+        const manualSets = manualSubsets.map((mids) => {
+          const r0 = byId.get(mids[0]);
+          return { ids: mids, sig: groupTieSignature(group.groupId, mids, r0.pts, r0.DG, r0.GF),
+            pts: r0.pts, gd: r0.DG, gf: r0.GF };
+        });
+        let orderRows = orderIds.map((id) => byId.get(id));
+        // Aplicar override manual válido dentro de cada set (criterio F).
+        for (const msd of manualSets) {
+          const ov = state.tiebreaks[msd.sig];
+          if (!ov) continue;
+          const pos = msd.ids.map((id) => ov[id]);
+          const valid = pos.every((p) => Number.isInteger(p) && p >= 1 && p <= msd.ids.length) &&
+            new Set(pos).size === msd.ids.length;
           if (!valid) continue;
-          const reordered = order.slice().sort((x, y) => override[x] - override[y]);
-          const start = result.findIndex((r) => r.id === set[0].id);
-          for (let k = 0; k < reordered.length; k++)
-            result[start + k] = rows.find((r) => r.id === reordered[k]);
+          const reordered = msd.ids.slice().sort((a, b) => ov[a] - ov[b]);
+          const idxs = orderRows.map((r, i) => (msd.ids.includes(r.id) ? i : -1)).filter((i) => i >= 0);
+          for (let k = 0; k < reordered.length; k++) orderRows[idxs[0] + k] = byId.get(reordered[k]);
         }
-        return result;
+        return { rows: orderRows, manualSets, complete: true };
       }
 
-      // Limpia overrides cuya firma ya no existe en ningún grupo (§10).
+      // ¿Override válido y completo para un set de empate manual?
+      const tieResolved = (msd) => {
+        const ov = state.tiebreaks[msd.sig];
+        if (!ov) return false;
+        const pos = msd.ids.map((id) => ov[id]);
+        return pos.every((p) => Number.isInteger(p) && p >= 1 && p <= msd.ids.length) &&
+          new Set(pos).size === msd.ids.length;
+      };
+      // ¿Algún grupo completo con empate sin resolver? (bloquea eliminatorias, §18)
+      function hasUnresolvedGroupTies() {
+        return GROUPS.some((g) => {
+          if (!groupComplete(g)) return false;
+          return rankGroup(g).manualSets.some((msd) => !tieResolved(msd));
+        });
+      }
+
+      // Limpia overrides cuya firma ya no corresponde a un empate vigente (§16).
       function pruneStaleOverrides() {
         const active = new Set();
-        for (const g of GROUPS)
-          for (const set of detectTieSets(computeStandings(g)))
-            active.add(tieSignature(g.groupId, set));
+        for (const g of GROUPS) for (const ms of rankGroup(g).manualSets) active.add(ms.sig);
         for (const sig of Object.keys(state.tiebreaks))
           if (!active.has(sig)) delete state.tiebreaks[sig];
       }
@@ -402,11 +484,8 @@
       }
 
       // ═══════════════ DIECISEISAVOS / ROUND OF 32 (spec 02) ═══════════════
-      // Orden final de un grupo: auto (Pts/DG/GF/orden) + desempates manuales.
-      function finalStandings(group) {
-        const rows = computeStandings(group);
-        return applyOverrides(group.groupId, rows, detectTieSets(rows));
-      }
+      // Orden final de un grupo (head-to-head + desempates manuales).
+      const finalStandings = (group) => rankGroup(group).rows;
       const allGroupsComplete = () => GROUPS.every(groupComplete);
 
       const GROUP_ORDER = "ABCDEFGHIJKL";
@@ -504,17 +583,30 @@
       }
       const koPred = (id) => {
         if (!state.knockout.predictions[id])
-          state.knockout.predictions[id] = { home: null, away: null, qualified: null };
+          state.knockout.predictions[id] = { home: null, away: null, qualified: null, penHome: null, penAway: null };
         return state.knockout.predictions[id];
       };
+      // Validación de tanda de penaltis (spec 04): resultado final posible.
+      // Fase inicial (parada anticipada a 5) o muerte súbita (diferencia de 1).
+      const PEN_INITIAL = new Set([
+        "1-0", "2-0", "2-1", "3-0", "3-1", "3-2", "4-1", "4-2", "4-3", "5-3", "5-4",
+        "0-1", "0-2", "1-2", "0-3", "1-3", "2-3", "1-4", "2-4", "3-4", "3-5", "4-5",
+      ]);
+      function validShootout(a, b) {
+        if (!Number.isInteger(a) || !Number.isInteger(b)) return false;
+        if (a < 0 || b < 0 || a > 99 || b > 99 || a === b) return false;
+        return PEN_INITIAL.has(`${a}-${b}`) || Math.abs(a - b) === 1;
+      }
       // Recalcula el clasificado tras cambiar goles (auto si hay ganador, §11.4).
+      // En empate, lo decide la tanda de penaltis predicha (spec 04).
       function recomputeQualified(m) {
         const p = koPred(m.match_id);
         if (typeof p.home === "number" && typeof p.away === "number") {
-          if (p.home > p.away) p.qualified = m.home;
-          else if (p.away > p.home) p.qualified = m.away;
-          else if (p.qualified !== m.home && p.qualified !== m.away) p.qualified = null; // empate: a elegir
-        } else p.qualified = null;
+          if (p.home > p.away) { p.qualified = m.home; p.penHome = null; p.penAway = null; }
+          else if (p.away > p.home) { p.qualified = m.away; p.penHome = null; p.penAway = null; }
+          else p.qualified = validShootout(p.penHome, p.penAway)
+            ? (p.penHome > p.penAway ? m.home : m.away) : null; // empate → penaltis
+        } else { p.qualified = null; p.penHome = null; p.penAway = null; }
       }
       const koComplete = (m) => {
         const p = koPred(m.match_id);
@@ -528,6 +620,13 @@
           root.innerHTML = `<section class="r32-card">
             <h2>Dieciseisavos de final</h2>
             <p class="r32-pending">Pendiente de completar todos los grupos. Los enfrentamientos se calcularán automáticamente con tu predicción de fase de grupos.</p>
+          </section>`;
+          return;
+        }
+        if (hasUnresolvedGroupTies()) {
+          root.innerHTML = `<section class="r32-card">
+            <h2>Dieciseisavos de final</h2>
+            <div class="r32-banner warn">No se pueden generar las eliminatorias hasta resolver todos los empates de grupo. Usa el panel de desempate en los grupos afectados.</div>
           </section>`;
           return;
         }
@@ -602,11 +701,18 @@
         const xAway = p.qualified === m.away ? "✓" : "";
         let qualBlock = "";
         if (isDraw) {
-          qualBlock = `<fieldset class="ko-qual" data-koq="${m.match_id}">
-            <legend>Partido empatado. Selecciona qué equipo se clasifica.</legend>
-            <label><input type="radio" name="${m.match_id}_q" value="${m.home}" ${p.qualified === m.home ? "checked" : ""}> ${esc(nameOf(m.home))}</label>
-            <label><input type="radio" name="${m.match_id}_q" value="${m.away}" ${p.qualified === m.away ? "checked" : ""}> ${esc(nameOf(m.away))}</label>
-          </fieldset>`;
+          const ph = typeof p.penHome === "number" ? p.penHome : "";
+          const pa = typeof p.penAway === "number" ? p.penAway : "";
+          const bad = typeof p.penHome === "number" && typeof p.penAway === "number" && !validShootout(p.penHome, p.penAway);
+          qualBlock = `<div class="ko-pens" data-kop="${m.match_id}">
+            <span class="ko-pens-label">Empate · penaltis:</span>
+            <label class="sr-only" for="${m.match_id}_ph">Penaltis de ${esc(nameOf(m.home))} contra ${esc(nameOf(m.away))}</label>
+            <input class="score-input${bad ? " invalid" : ""}" id="${m.match_id}_ph" type="number" inputmode="numeric" min="0" max="99" value="${ph}" data-ko="${m.match_id}" data-side="penHome">
+            <span class="sep">-</span>
+            <label class="sr-only" for="${m.match_id}_pa">Penaltis de ${esc(nameOf(m.away))} contra ${esc(nameOf(m.home))}</label>
+            <input class="score-input${bad ? " invalid" : ""}" id="${m.match_id}_pa" type="number" inputmode="numeric" min="0" max="99" value="${pa}" data-ko="${m.match_id}" data-side="penAway">
+            ${bad ? `<span class="ko-pens-err">Marcador de penaltis imposible (la tanda habría terminado antes).</span>` : ""}
+          </div>`;
         }
         return `<div class="ko" data-ko="${m.match_id}">
           <div class="ko-row">
@@ -659,16 +765,9 @@
             recomputeQualified(byId.get(id));
             saveState();
             render();
-            const again = document.getElementById(`${id}_${side === "home" ? "kh" : "ka"}`);
+            const suffix = { home: "kh", away: "ka", penHome: "ph", penAway: "pa" }[side];
+            const again = document.getElementById(`${id}_${suffix}`);
             if (again) { again.focus(); const v = again.value; again.value = ""; again.value = v; }
-          });
-        });
-        document.querySelectorAll('#r32-root .ko-qual input[type="radio"]').forEach((radio) => {
-          radio.addEventListener("change", () => {
-            const id = radio.closest(".ko-qual").dataset.koq;
-            koPred(id).qualified = radio.value;
-            saveState();
-            render();
           });
         });
       }
@@ -685,12 +784,9 @@
       }
 
       function groupCardHtml(group) {
-        const rows = computeStandings(group);
-        const complete = groupComplete(group);
-        const tieSets = detectTieSets(rows);
-        const ordered = applyOverrides(group.groupId, rows, tieSets);
-        const showTiebreak = complete && tieSets.length > 0;
-        const tiedIds = new Set(showTiebreak ? tieSets.flat().map((r) => r.id) : []);
+        const { rows, manualSets, complete } = rankGroup(group);
+        const showTiebreak = complete && manualSets.length > 0;
+        const tiedIds = new Set(showTiebreak ? manualSets.flatMap((s) => s.ids) : []);
 
         return `<section class="group-card" data-group="${group.groupId}">
           <h2>Grupo ${group.groupId}</h2>
@@ -699,12 +795,12 @@
           <div class="results-row">
             <div class="standings-wrap">
               <div class="section-title">Clasificación</div>
-              ${standingsHtml(ordered, tiedIds)}
+              ${standingsHtml(rows, tiedIds)}
             </div>
             ${showTiebreak
               ? `<div class="tiebreak-wrap">
                    <div class="section-title">Desempate</div>
-                   ${tiebreakPanelHtml(group.groupId, tieSets)}
+                   ${tiebreakPanelHtml(manualSets, rows)}
                  </div>`
               : ""}
           </div>
@@ -749,15 +845,14 @@
         </table>`;
       }
 
-      function tiebreakPanelHtml(groupId, tieSets) {
-        const sets = tieSets.map((set) => {
-          const sig = tieSignature(groupId, set);
-          const n = set.length;
-          const override = state.tiebreaks[sig] || {};
-          const rowsHtml = set.map((r, i) => {
-            const sel = override[r.id] ?? i + 1;
+      function tiebreakPanelHtml(manualSets, rows) {
+        const sets = manualSets.map((msd) => {
+          const sig = msd.sig;
+          const ordered = rows.filter((r) => msd.ids.includes(r.id)); // orden mostrado actual
+          const n = ordered.length;
+          const rowsHtml = ordered.map((r, i) => {
             const opts = Array.from({ length: n }, (_, k) =>
-              `<option value="${k + 1}" ${sel === k + 1 ? "selected" : ""}>${k + 1}</option>`).join("");
+              `<option value="${k + 1}" ${i === k ? "selected" : ""}>${k + 1}</option>`).join("");
             return `<div class="tb-row">
               <span class="tb-team">${esc(r.name)}</span>
               <label class="sr-only" for="tb_${sig}_${r.id}">Posición manual de ${esc(r.name)}</label>
@@ -765,14 +860,13 @@
             </div>`;
           }).join("");
           return `<div class="tb-set" data-sig="${esc(sig)}">
-            <div class="tb-set-label">Empate entre ${n} equipos</div>
+            <div class="tb-set-label">Empate sin resolver entre ${n} equipos (igualados tras enfrentamiento directo, DG y GF)</div>
             ${rowsHtml}
-            <div class="tb-error" data-sig-error="${esc(sig)}"></div>
           </div>`;
         }).join("");
         return `<div class="tiebreak-panel">
           <h3>Hay empate</h3>
-          <p>Puedes fijar manualmente el orden final de los equipos empatados.</p>
+          <p>No se puede deshacer con criterios automáticos. Fija manualmente el orden final.</p>
           ${sets}
         </div>`;
       }
@@ -801,13 +895,11 @@
         card.querySelectorAll(".tb-set select").forEach((sel) => {
           sel.addEventListener("change", () => {
             const sig = sel.dataset.sig, teamId = sel.dataset.team, newPos = Number(sel.value);
-            const rows = computeStandings(group);
-            const set = detectTieSets(rows).find((s) => tieSignature(group.groupId, s) === sig);
-            if (!set) return;
-            const ids = set.map((r) => r.id);
+            const { rows, manualSets } = rankGroup(group);
+            const msd = manualSets.find((s) => s.sig === sig);
+            if (!msd) return;
             // Orden efectivo actual del set; intercambia (swap) con quien ocupa newPos.
-            const curOrder = applyOverrides(group.groupId, rows, detectTieSets(rows))
-              .filter((r) => ids.includes(r.id)).map((r) => r.id);
+            const curOrder = rows.filter((r) => msd.ids.includes(r.id)).map((r) => r.id);
             const oldPos = curOrder.indexOf(teamId) + 1;
             if (newPos === oldPos) return;
             const other = curOrder[newPos - 1];
@@ -859,13 +951,12 @@
         lines.push("");
         lines.push("[CLASIFICACION]");
         for (const g of GROUPS) {
-          const rows = computeStandings(g);
-          const tieSets = detectTieSets(rows);
-          const ordered = applyOverrides(g.groupId, rows, tieSets);
-          const manual = groupComplete(g) && tieSets.some((set) => state.tiebreaks[tieSignature(g.groupId, set)]);
-          const order = ordered.map((r, i) => `${i + 1}:${r.id}`).join(" ");
+          const { rows, manualSets, complete } = rankGroup(g);
+          const manual = manualSets.some((s) => state.tiebreaks[s.sig]);
+          const unresolved = manualSets.some((s) => !tieResolved(s));
+          const order = rows.map((r, i) => `${i + 1}:${r.id}`).join(" ");
           const flag = manual ? " tb:manual" : "";
-          const status = groupComplete(g) ? "" : " (incompleto)";
+          const status = !complete ? " (incompleto)" : unresolved ? " (empate sin resolver)" : "";
           lines.push(`${g.groupId} ${order}${flag}${status}`);
         }
         lines.push("");
@@ -886,7 +977,9 @@
               const ag = typeof p.away === "number" ? p.away : "-";
               const q = p.qualified === m.home || p.qualified === m.away ? p.qualified : "-";
               if (hg !== "-" && ag !== "-" && q !== "-") kdone++;
-              lines.push(`${m.match_id} ${m.fifa} ${m.home_slot} ${m.away_slot} ${m.home} ${hg} ${ag} ${m.away} q:${q}`);
+              const pen = hg !== "-" && hg === ag && typeof p.penHome === "number" && typeof p.penAway === "number"
+                ? ` pen:${p.penHome}-${p.penAway}` : "";
+              lines.push(`${m.match_id} ${m.fifa} ${m.home_slot} ${m.away_slot} ${m.home} ${hg} ${ag} ${m.away} q:${q}${pen}`);
             }
             lines.push(`r32_completados: ${kdone}/16`);
           }
