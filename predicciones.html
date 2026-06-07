@@ -168,6 +168,7 @@
       .ko-row .sep { text-align: center; color: var(--muted); }
       .ko-x { text-align: center; font-weight: 700; color: var(--accent); min-height: 1rem; }
       .ko-slots { font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 0.15rem; }
+      .ko-row.ko-pending { display: block; text-align: center; padding: 0.5rem 0; font-size: 0.9rem; }
       .ko-qual {
         margin-top: 0.4rem; padding: 0.4rem 0.55rem; border: 1px solid var(--warn);
         background: rgba(210,153,34,0.10); border-radius: 8px; font-size: 0.85rem;
@@ -222,6 +223,8 @@
 
       <div id="r32-root"></div>
 
+      <div id="ko-root"></div>
+
       <div class="dataset">
         <h2>📋 Tu pronóstico (cópialo y envíamelo)</h2>
         <p class="muted" style="font-size:0.82rem;margin:0 0 0.6rem">
@@ -273,8 +276,64 @@
       // Tabla oficial de asignación de terceros (Annexe C, 495 combinaciones).
       const THIRD_TABLE = {"columns":["1A","1B","1D","1E","1G","1I","1K","1L"],"schema_version":1,"source":"FWC26_regulations_EN.pdf Annexe C (p.80-97)","table":{"ABCDEFGH":["3H","3G","3B","3C","3A","3F","3D","3E"],"ABCDEFGI":["3C","3G","3B","3D","3A","3F","3E","3I"],"ABCDEFGJ":["3C","3G","3B","3D","3A","3F","3E","3J"],"ABCDEFGK":["3C","3G","3B","3D","3A","3F","3E","3K"],"ABCDEFGL":["3C","3G","3B","3D","3A","3F","3L","3E"],"ABCDEFHI":["3H","3E","3B","3C","3A","3F","3D","3I"],"ABCDEFHJ":["3H","3J","3B","3C","3A","3F","3D","3E"],"ABCDEFHK":["3H","3E","3B","3C","3A","3F","3D","3K"],"ABCDEFHL":["3H","3F","3B","3C","3A","3D","3L","3E"],"ABCDEFIJ":["3C","3J","3B","3D","3A","3F","3E","3I"],"ABCDEFIK":["3C","3E","3B","3D","3A","3F","3I","3K"],"ABCDEFIL":["3C","3E","3B","3D","3A","3F","3L","3I"],"ABCDEFJK":["3C","3J","3B","3D","3A","3F","3E","3K"],"ABCDEFJL":["3C","3J","3B","3D","3A","3F","3L","3E"],"ABCDEFKL":["3C","3E","3B","3D","3A","3F","3L","3K"],"ABCDEGHI":["3H","3G","3B","3C","3A","3D","3E","3I"],"ABCDEGHJ":["3H","3G","3B","3C","3A","3D","3E","3J"],"ABCDEGHK":["3H","3G","3B","3C","3A","3D","3E","3K"],"ABCDEGHL":["3H","3G","3B","3C","3A","3D","3L","3E"],"ABCDEGIJ":["3E","3G","3B","3C","3A","3D","3I","3J"],"ABCDEGIK":["3E","3G","3B","3C","3A","3D","3I","3K"],"ABCDEGIL":["3E","3G","3B","3C","3A","3D","3L","3I"],"ABCDEGJK":["3E","3G","3B","3C","3A","3D","3J","3K"],"ABCDEGJL":["3E","3G","3B","3C","3A","3D","3L","3J"],"ABCDEGKL":["3E","3G","3B","3C","3A","3D","3L","3K"],"ABCDEHIJ":["3H","3J","3B","3C","3A","3D","3E","3I"],"ABCDEHIK":["3H","3E","3B","3C","3A","3D","3I","3K"],"ABCDEHIL":["3H","3E","3B","3C","3A","3D","3L","3I"],"ABCDEHJK":["3H","3J","3B","3C","3A","3D","3E","3K"],"ABCDEHJL":["3H","3J","3B","3C","3A","3D","3L","3E"],"ABCDEHKL":["3H","3E","3B","3C","3A","3D","3L","3K"],"ABCDEIJK":["3E","3J","3B","3C","3A","3D","3I","3K"],"ABCDEIJL":["3E","3J","3B","3C","3A","3D","3L","3I"],"ABCDEIKL":["3E","3I","3B","3C","3A","3D","3L","3K"],"ABCDEJKL":["3E","3J","3B","3C","3A","3D","3L","3K"],"ABCDFGHI":["3H","3G","3B","3C","3A","3F","3D","3I"],"ABCDFGHJ":["3H","3G","3B","3C","3A","3F","3D","3J"],"ABCDFGHK":["3H","3G","3B","3C","3A","3F","3D","3K"],"ABCDFGHL":["3C","3G","3B","3D","3A","3F","3L","3H"],"ABCDFGIJ":["3C","3G","3B","3D","3A","3F","3I","3J"],"ABCDFGIK":["3C","3G","3B","3D","3A","3F","3I","3K"],"ABCDFGIL":["3C","3G","3B","3D","3A","3F","3L","3I"],"ABCDFGJK":["3C","3G","3B","3D","3A","3F","3J","3K"],"ABCDFGJL":["3C","3G","3B","3D","3A","3F","3L","3J"],"ABCDFGKL":["3C","3G","3B","3D","3A","3F","3L","3K"],"ABCDFHIJ":["3H","3J","3B","3C","3A","3F","3D","3I"],"ABCDFHIK":["3H","3F","3B","3C","3A","3D","3I","3K"],"ABCDFHIL":["3H","3F","3B","3C","3A","3D","3L","3I"],"ABCDFHJK":["3H","3J","3B","3C","3A","3F","3D","3K"],"ABCDFHJL":["3C","3J","3B","3D","3A","3F","3L","3H"],"ABCDFHKL":["3H","3F","3B","3C","3A","3D","3L","3K"],"ABCDFIJK":["3C","3J","3B","3D","3A","3F","3I","3K"],"ABCDFIJL":["3C","3J","3B","3D","3A","3F","3L","3I"],"ABCDFIKL":["3C","3I","3B","3D","3A","3F","3L","3K"],"ABCDFJKL":["3C","3J","3B","3D","3A","3F","3L","3K"],"ABCDGHIJ":["3H","3G","3B","3C","3A","3D","3I","3J"],"ABCDGHIK":["3H","3G","3B","3C","3A","3D","3I","3K"],"ABCDGHIL":["3H","3G","3B","3C","3A","3D","3L","3I"],"ABCDGHJK":["3H","3G","3B","3C","3A","3D","3J","3K"],"ABCDGHJL":["3H","3G","3B","3C","3A","3D","3L","3J"],"ABCDGHKL":["3H","3G","3B","3C","3A","3D","3L","3K"],"ABCDGIJK":["3C","3J","3B","3D","3A","3G","3I","3K"],"ABCDGIJL":["3C","3J","3B","3D","3A","3G","3L","3I"],"ABCDGIKL":["3I","3G","3B","3C","3A","3D","3L","3K"],"ABCDGJKL":["3C","3J","3B","3D","3A","3G","3L","3K"],"ABCDHIJK":["3H","3J","3B","3C","3A","3D","3I","3K"],"ABCDHIJL":["3H","3J","3B","3C","3A","3D","3L","3I"],"ABCDHIKL":["3H","3I","3B","3C","3A","3D","3L","3K"],"ABCDHJKL":["3H","3J","3B","3C","3A","3D","3L","3K"],"ABCDIJKL":["3I","3J","3B","3C","3A","3D","3L","3K"],"ABCEFGHI":["3H","3G","3B","3C","3A","3F","3E","3I"],"ABCEFGHJ":["3H","3G","3B","3C","3A","3F","3E","3J"],"ABCEFGHK":["3H","3G","3B","3C","3A","3F","3E","3K"],"ABCEFGHL":["3H","3G","3B","3C","3A","3F","3L","3E"],"ABCEFGIJ":["3E","3G","3B","3C","3A","3F","3I","3J"],"ABCEFGIK":["3E","3G","3B","3C","3A","3F","3I","3K"],"ABCEFGIL":["3E","3G","3B","3C","3A","3F","3L","3I"],"ABCEFGJK":["3E","3G","3B","3C","3A","3F","3J","3K"],"ABCEFGJL":["3E","3G","3B","3C","3A","3F","3L","3J"],"ABCEFGKL":["3E","3G","3B","3C","3A","3F","3L","3K"],"ABCEFHIJ":["3H","3J","3B","3C","3A","3F","3E","3I"],"ABCEFHIK":["3H","3E","3B","3C","3A","3F","3I","3K"],"ABCEFHIL":["3H","3E","3B","3C","3A","3F","3L","3I"],"ABCEFHJK":["3H","3J","3B","3C","3A","3F","3E","3K"],"ABCEFHJL":["3H","3J","3B","3C","3A","3F","3L","3E"],"ABCEFHKL":["3H","3E","3B","3C","3A","3F","3L","3K"],"ABCEFIJK":["3E","3J","3B","3C","3A","3F","3I","3K"],"ABCEFIJL":["3E","3J","3B","3C","3A","3F","3L","3I"],"ABCEFIKL":["3E","3I","3B","3C","3A","3F","3L","3K"],"ABCEFJKL":["3E","3J","3B","3C","3A","3F","3L","3K"],"ABCEGHIJ":["3H","3J","3B","3C","3A","3G","3E","3I"],"ABCEGHIK":["3E","3G","3B","3C","3A","3H","3I","3K"],"ABCEGHIL":["3E","3G","3B","3C","3A","3H","3L","3I"],"ABCEGHJK":["3H","3J","3B","3C","3A","3G","3E","3K"],"ABCEGHJL":["3H","3J","3B","3C","3A","3G","3L","3E"],"ABCEGHKL":["3E","3G","3B","3C","3A","3H","3L","3K"],"ABCEGIJK":["3E","3J","3B","3C","3A","3G","3I","3K"],"ABCEGIJL":["3E","3J","3B","3C","3A","3G","3L","3I"],"ABCEGIKL":["3E","3G","3B","3A","3I","3C","3L","3K"],"ABCEGJKL":["3E","3J","3B","3C","3A","3G","3L","3K"],"ABCEHIJK":["3E","3J","3B","3C","3A","3H","3I","3K"],"ABCEHIJL":["3E","3J","3B","3C","3A","3H","3L","3I"],"ABCEHIKL":["3E","3I","3B","3C","3A","3H","3L","3K"],"ABCEHJKL":["3E","3J","3B","3C","3A","3H","3L","3K"],"ABCEIJKL":["3E","3J","3B","3A","3I","3C","3L","3K"],"ABCFGHIJ":["3H","3G","3B","3C","3A","3F","3I","3J"],"ABCFGHIK":["3H","3G","3B","3C","3A","3F","3I","3K"],"ABCFGHIL":["3H","3G","3B","3C","3A","3F","3L","3I"],"ABCFGHJK":["3H","3G","3B","3C","3A","3F","3J","3K"],"ABCFGHJL":["3H","3G","3B","3C","3A","3F","3L","3J"],"ABCFGHKL":["3H","3G","3B","3C","3A","3F","3L","3K"],"ABCFGIJK":["3C","3J","3B","3F","3A","3G","3I","3K"],"ABCFGIJL":["3C","3J","3B","3F","3A","3G","3L","3I"],"ABCFGIKL":["3I","3G","3B","3C","3A","3F","3L","3K"],"ABCFGJKL":["3C","3J","3B","3F","3A","3G","3L","3K"],"ABCFHIJK":["3H","3J","3B","3C","3A","3F","3I","3K"],"ABCFHIJL":["3H","3J","3B","3C","3A","3F","3L","3I"],"ABCFHIKL":["3H","3I","3B","3C","3A","3F","3L","3K"],"ABCFHJKL":["3H","3J","3B","3C","3A","3F","3L","3K"],"ABCFIJKL":["3I","3J","3B","3C","3A","3F","3L","3K"],"ABCGHIJK":["3H","3J","3B","3C","3A","3G","3I","3K"],"ABCGHIJL":["3H","3J","3B","3C","3A","3G","3L","3I"],"ABCGHIKL":["3I","3G","3B","3C","3A","3H","3L","3K"],"ABCGHJKL":["3H","3J","3B","3C","3A","3G","3L","3K"],"ABCGIJKL":["3I","3J","3B","3C","3A","3G","3L","3K"],"ABCHIJKL":["3I","3J","3B","3C","3A","3H","3L","3K"],"ABDEFGHI":["3H","3G","3B","3D","3A","3F","3E","3I"],"ABDEFGHJ":["3H","3G","3B","3D","3A","3F","3E","3J"],"ABDEFGHK":["3H","3G","3B","3D","3A","3F","3E","3K"],"ABDEFGHL":["3H","3G","3B","3D","3A","3F","3L","3E"],"ABDEFGIJ":["3E","3G","3B","3D","3A","3F","3I","3J"],"ABDEFGIK":["3E","3G","3B","3D","3A","3F","3I","3K"],"ABDEFGIL":["3E","3G","3B","3D","3A","3F","3L","3I"],"ABDEFGJK":["3E","3G","3B","3D","3A","3F","3J","3K"],"ABDEFGJL":["3E","3G","3B","3D","3A","3F","3L","3J"],"ABDEFGKL":["3E","3G","3B","3D","3A","3F","3L","3K"],"ABDEFHIJ":["3H","3J","3B","3D","3A","3F","3E","3I"],"ABDEFHIK":["3H","3E","3B","3D","3A","3F","3I","3K"],"ABDEFHIL":["3H","3E","3B","3D","3A","3F","3L","3I"],"ABDEFHJK":["3H","3J","3B","3D","3A","3F","3E","3K"],"ABDEFHJL":["3H","3J","3B","3D","3A","3F","3L","3E"],"ABDEFHKL":["3H","3E","3B","3D","3A","3F","3L","3K"],"ABDEFIJK":["3E","3J","3B","3D","3A","3F","3I","3K"],"ABDEFIJL":["3E","3J","3B","3D","3A","3F","3L","3I"],"ABDEFIKL":["3E","3I","3B","3D","3A","3F","3L","3K"],"ABDEFJKL":["3E","3J","3B","3D","3A","3F","3L","3K"],"ABDEGHIJ":["3H","3J","3B","3D","3A","3G","3E","3I"],"ABDEGHIK":["3E","3G","3B","3D","3A","3H","3I","3K"],"ABDEGHIL":["3E","3G","3B","3D","3A","3H","3L","3I"],"ABDEGHJK":["3H","3J","3B","3D","3A","3G","3E","3K"],"ABDEGHJL":["3H","3J","3B","3D","3A","3G","3L","3E"],"ABDEGHKL":["3E","3G","3B","3D","3A","3H","3L","3K"],"ABDEGIJK":["3E","3J","3B","3D","3A","3G","3I","3K"],"ABDEGIJL":["3E","3J","3B","3D","3A","3G","3L","3I"],"ABDEGIKL":["3E","3G","3B","3A","3I","3D","3L","3K"],"ABDEGJKL":["3E","3J","3B","3D","3A","3G","3L","3K"],"ABDEHIJK":["3E","3J","3B","3D","3A","3H","3I","3K"],"ABDEHIJL":["3E","3J","3B","3D","3A","3H","3L","3I"],"ABDEHIKL":["3E","3I","3B","3D","3A","3H","3L","3K"],"ABDEHJKL":["3E","3J","3B","3D","3A","3H","3L","3K"],"ABDEIJKL":["3E","3J","3B","3A","3I","3D","3L","3K"],"ABDFGHIJ":["3H","3G","3B","3D","3A","3F","3I","3J"],"ABDFGHIK":["3H","3G","3B","3D","3A","3F","3I","3K"],"ABDFGHIL":["3H","3G","3B","3D","3A","3F","3L","3I"],"ABDFGHJK":["3H","3G","3B","3D","3A","3F","3J","3K"],"ABDFGHJL":["3H","3G","3B","3D","3A","3F","3L","3J"],"ABDFGHKL":["3H","3G","3B","3D","3A","3F","3L","3K"],"ABDFGIJK":["3F","3J","3B","3D","3A","3G","3I","3K"],"ABDFGIJL":["3F","3J","3B","3D","3A","3G","3L","3I"],"ABDFGIKL":["3I","3G","3B","3D","3A","3F","3L","3K"],"ABDFGJKL":["3F","3J","3B","3D","3A","3G","3L","3K"],"ABDFHIJK":["3H","3J","3B","3D","3A","3F","3I","3K"],"ABDFHIJL":["3H","3J","3B","3D","3A","3F","3L","3I"],"ABDFHIKL":["3H","3I","3B","3D","3A","3F","3L","3K"],"ABDFHJKL":["3H","3J","3B","3D","3A","3F","3L","3K"],"ABDFIJKL":["3I","3J","3B","3D","3A","3F","3L","3K"],"ABDGHIJK":["3H","3J","3B","3D","3A","3G","3I","3K"],"ABDGHIJL":["3H","3J","3B","3D","3A","3G","3L","3I"],"ABDGHIKL":["3I","3G","3B","3D","3A","3H","3L","3K"],"ABDGHJKL":["3H","3J","3B","3D","3A","3G","3L","3K"],"ABDGIJKL":["3I","3J","3B","3D","3A","3G","3L","3K"],"ABDHIJKL":["3I","3J","3B","3D","3A","3H","3L","3K"],"ABEFGHIJ":["3H","3J","3B","3F","3A","3G","3E","3I"],"ABEFGHIK":["3E","3G","3B","3F","3A","3H","3I","3K"],"ABEFGHIL":["3E","3G","3B","3F","3A","3H","3L","3I"],"ABEFGHJK":["3H","3J","3B","3F","3A","3G","3E","3K"],"ABEFGHJL":["3H","3J","3B","3F","3A","3G","3L","3E"],"ABEFGHKL":["3E","3G","3B","3F","3A","3H","3L","3K"],"ABEFGIJK":["3E","3J","3B","3F","3A","3G","3I","3K"],"ABEFGIJL":["3E","3J","3B","3F","3A","3G","3L","3I"],"ABEFGIKL":["3E","3G","3B","3A","3I","3F","3L","3K"],"ABEFGJKL":["3E","3J","3B","3F","3A","3G","3L","3K"],"ABEFHIJK":["3E","3J","3B","3F","3A","3H","3I","3K"],"ABEFHIJL":["3E","3J","3B","3F","3A","3H","3L","3I"],"ABEFHIKL":["3E","3I","3B","3F","3A","3H","3L","3K"],"ABEFHJKL":["3E","3J","3B","3F","3A","3H","3L","3K"],"ABEFIJKL":["3E","3J","3B","3A","3I","3F","3L","3K"],"ABEGHIJK":["3E","3J","3B","3A","3H","3G","3I","3K"],"ABEGHIJL":["3E","3J","3B","3A","3H","3G","3L","3I"],"ABEGHIKL":["3E","3G","3B","3A","3I","3H","3L","3K"],"ABEGHJKL":["3E","3J","3B","3A","3H","3G","3L","3K"],"ABEGIJKL":["3E","3J","3B","3A","3I","3G","3L","3K"],"ABEHIJKL":["3E","3J","3B","3A","3I","3H","3L","3K"],"ABFGHIJK":["3H","3J","3B","3F","3A","3G","3I","3K"],"ABFGHIJL":["3H","3J","3B","3F","3A","3G","3L","3I"],"ABFGHIKL":["3H","3G","3B","3A","3I","3F","3L","3K"],"ABFGHJKL":["3H","3J","3B","3F","3A","3G","3L","3K"],"ABFGIJKL":["3I","3J","3B","3F","3A","3G","3L","3K"],"ABFHIJKL":["3H","3J","3B","3A","3I","3F","3L","3K"],"ABGHIJKL":["3H","3J","3B","3A","3I","3G","3L","3K"],"ACDEFGHI":["3H","3G","3E","3C","3A","3F","3D","3I"],"ACDEFGHJ":["3H","3G","3J","3C","3A","3F","3D","3E"],"ACDEFGHK":["3H","3G","3E","3C","3A","3F","3D","3K"],"ACDEFGHL":["3H","3G","3F","3C","3A","3D","3L","3E"],"ACDEFGIJ":["3C","3G","3J","3D","3A","3F","3E","3I"],"ACDEFGIK":["3C","3G","3E","3D","3A","3F","3I","3K"],"ACDEFGIL":["3C","3G","3E","3D","3A","3F","3L","3I"],"ACDEFGJK":["3C","3G","3J","3D","3A","3F","3E","3K"],"ACDEFGJL":["3C","3G","3J","3D","3A","3F","3L","3E"],"ACDEFGKL":["3C","3G","3E","3D","3A","3F","3L","3K"],"ACDEFHIJ":["3H","3J","3E","3C","3A","3F","3D","3I"],"ACDEFHIK":["3H","3E","3F","3C","3A","3D","3I","3K"],"ACDEFHIL":["3H","3E","3F","3C","3A","3D","3L","3I"],"ACDEFHJK":["3H","3J","3E","3C","3A","3F","3D","3K"],"ACDEFHJL":["3H","3J","3F","3C","3A","3D","3L","3E"],"ACDEFHKL":["3H","3E","3F","3C","3A","3D","3L","3K"],"ACDEFIJK":["3C","3J","3E","3D","3A","3F","3I","3K"],"ACDEFIJL":["3C","3J","3E","3D","3A","3F","3L","3I"],"ACDEFIKL":["3C","3E","3I","3D","3A","3F","3L","3K"],"ACDEFJKL":["3C","3J","3E","3D","3A","3F","3L","3K"],"ACDEGHIJ":["3H","3G","3J","3C","3A","3D","3E","3I"],"ACDEGHIK":["3H","3G","3E","3C","3A","3D","3I","3K"],"ACDEGHIL":["3H","3G","3E","3C","3A","3D","3L","3I"],"ACDEGHJK":["3H","3G","3J","3C","3A","3D","3E","3K"],"ACDEGHJL":["3H","3G","3J","3C","3A","3D","3L","3E"],"ACDEGHKL":["3H","3G","3E","3C","3A","3D","3L","3K"],"ACDEGIJK":["3E","3G","3J","3C","3A","3D","3I","3K"],"ACDEGIJL":["3E","3G","3J","3C","3A","3D","3L","3I"],"ACDEGIKL":["3E","3G","3I","3C","3A","3D","3L","3K"],"ACDEGJKL":["3E","3G","3J","3C","3A","3D","3L","3K"],"ACDEHIJK":["3H","3J","3E","3C","3A","3D","3I","3K"],"ACDEHIJL":["3H","3J","3E","3C","3A","3D","3L","3I"],"ACDEHIKL":["3H","3E","3I","3C","3A","3D","3L","3K"],"ACDEHJKL":["3H","3J","3E","3C","3A","3D","3L","3K"],"ACDEIJKL":["3E","3J","3I","3C","3A","3D","3L","3K"],"ACDFGHIJ":["3H","3G","3J","3C","3A","3F","3D","3I"],"ACDFGHIK":["3H","3G","3F","3C","3A","3D","3I","3K"],"ACDFGHIL":["3H","3G","3F","3C","3A","3D","3L","3I"],"ACDFGHJK":["3H","3G","3J","3C","3A","3F","3D","3K"],"ACDFGHJL":["3C","3G","3J","3D","3A","3F","3L","3H"],"ACDFGHKL":["3H","3G","3F","3C","3A","3D","3L","3K"],"ACDFGIJK":["3C","3G","3J","3D","3A","3F","3I","3K"],"ACDFGIJL":["3C","3G","3J","3D","3A","3F","3L","3I"],"ACDFGIKL":["3C","3G","3I","3D","3A","3F","3L","3K"],"ACDFGJKL":["3C","3G","3J","3D","3A","3F","3L","3K"],"ACDFHIJK":["3H","3J","3F","3C","3A","3D","3I","3K"],"ACDFHIJL":["3H","3J","3F","3C","3A","3D","3L","3I"],"ACDFHIKL":["3H","3F","3I","3C","3A","3D","3L","3K"],"ACDFHJKL":["3H","3J","3F","3C","3A","3D","3L","3K"],"ACDFIJKL":["3C","3J","3I","3D","3A","3F","3L","3K"],"ACDGHIJK":["3H","3G","3J","3C","3A","3D","3I","3K"],"ACDGHIJL":["3H","3G","3J","3C","3A","3D","3L","3I"],"ACDGHIKL":["3H","3G","3I","3C","3A","3D","3L","3K"],"ACDGHJKL":["3H","3G","3J","3C","3A","3D","3L","3K"],"ACDGIJKL":["3I","3G","3J","3C","3A","3D","3L","3K"],"ACDHIJKL":["3H","3J","3I","3C","3A","3D","3L","3K"],"ACEFGHIJ":["3H","3G","3J","3C","3A","3F","3E","3I"],"ACEFGHIK":["3H","3G","3E","3C","3A","3F","3I","3K"],"ACEFGHIL":["3H","3G","3E","3C","3A","3F","3L","3I"],"ACEFGHJK":["3H","3G","3J","3C","3A","3F","3E","3K"],"ACEFGHJL":["3H","3G","3J","3C","3A","3F","3L","3E"],"ACEFGHKL":["3H","3G","3E","3C","3A","3F","3L","3K"],"ACEFGIJK":["3E","3G","3J","3C","3A","3F","3I","3K"],"ACEFGIJL":["3E","3G","3J","3C","3A","3F","3L","3I"],"ACEFGIKL":["3E","3G","3I","3C","3A","3F","3L","3K"],"ACEFGJKL":["3E","3G","3J","3C","3A","3F","3L","3K"],"ACEFHIJK":["3H","3J","3E","3C","3A","3F","3I","3K"],"ACEFHIJL":["3H","3J","3E","3C","3A","3F","3L","3I"],"ACEFHIKL":["3H","3E","3I","3C","3A","3F","3L","3K"],"ACEFHJKL":["3H","3J","3E","3C","3A","3F","3L","3K"],"ACEFIJKL":["3E","3J","3I","3C","3A","3F","3L","3K"],"ACEGHIJK":["3E","3G","3J","3C","3A","3H","3I","3K"],"ACEGHIJL":["3E","3G","3J","3C","3A","3H","3L","3I"],"ACEGHIKL":["3E","3G","3I","3C","3A","3H","3L","3K"],"ACEGHJKL":["3E","3G","3J","3C","3A","3H","3L","3K"],"ACEGIJKL":["3E","3J","3I","3C","3A","3G","3L","3K"],"ACEHIJKL":["3E","3J","3I","3C","3A","3H","3L","3K"],"ACFGHIJK":["3H","3G","3J","3C","3A","3F","3I","3K"],"ACFGHIJL":["3H","3G","3J","3C","3A","3F","3L","3I"],"ACFGHIKL":["3H","3G","3I","3C","3A","3F","3L","3K"],"ACFGHJKL":["3H","3G","3J","3C","3A","3F","3L","3K"],"ACFGIJKL":["3I","3G","3J","3C","3A","3F","3L","3K"],"ACFHIJKL":["3H","3J","3I","3C","3A","3F","3L","3K"],"ACGHIJKL":["3H","3J","3I","3C","3A","3G","3L","3K"],"ADEFGHIJ":["3H","3G","3J","3D","3A","3F","3E","3I"],"ADEFGHIK":["3H","3G","3E","3D","3A","3F","3I","3K"],"ADEFGHIL":["3H","3G","3E","3D","3A","3F","3L","3I"],"ADEFGHJK":["3H","3G","3J","3D","3A","3F","3E","3K"],"ADEFGHJL":["3H","3G","3J","3D","3A","3F","3L","3E"],"ADEFGHKL":["3H","3G","3E","3D","3A","3F","3L","3K"],"ADEFGIJK":["3E","3G","3J","3D","3A","3F","3I","3K"],"ADEFGIJL":["3E","3G","3J","3D","3A","3F","3L","3I"],"ADEFGIKL":["3E","3G","3I","3D","3A","3F","3L","3K"],"ADEFGJKL":["3E","3G","3J","3D","3A","3F","3L","3K"],"ADEFHIJK":["3H","3J","3E","3D","3A","3F","3I","3K"],"ADEFHIJL":["3H","3J","3E","3D","3A","3F","3L","3I"],"ADEFHIKL":["3H","3E","3I","3D","3A","3F","3L","3K"],"ADEFHJKL":["3H","3J","3E","3D","3A","3F","3L","3K"],"ADEFIJKL":["3E","3J","3I","3D","3A","3F","3L","3K"],"ADEGHIJK":["3E","3G","3J","3D","3A","3H","3I","3K"],"ADEGHIJL":["3E","3G","3J","3D","3A","3H","3L","3I"],"ADEGHIKL":["3E","3G","3I","3D","3A","3H","3L","3K"],"ADEGHJKL":["3E","3G","3J","3D","3A","3H","3L","3K"],"ADEGIJKL":["3E","3J","3I","3D","3A","3G","3L","3K"],"ADEHIJKL":["3E","3J","3I","3D","3A","3H","3L","3K"],"ADFGHIJK":["3H","3G","3J","3D","3A","3F","3I","3K"],"ADFGHIJL":["3H","3G","3J","3D","3A","3F","3L","3I"],"ADFGHIKL":["3H","3G","3I","3D","3A","3F","3L","3K"],"ADFGHJKL":["3H","3G","3J","3D","3A","3F","3L","3K"],"ADFGIJKL":["3I","3G","3J","3D","3A","3F","3L","3K"],"ADFHIJKL":["3H","3J","3I","3D","3A","3F","3L","3K"],"ADGHIJKL":["3H","3J","3I","3D","3A","3G","3L","3K"],"AEFGHIJK":["3E","3G","3J","3F","3A","3H","3I","3K"],"AEFGHIJL":["3E","3G","3J","3F","3A","3H","3L","3I"],"AEFGHIKL":["3E","3G","3I","3F","3A","3H","3L","3K"],"AEFGHJKL":["3E","3G","3J","3F","3A","3H","3L","3K"],"AEFGIJKL":["3E","3J","3I","3F","3A","3G","3L","3K"],"AEFHIJKL":["3E","3J","3I","3F","3A","3H","3L","3K"],"AEGHIJKL":["3E","3J","3I","3A","3H","3G","3L","3K"],"AFGHIJKL":["3H","3J","3I","3F","3A","3G","3L","3K"],"BCDEFGHI":["3C","3G","3B","3D","3H","3F","3E","3I"],"BCDEFGHJ":["3H","3G","3B","3C","3J","3F","3D","3E"],"BCDEFGHK":["3C","3G","3B","3D","3H","3F","3E","3K"],"BCDEFGHL":["3C","3G","3B","3D","3H","3F","3L","3E"],"BCDEFGIJ":["3C","3G","3B","3D","3J","3F","3E","3I"],"BCDEFGIK":["3C","3G","3B","3D","3E","3F","3I","3K"],"BCDEFGIL":["3C","3G","3B","3D","3E","3F","3L","3I"],"BCDEFGJK":["3C","3G","3B","3D","3J","3F","3E","3K"],"BCDEFGJL":["3C","3G","3B","3D","3J","3F","3L","3E"],"BCDEFGKL":["3C","3G","3B","3D","3E","3F","3L","3K"],"BCDEFHIJ":["3C","3J","3B","3D","3H","3F","3E","3I"],"BCDEFHIK":["3C","3E","3B","3D","3H","3F","3I","3K"],"BCDEFHIL":["3C","3E","3B","3D","3H","3F","3L","3I"],"BCDEFHJK":["3C","3J","3B","3D","3H","3F","3E","3K"],"BCDEFHJL":["3C","3J","3B","3D","3H","3F","3L","3E"],"BCDEFHKL":["3C","3E","3B","3D","3H","3F","3L","3K"],"BCDEFIJK":["3C","3J","3B","3D","3E","3F","3I","3K"],"BCDEFIJL":["3C","3J","3B","3D","3E","3F","3L","3I"],"BCDEFIKL":["3C","3E","3B","3D","3I","3F","3L","3K"],"BCDEFJKL":["3C","3J","3B","3D","3E","3F","3L","3K"],"BCDEGHIJ":["3H","3G","3B","3C","3J","3D","3E","3I"],"BCDEGHIK":["3E","3G","3B","3C","3H","3D","3I","3K"],"BCDEGHIL":["3E","3G","3B","3C","3H","3D","3L","3I"],"BCDEGHJK":["3H","3G","3B","3C","3J","3D","3E","3K"],"BCDEGHJL":["3H","3G","3B","3C","3J","3D","3L","3E"],"BCDEGHKL":["3E","3G","3B","3C","3H","3D","3L","3K"],"BCDEGIJK":["3E","3G","3B","3C","3J","3D","3I","3K"],"BCDEGIJL":["3E","3G","3B","3C","3J","3D","3L","3I"],"BCDEGIKL":["3E","3G","3B","3C","3I","3D","3L","3K"],"BCDEGJKL":["3E","3G","3B","3C","3J","3D","3L","3K"],"BCDEHIJK":["3E","3J","3B","3C","3H","3D","3I","3K"],"BCDEHIJL":["3E","3J","3B","3C","3H","3D","3L","3I"],"BCDEHIKL":["3E","3I","3B","3C","3H","3D","3L","3K"],"BCDEHJKL":["3E","3J","3B","3C","3H","3D","3L","3K"],"BCDEIJKL":["3E","3J","3B","3C","3I","3D","3L","3K"],"BCDFGHIJ":["3H","3G","3B","3C","3J","3F","3D","3I"],"BCDFGHIK":["3C","3G","3B","3D","3H","3F","3I","3K"],"BCDFGHIL":["3C","3G","3B","3D","3H","3F","3L","3I"],"BCDFGHJK":["3H","3G","3B","3C","3J","3F","3D","3K"],"BCDFGHJL":["3C","3G","3B","3D","3H","3F","3L","3J"],"BCDFGHKL":["3C","3G","3B","3D","3H","3F","3L","3K"],"BCDFGIJK":["3C","3G","3B","3D","3J","3F","3I","3K"],"BCDFGIJL":["3C","3G","3B","3D","3J","3F","3L","3I"],"BCDFGIKL":["3C","3G","3B","3D","3I","3F","3L","3K"],"BCDFGJKL":["3C","3G","3B","3D","3J","3F","3L","3K"],"BCDFHIJK":["3C","3J","3B","3D","3H","3F","3I","3K"],"BCDFHIJL":["3C","3J","3B","3D","3H","3F","3L","3I"],"BCDFHIKL":["3C","3I","3B","3D","3H","3F","3L","3K"],"BCDFHJKL":["3C","3J","3B","3D","3H","3F","3L","3K"],"BCDFIJKL":["3C","3J","3B","3D","3I","3F","3L","3K"],"BCDGHIJK":["3H","3G","3B","3C","3J","3D","3I","3K"],"BCDGHIJL":["3H","3G","3B","3C","3J","3D","3L","3I"],"BCDGHIKL":["3H","3G","3B","3C","3I","3D","3L","3K"],"BCDGHJKL":["3H","3G","3B","3C","3J","3D","3L","3K"],"BCDGIJKL":["3I","3G","3B","3C","3J","3D","3L","3K"],"BCDHIJKL":["3H","3J","3B","3C","3I","3D","3L","3K"],"BCEFGHIJ":["3H","3G","3B","3C","3J","3F","3E","3I"],"BCEFGHIK":["3E","3G","3B","3C","3H","3F","3I","3K"],"BCEFGHIL":["3E","3G","3B","3C","3H","3F","3L","3I"],"BCEFGHJK":["3H","3G","3B","3C","3J","3F","3E","3K"],"BCEFGHJL":["3H","3G","3B","3C","3J","3F","3L","3E"],"BCEFGHKL":["3E","3G","3B","3C","3H","3F","3L","3K"],"BCEFGIJK":["3E","3G","3B","3C","3J","3F","3I","3K"],"BCEFGIJL":["3E","3G","3B","3C","3J","3F","3L","3I"],"BCEFGIKL":["3E","3G","3B","3C","3I","3F","3L","3K"],"BCEFGJKL":["3E","3G","3B","3C","3J","3F","3L","3K"],"BCEFHIJK":["3E","3J","3B","3C","3H","3F","3I","3K"],"BCEFHIJL":["3E","3J","3B","3C","3H","3F","3L","3I"],"BCEFHIKL":["3E","3I","3B","3C","3H","3F","3L","3K"],"BCEFHJKL":["3E","3J","3B","3C","3H","3F","3L","3K"],"BCEFIJKL":["3E","3J","3B","3C","3I","3F","3L","3K"],"BCEGHIJK":["3E","3J","3B","3C","3H","3G","3I","3K"],"BCEGHIJL":["3E","3J","3B","3C","3H","3G","3L","3I"],"BCEGHIKL":["3E","3G","3B","3C","3I","3H","3L","3K"],"BCEGHJKL":["3E","3J","3B","3C","3H","3G","3L","3K"],"BCEGIJKL":["3E","3J","3B","3C","3I","3G","3L","3K"],"BCEHIJKL":["3E","3J","3B","3C","3I","3H","3L","3K"],"BCFGHIJK":["3H","3G","3B","3C","3J","3F","3I","3K"],"BCFGHIJL":["3H","3G","3B","3C","3J","3F","3L","3I"],"BCFGHIKL":["3H","3G","3B","3C","3I","3F","3L","3K"],"BCFGHJKL":["3H","3G","3B","3C","3J","3F","3L","3K"],"BCFGIJKL":["3I","3G","3B","3C","3J","3F","3L","3K"],"BCFHIJKL":["3H","3J","3B","3C","3I","3F","3L","3K"],"BCGHIJKL":["3H","3J","3B","3C","3I","3G","3L","3K"],"BDEFGHIJ":["3H","3G","3B","3D","3J","3F","3E","3I"],"BDEFGHIK":["3E","3G","3B","3D","3H","3F","3I","3K"],"BDEFGHIL":["3E","3G","3B","3D","3H","3F","3L","3I"],"BDEFGHJK":["3H","3G","3B","3D","3J","3F","3E","3K"],"BDEFGHJL":["3H","3G","3B","3D","3J","3F","3L","3E"],"BDEFGHKL":["3E","3G","3B","3D","3H","3F","3L","3K"],"BDEFGIJK":["3E","3G","3B","3D","3J","3F","3I","3K"],"BDEFGIJL":["3E","3G","3B","3D","3J","3F","3L","3I"],"BDEFGIKL":["3E","3G","3B","3D","3I","3F","3L","3K"],"BDEFGJKL":["3E","3G","3B","3D","3J","3F","3L","3K"],"BDEFHIJK":["3E","3J","3B","3D","3H","3F","3I","3K"],"BDEFHIJL":["3E","3J","3B","3D","3H","3F","3L","3I"],"BDEFHIKL":["3E","3I","3B","3D","3H","3F","3L","3K"],"BDEFHJKL":["3E","3J","3B","3D","3H","3F","3L","3K"],"BDEFIJKL":["3E","3J","3B","3D","3I","3F","3L","3K"],"BDEGHIJK":["3E","3J","3B","3D","3H","3G","3I","3K"],"BDEGHIJL":["3E","3J","3B","3D","3H","3G","3L","3I"],"BDEGHIKL":["3E","3G","3B","3D","3I","3H","3L","3K"],"BDEGHJKL":["3E","3J","3B","3D","3H","3G","3L","3K"],"BDEGIJKL":["3E","3J","3B","3D","3I","3G","3L","3K"],"BDEHIJKL":["3E","3J","3B","3D","3I","3H","3L","3K"],"BDFGHIJK":["3H","3G","3B","3D","3J","3F","3I","3K"],"BDFGHIJL":["3H","3G","3B","3D","3J","3F","3L","3I"],"BDFGHIKL":["3H","3G","3B","3D","3I","3F","3L","3K"],"BDFGHJKL":["3H","3G","3B","3D","3J","3F","3L","3K"],"BDFGIJKL":["3I","3G","3B","3D","3J","3F","3L","3K"],"BDFHIJKL":["3H","3J","3B","3D","3I","3F","3L","3K"],"BDGHIJKL":["3H","3J","3B","3D","3I","3G","3L","3K"],"BEFGHIJK":["3E","3J","3B","3F","3H","3G","3I","3K"],"BEFGHIJL":["3E","3J","3B","3F","3H","3G","3L","3I"],"BEFGHIKL":["3E","3G","3B","3F","3I","3H","3L","3K"],"BEFGHJKL":["3E","3J","3B","3F","3H","3G","3L","3K"],"BEFGIJKL":["3E","3J","3B","3F","3I","3G","3L","3K"],"BEFHIJKL":["3E","3J","3B","3F","3I","3H","3L","3K"],"BEGHIJKL":["3E","3J","3I","3B","3H","3G","3L","3K"],"BFGHIJKL":["3H","3J","3B","3F","3I","3G","3L","3K"],"CDEFGHIJ":["3C","3G","3J","3D","3H","3F","3E","3I"],"CDEFGHIK":["3C","3G","3E","3D","3H","3F","3I","3K"],"CDEFGHIL":["3C","3G","3E","3D","3H","3F","3L","3I"],"CDEFGHJK":["3C","3G","3J","3D","3H","3F","3E","3K"],"CDEFGHJL":["3C","3G","3J","3D","3H","3F","3L","3E"],"CDEFGHKL":["3C","3G","3E","3D","3H","3F","3L","3K"],"CDEFGIJK":["3C","3G","3E","3D","3J","3F","3I","3K"],"CDEFGIJL":["3C","3G","3E","3D","3J","3F","3L","3I"],"CDEFGIKL":["3C","3G","3E","3D","3I","3F","3L","3K"],"CDEFGJKL":["3C","3G","3E","3D","3J","3F","3L","3K"],"CDEFHIJK":["3C","3J","3E","3D","3H","3F","3I","3K"],"CDEFHIJL":["3C","3J","3E","3D","3H","3F","3L","3I"],"CDEFHIKL":["3C","3E","3I","3D","3H","3F","3L","3K"],"CDEFHJKL":["3C","3J","3E","3D","3H","3F","3L","3K"],"CDEFIJKL":["3C","3J","3E","3D","3I","3F","3L","3K"],"CDEGHIJK":["3E","3G","3J","3C","3H","3D","3I","3K"],"CDEGHIJL":["3E","3G","3J","3C","3H","3D","3L","3I"],"CDEGHIKL":["3E","3G","3I","3C","3H","3D","3L","3K"],"CDEGHJKL":["3E","3G","3J","3C","3H","3D","3L","3K"],"CDEGIJKL":["3E","3G","3I","3C","3J","3D","3L","3K"],"CDEHIJKL":["3E","3J","3I","3C","3H","3D","3L","3K"],"CDFGHIJK":["3C","3G","3J","3D","3H","3F","3I","3K"],"CDFGHIJL":["3C","3G","3J","3D","3H","3F","3L","3I"],"CDFGHIKL":["3C","3G","3I","3D","3H","3F","3L","3K"],"CDFGHJKL":["3C","3G","3J","3D","3H","3F","3L","3K"],"CDFGIJKL":["3C","3G","3I","3D","3J","3F","3L","3K"],"CDFHIJKL":["3C","3J","3I","3D","3H","3F","3L","3K"],"CDGHIJKL":["3H","3G","3I","3C","3J","3D","3L","3K"],"CEFGHIJK":["3E","3G","3J","3C","3H","3F","3I","3K"],"CEFGHIJL":["3E","3G","3J","3C","3H","3F","3L","3I"],"CEFGHIKL":["3E","3G","3I","3C","3H","3F","3L","3K"],"CEFGHJKL":["3E","3G","3J","3C","3H","3F","3L","3K"],"CEFGIJKL":["3E","3G","3I","3C","3J","3F","3L","3K"],"CEFHIJKL":["3E","3J","3I","3C","3H","3F","3L","3K"],"CEGHIJKL":["3E","3J","3I","3C","3H","3G","3L","3K"],"CFGHIJKL":["3H","3G","3I","3C","3J","3F","3L","3K"],"DEFGHIJK":["3E","3G","3J","3D","3H","3F","3I","3K"],"DEFGHIJL":["3E","3G","3J","3D","3H","3F","3L","3I"],"DEFGHIKL":["3E","3G","3I","3D","3H","3F","3L","3K"],"DEFGHJKL":["3E","3G","3J","3D","3H","3F","3L","3K"],"DEFGIJKL":["3E","3G","3I","3D","3J","3F","3L","3K"],"DEFHIJKL":["3E","3J","3I","3D","3H","3F","3L","3K"],"DEGHIJKL":["3E","3J","3I","3D","3H","3G","3L","3K"],"DFGHIJKL":["3H","3G","3I","3D","3J","3F","3L","3K"],"EFGHIJKL":["3E","3J","3I","3F","3H","3G","3L","3K"]}};
 
+      // Rondas posteriores a R32 (data/knockout_rounds.json, §12.7-12.11).
+      const KNOCKOUT_ROUNDS = {
+  "schema_version": 1,
+  "source": "FWC26_regulations_EN.pdf §12.7-12.11",
+  "rounds": [
+    {
+      "round_id": "R16",
+      "label": "Octavos de final",
+      "matches": [
+        { "match_id": "M89", "winner_code": "W89", "home_slot": "W74", "away_slot": "W77" },
+        { "match_id": "M90", "winner_code": "W90", "home_slot": "W73", "away_slot": "W75" },
+        { "match_id": "M91", "winner_code": "W91", "home_slot": "W76", "away_slot": "W78" },
+        { "match_id": "M92", "winner_code": "W92", "home_slot": "W79", "away_slot": "W80" },
+        { "match_id": "M93", "winner_code": "W93", "home_slot": "W83", "away_slot": "W84" },
+        { "match_id": "M94", "winner_code": "W94", "home_slot": "W81", "away_slot": "W82" },
+        { "match_id": "M95", "winner_code": "W95", "home_slot": "W86", "away_slot": "W88" },
+        { "match_id": "M96", "winner_code": "W96", "home_slot": "W85", "away_slot": "W87" }
+      ]
+    },
+    {
+      "round_id": "QF",
+      "label": "Cuartos de final",
+      "matches": [
+        { "match_id": "M97", "winner_code": "W97", "home_slot": "W89", "away_slot": "W90" },
+        { "match_id": "M98", "winner_code": "W98", "home_slot": "W93", "away_slot": "W94" },
+        { "match_id": "M99", "winner_code": "W99", "home_slot": "W91", "away_slot": "W92" },
+        { "match_id": "M100", "winner_code": "W100", "home_slot": "W95", "away_slot": "W96" }
+      ]
+    },
+    {
+      "round_id": "SF",
+      "label": "Semifinales",
+      "matches": [
+        { "match_id": "M101", "winner_code": "W101", "home_slot": "W97", "away_slot": "W99" },
+        { "match_id": "M102", "winner_code": "W102", "home_slot": "W98", "away_slot": "W100" }
+      ]
+    },
+    {
+      "round_id": "3P",
+      "label": "Tercer puesto",
+      "matches": [
+        { "match_id": "M103", "winner_code": "W103", "home_slot": "L101", "away_slot": "L102" }
+      ]
+    },
+    {
+      "round_id": "F",
+      "label": "Final",
+      "matches": [
+        { "match_id": "M104", "winner_code": "W104", "home_slot": "W101", "away_slot": "W102" }
+      ]
+    }
+  ]
+};
+
       const STORAGE_KEY = "prediction_pool_state_v1";
       const DATASET_VERSION = "FUTBOLEDOS_PRED_V1";
+      // Base del visualizador (parte 2) para el enlace del dataset. Ajustable.
+      const VISUALIZER_BASE = "https://marcusmcfly.github.io/futboledos_wc26/";
 
       // Índices globales para resolver nombres y orden de dataset por team_id.
       const TEAM_NAME = new Map();
@@ -483,6 +542,13 @@
         return "";
       }
 
+      // Slug de pool normalizado (spec 03): NFKC → minúsculas → espacios a "_" → [a-z0-9_-] → 40.
+      function normalizePoolSlug(name) {
+        if (!name) return "";
+        return String(name).normalize("NFKC").trim().toLowerCase()
+          .replace(/\s+/g, "_").replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+      }
+
       // ═══════════════ DIECISEISAVOS / ROUND OF 32 (spec 02) ═══════════════
       // Orden final de un grupo (head-to-head + desempates manuales).
       const finalStandings = (group) => rankGroup(group).rows;
@@ -569,21 +635,66 @@
         return { ok: true, key, assignment, colMap, qualified, matches };
       }
 
-      const bracketSignature = (matches) =>
-        "R32|" + matches.map((m) => `${m.match_id}:${m.home}-${m.away}`).join("|");
-
-      // Invalidación (§16): si cambia el bracket, se descartan las predicciones R32.
-      function syncKnockout(matches) {
-        const sig = bracketSignature(matches);
-        if (state.knockout.bracketSignature !== sig) {
-          state.knockout.bracketSignature = sig;
-          state.knockout.predictions = {};
-          saveState();
+      // Resolución encadenada de toda la fase eliminatoria (R32 + rondas siguientes).
+      // Slot W## = ganador del partido nº ##; L## = perdedor (el no clasificado).
+      function resolveKnockout() {
+        const r32 = resolveBracket();
+        if (!r32.ok) return { ok: false, key: r32.key };
+        const byNum = new Map();
+        const all = [];
+        for (const m of r32.matches) {
+          const num = Number(m.fifa.slice(1));
+          const o = { match_id: m.match_id, num, fifa: m.fifa, round_id: "R32", label: "Dieciseisavos de final",
+            home_slot: m.home_slot, away_slot: m.away_slot, home: m.home, away: m.away };
+          byNum.set(num, o); all.push(o);
         }
+        const teamFromCode = (code) => {
+          const src = byNum.get(Number(code.slice(1)));
+          if (!src || src.home == null || src.away == null || !koDecided(src)) return null;
+          const q = koPred(src.match_id).qualified;
+          return code[0] === "W" ? q : (q === src.home ? src.away : src.home);
+        };
+        const rounds = KNOCKOUT_ROUNDS.rounds.map((round) => {
+          const matches = round.matches.map((mm) => {
+            const num = Number(mm.match_id.slice(1));
+            const o = { match_id: mm.match_id, num, fifa: mm.match_id, round_id: round.round_id, label: round.label,
+              home_slot: mm.home_slot, away_slot: mm.away_slot,
+              home: teamFromCode(mm.home_slot), away: teamFromCode(mm.away_slot) };
+            byNum.set(num, o); all.push(o);
+            return o;
+          });
+          return { round_id: round.round_id, label: round.label, matches };
+        });
+        return { ok: true, key: r32.key, qualified: r32.qualified, r32, byNum, rounds, all };
+      }
+
+      // Una predicción solo cuenta como decidida si su cruce coincide con el resuelto.
+      function koDecided(m) {
+        const p = state.knockout.predictions[m.match_id];
+        return !!p && p.fx === `${m.home}-${m.away}` && koComplete(m);
+      }
+
+      // Invalidación en cascada (§16): limpia predicciones cuyo cruce ya no coincide.
+      function syncKnockoutFixtures(res) {
+        let changed = false;
+        for (const m of res.all) {
+          const p = state.knockout.predictions[m.match_id];
+          if (!p) continue;
+          const fx = (m.home != null && m.away != null) ? `${m.home}-${m.away}` : null;
+          const hasData = typeof p.home === "number" || typeof p.away === "number" || p.qualified != null;
+          if (p.fx === undefined) { p.fx = fx; continue; } // migración de estado previo
+          if (!hasData) { p.fx = fx; continue; }
+          if (fx == null || p.fx !== fx) {
+            p.home = null; p.away = null; p.qualified = null; p.penHome = null; p.penAway = null; p.fx = fx;
+            changed = true;
+          }
+        }
+        if (changed) saveState();
+        return changed;
       }
       const koPred = (id) => {
         if (!state.knockout.predictions[id])
-          state.knockout.predictions[id] = { home: null, away: null, qualified: null, penHome: null, penAway: null };
+          state.knockout.predictions[id] = { home: null, away: null, qualified: null, penHome: null, penAway: null, fx: undefined };
         return state.knockout.predictions[id];
       };
       // Validación de tanda de penaltis (spec 04): resultado final posible.
@@ -609,54 +720,73 @@
         } else { p.qualified = null; p.penHome = null; p.penAway = null; }
       }
       const koComplete = (m) => {
-        const p = koPred(m.match_id);
-        return typeof p.home === "number" && typeof p.away === "number" &&
+        const p = state.knockout.predictions[m.match_id];
+        return !!p && typeof p.home === "number" && typeof p.away === "number" &&
           (p.qualified === m.home || p.qualified === m.away);
       };
 
-      function renderR32() {
-        const root = document.getElementById("r32-root");
+      function renderKnockout() {
+        const r32root = document.getElementById("r32-root");
+        const koroot = document.getElementById("ko-root");
         if (!allGroupsComplete()) {
-          root.innerHTML = `<section class="r32-card">
+          r32root.innerHTML = `<section class="r32-card">
             <h2>Dieciseisavos de final</h2>
             <p class="r32-pending">Pendiente de completar todos los grupos. Los enfrentamientos se calcularán automáticamente con tu predicción de fase de grupos.</p>
           </section>`;
-          return;
+          koroot.innerHTML = ""; return;
         }
         if (hasUnresolvedGroupTies()) {
-          root.innerHTML = `<section class="r32-card">
+          r32root.innerHTML = `<section class="r32-card">
             <h2>Dieciseisavos de final</h2>
             <div class="r32-banner warn">No se pueden generar las eliminatorias hasta resolver todos los empates de grupo. Usa el panel de desempate en los grupos afectados.</div>
           </section>`;
-          return;
+          koroot.innerHTML = ""; return;
         }
         pruneStaleThirds();
-        const res = resolveBracket();
+        const res = resolveKnockout();
         if (!res.ok) {
-          root.innerHTML = `<section class="r32-card">
+          r32root.innerHTML = `<section class="r32-card">
             <h2>Dieciseisavos de final</h2>
             <div class="r32-banner danger">No se ha encontrado una combinación válida para los mejores terceros. Revisa la tabla de asignación de terceros.</div>
           </section>`;
-          console.error("Missing third-place assignment key:", res.key);
-          return;
+          koroot.innerHTML = ""; console.error("Missing third-place assignment key:", res.key); return;
         }
-        syncKnockout(res.matches);
+        syncKnockoutFixtures(res);
         const ranked = thirdsRanked();
         const boundaryWarn = thirdsBoundaryTie(ranked)
           ? `<div class="r32-banner warn">Hay terceros empatados en puntos y diferencia de goles en la frontera de clasificación. Ajusta el orden abajo si quieres decidir qué 8 clasifican.</div>`
           : "";
-        const kdone = res.matches.filter(koComplete).length;
-        root.innerHTML = `<section class="r32-card">
+        const kdone = res.r32.matches.filter(koComplete).length;
+        r32root.innerHTML = `<section class="r32-card">
           <h2>Dieciseisavos de final</h2>
           <p class="muted" style="font-size:0.82rem;margin:0 0 0.4rem">Generados desde TU clasificación de grupos · clave de terceros <strong>${esc(res.key)}</strong> · completados ${kdone}/16.</p>
           <div class="section-title">Mejores terceros (8 de 12 clasifican)</div>
           ${boundaryWarn}
           ${thirdsTableHtml(ranked, res.qualified)}
           <div class="section-title">Cruces</div>
-          <div class="r32-matches">${res.matches.map(koRowHtml).join("")}</div>
+          <div class="r32-matches">${res.r32.matches.map(koRowHtml).join("")}</div>
         </section>`;
+        koroot.innerHTML = res.rounds.map(roundCardHtml).join("") + championHtml(res);
         wireThirds();
-        wireKnockout(res.matches);
+        wireKnockout(res.all);
+      }
+
+      function roundCardHtml(round) {
+        const done = round.matches.filter(koComplete).length;
+        return `<section class="r32-card">
+          <h2>${esc(round.label)}</h2>
+          <p class="muted" style="font-size:0.82rem;margin:0 0 0.4rem">Completados ${done}/${round.matches.length}.</p>
+          <div class="r32-matches">${round.matches.map(koRowHtml).join("")}</div>
+        </section>`;
+      }
+
+      function championHtml(res) {
+        const fin = res.all.find((m) => m.match_id === "M104");
+        if (!fin || fin.home == null || fin.away == null || !koDecided(fin)) return "";
+        return `<section class="r32-card" style="text-align:center">
+          <h2>🏆 Campeón</h2>
+          <p style="font-size:1.2rem;font-weight:700;color:var(--accent);margin:0.2rem 0">${esc(nameOf(koPred("M104").qualified))}</p>
+        </section>`;
       }
 
       function thirdsTableHtml(ranked, qualified) {
@@ -693,6 +823,9 @@
       }
 
       function koRowHtml(m) {
+        if (m.home == null || m.away == null) {
+          return `<div class="ko"><div class="ko-row ko-pending"><span class="muted">Pendiente · ${esc(m.home_slot)} vs ${esc(m.away_slot)}</span></div><div class="ko-slots">${esc(m.fifa)}</div></div>`;
+        }
         const p = koPred(m.match_id);
         const hv = typeof p.home === "number" ? p.home : "";
         const av = typeof p.away === "number" ? p.away : "";
@@ -718,10 +851,10 @@
           <div class="ko-row">
             <span class="team home">${esc(nameOf(m.home))}</span>
             <span class="ko-x" aria-label="${xHome ? "clasifica " + esc(nameOf(m.home)) : ""}">${xHome}</span>
-            <label class="sr-only" for="${m.match_id}_kh">Goles de ${esc(nameOf(m.home))} en dieciseisavos contra ${esc(nameOf(m.away))}</label>
+            <label class="sr-only" for="${m.match_id}_kh">Goles de ${esc(nameOf(m.home))} en eliminatorias contra ${esc(nameOf(m.away))}</label>
             <input class="score-input" id="${m.match_id}_kh" type="number" inputmode="numeric" min="0" max="99" value="${hv}" data-ko="${m.match_id}" data-side="home">
             <span class="sep">×</span>
-            <label class="sr-only" for="${m.match_id}_ka">Goles de ${esc(nameOf(m.away))} en dieciseisavos contra ${esc(nameOf(m.home))}</label>
+            <label class="sr-only" for="${m.match_id}_ka">Goles de ${esc(nameOf(m.away))} en eliminatorias contra ${esc(nameOf(m.home))}</label>
             <input class="score-input" id="${m.match_id}_ka" type="number" inputmode="numeric" min="0" max="99" value="${av}" data-ko="${m.match_id}" data-side="away">
             <span class="ko-x" aria-label="${xAway ? "clasifica " + esc(nameOf(m.away)) : ""}">${xAway}</span>
             <span class="team away">${esc(nameOf(m.away))}</span>
@@ -755,14 +888,17 @@
 
       function wireKnockout(matches) {
         const byId = new Map(matches.map((m) => [m.match_id, m]));
-        document.querySelectorAll("#r32-root .score-input").forEach((input) => {
+        document.querySelectorAll("#r32-root .score-input, #ko-root .score-input").forEach((input) => {
           input.addEventListener("input", () => {
             const id = input.dataset.ko, side = input.dataset.side;
             const { value, invalid } = parseGoal(input.value);
             input.classList.toggle("invalid", invalid);
             if (invalid) return;
-            koPred(id)[side] = value;
-            recomputeQualified(byId.get(id));
+            const m = byId.get(id);
+            const p = koPred(id);
+            p[side] = value;
+            p.fx = `${m.home}-${m.away}`; // cruce contra el que se predice (invalidación §16)
+            recomputeQualified(m);
             saveState();
             render();
             const suffix = { home: "kh", away: "ka", penHome: "ph", penAway: "pa" }[side];
@@ -778,7 +914,7 @@
         const root = document.getElementById("groups-root");
         root.innerHTML = GROUPS.map(groupCardHtml).join("");
         for (const g of GROUPS) { wireInputs(g); wireTiebreak(g); }
-        renderR32();
+        renderKnockout();
         renderProgress();
         renderDataset();
       }
@@ -963,27 +1099,42 @@
         lines.push("[DIECISEISAVOS]");
         if (!allGroupsComplete()) {
           lines.push("pendiente: completa la fase de grupos");
+        } else if (hasUnresolvedGroupTies()) {
+          lines.push("pendiente: resuelve los empates de grupo");
         } else {
-          const res = resolveBracket();
+          const res = resolveKnockout();
           if (!res.ok) {
             lines.push(`error: sin asignacion de terceros (clave ${res.key})`);
           } else {
-            lines.push(`terceros_clave: ${res.key}`);
-            lines.push(`terceros_clasificados: ${res.qualified.map((t) => t.group + ":" + t.id).join(" ")}`);
-            let kdone = 0;
-            for (const m of res.matches) {
+            const koLine = (m) => {
               const p = state.knockout.predictions[m.match_id] || {};
               const hg = typeof p.home === "number" ? p.home : "-";
               const ag = typeof p.away === "number" ? p.away : "-";
               const q = p.qualified === m.home || p.qualified === m.away ? p.qualified : "-";
-              if (hg !== "-" && ag !== "-" && q !== "-") kdone++;
               const pen = hg !== "-" && hg === ag && typeof p.penHome === "number" && typeof p.penAway === "number"
                 ? ` pen:${p.penHome}-${p.penAway}` : "";
-              lines.push(`${m.match_id} ${m.fifa} ${m.home_slot} ${m.away_slot} ${m.home} ${hg} ${ag} ${m.away} q:${q}${pen}`);
+              return `${m.fifa} ${m.home_slot} ${m.away_slot} ${m.home || "?"} ${hg} ${ag} ${m.away || "?"} q:${q}${pen}`;
+            };
+            lines.push(`terceros_clave: ${res.key}`);
+            lines.push(`terceros_clasificados: ${res.qualified.map((t) => t.group + ":" + t.id).join(" ")}`);
+            for (const m of res.r32.matches) lines.push(koLine(m));
+            lines.push(`r32_completados: ${res.r32.matches.filter(koComplete).length}/16`);
+            const secName = { R16: "OCTAVOS", QF: "CUARTOS", SF: "SEMIS", "3P": "TERCER_PUESTO", F: "FINAL" };
+            for (const round of res.rounds) {
+              lines.push("");
+              lines.push(`[${secName[round.round_id] || round.round_id}]`);
+              for (const m of round.matches) lines.push(koLine(m));
+              lines.push(`completados: ${round.matches.filter(koComplete).length}/${round.matches.length}`);
             }
-            lines.push(`r32_completados: ${kdone}/16`);
+            const fin = res.all.find((m) => m.match_id === "M104");
+            lines.push("");
+            lines.push(`campeon: ${fin && koDecided(fin) ? koPred("M104").qualified : "-"}`);
           }
         }
+        lines.push("");
+        // Enlace al visualizador (parte 2): al pool si hay nombre, si no a la general.
+        const slug = normalizePoolSlug(state.poolName);
+        lines.push(slug ? `pool_url: ${VISUALIZER_BASE}?pool=${slug}` : `clasificacion: ${VISUALIZER_BASE}?view=all`);
         lines.push("");
         lines.push(`END_${DATASET_VERSION}`);
         return lines.join("\n");

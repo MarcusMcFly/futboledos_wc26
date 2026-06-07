@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "source": "FWC26_regulations_EN.pdf §12.7-12.11",
+  "rounds": [
+    {
+      "round_id": "R16",
+      "label": "Octavos de final",
+      "matches": [
+        { "match_id": "M89", "winner_code": "W89", "home_slot": "W74", "away_slot": "W77" },
+        { "match_id": "M90", "winner_code": "W90", "home_slot": "W73", "away_slot": "W75" },
+        { "match_id": "M91", "winner_code": "W91", "home_slot": "W76", "away_slot": "W78" },
+        { "match_id": "M92", "winner_code": "W92", "home_slot": "W79", "away_slot": "W80" },
+        { "match_id": "M93", "winner_code": "W93", "home_slot": "W83", "away_slot": "W84" },
+        { "match_id": "M94", "winner_code": "W94", "home_slot": "W81", "away_slot": "W82" },
+        { "match_id": "M95", "winner_code": "W95", "home_slot": "W86", "away_slot": "W88" },
+        { "match_id": "M96", "winner_code": "W96", "home_slot": "W85", "away_slot": "W87" }
+      ]
+    },
+    {
+      "round_id": "QF",
+      "label": "Cuartos de final",
+      "matches": [
+        { "match_id": "M97", "winner_code": "W97", "home_slot": "W89", "away_slot": "W90" },
+        { "match_id": "M98", "winner_code": "W98", "home_slot": "W93", "away_slot": "W94" },
+        { "match_id": "M99", "winner_code": "W99", "home_slot": "W91", "away_slot": "W92" },
+        { "match_id": "M100", "winner_code": "W100", "home_slot": "W95", "away_slot": "W96" }
+      ]
+    },
+    {
+      "round_id": "SF",
+      "label": "Semifinales",
+      "matches": [
+        { "match_id": "M101", "winner_code": "W101", "home_slot": "W97", "away_slot": "W99" },
+        { "match_id": "M102", "winner_code": "W102", "home_slot": "W98", "away_slot": "W100" }
+      ]
+    },
+    {
+      "round_id": "3P",
+      "label": "Tercer puesto",
+      "matches": [
+        { "match_id": "M103", "winner_code": "W103", "home_slot": "L101", "away_slot": "L102" }
+      ]
+    },
+    {
+      "round_id": "F",
+      "label": "Final",
+      "matches": [
+        { "match_id": "M104", "winner_code": "W104", "home_slot": "W101", "away_slot": "W102" }
+      ]
+    }
+  ]
+}
