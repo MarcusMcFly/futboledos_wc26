@@ -604,10 +604,16 @@
         for (const sig of Object.keys(state.thirdsManual))
           if (!active.has(sig)) delete state.thirdsManual[sig];
       }
-      // ¿Empate (Pts,DG) en la frontera 8/9? → ambigüedad sobre quién clasifica.
-      function thirdsBoundaryTie(ranked) {
-        if (ranked.length < 9) return false;
-        return ranked[7].pts === ranked[8].pts && ranked[7].dg === ranked[8].dg;
+      // ¿Empate (Pts,DG) en la frontera 8/9? → bloque empatado a caballo del corte.
+      // Devuelve {n, qualCount, pts, dg} del bloque empatado que decide el corte, o null.
+      function boundaryInfo(ranked) {
+        if (ranked.length < 9) return null;
+        if (!(ranked[7].pts === ranked[8].pts && ranked[7].dg === ranked[8].dg)) return null;
+        const p = ranked[7].pts, d = ranked[7].dg;
+        let lo = 7, hi = 8;
+        while (lo - 1 >= 0 && ranked[lo - 1].pts === p && ranked[lo - 1].dg === d) lo--;
+        while (hi + 1 < ranked.length && ranked[hi + 1].pts === p && ranked[hi + 1].dg === d) hi++;
+        return { n: hi - lo + 1, qualCount: 8 - lo, pts: p, dg: d };
       }
 
       // Resuelve el bracket desde el ranking actual del usuario.
@@ -753,8 +759,9 @@
         }
         syncKnockoutFixtures(res);
         const ranked = thirdsRanked();
-        const boundaryWarn = thirdsBoundaryTie(ranked)
-          ? `<div class="r32-banner warn">Hay terceros empatados en puntos y diferencia de goles en la frontera de clasificación. Ajusta el orden abajo si quieres decidir qué 8 clasifican.</div>`
+        const bi = boundaryInfo(ranked);
+        const boundaryWarn = bi
+          ? `<div class="r32-banner warn">${bi.n} terceros empatados (${bi.pts} pts, DG ${bi.dg >= 0 ? "+" : ""}${bi.dg}): de ellos solo clasifican <strong>${bi.qualCount}</strong>. Ordénalos abajo — las posiciones 1–${bi.qualCount} clasifican; el resto, no.</div>`
           : "";
         const kdone = res.r32.matches.filter(koComplete).length;
         r32root.innerHTML = `<section class="r32-card">
@@ -791,22 +798,32 @@
 
       function thirdsTableHtml(ranked, qualified) {
         const qids = new Set(qualified.map((t) => t.id));
-        const selMeta = {}; // group → { sig, n, cur }
+        const selMeta = {}; // group → { sig, n, cur, type } · type: in | out | boundary
         for (const set of thirdsTieSets(thirdsBase())) {
           const sig = thirdsSignature(set);
           const groupsInSet = set.map((t) => t.group);
-          const orderInRanked = ranked.filter((t) => groupsInSet.includes(t.group)).map((t) => t.group);
-          orderInRanked.forEach((grp, idx) => { selMeta[grp] = { sig, n: orderInRanked.length, cur: idx + 1 }; });
+          const idxs = ranked.map((t, i) => (groupsInSet.includes(t.group) ? i : -1)).filter((i) => i >= 0);
+          const n = idxs.length;
+          const qualCount = idxs.filter((i) => i < 8).length;
+          const type = qualCount === n ? "in" : qualCount === 0 ? "out" : "boundary";
+          idxs.forEach((i, idx) => { selMeta[ranked[i].group] = { sig, n, cur: idx + 1, type }; });
         }
         const body = ranked.map((t, i) => {
           const qual = qids.has(t.id);
           const cls = [qual ? "qual" : "", i === 8 ? "cut" : ""].filter(Boolean).join(" ");
           let control = "";
           const meta = selMeta[t.group];
-          if (meta) {
+          // Solo el bloque empatado que cae sobre el corte necesita reordenarse.
+          // Los bloques que clasifican enteros (mejor DG) o que quedan fuera enteros
+          // no cambian nada al reordenarlos → se etiquetan en vez de mostrar desplegable.
+          if (meta && meta.type === "boundary") {
             const opts = Array.from({ length: meta.n }, (_, k) =>
               `<option value="${k + 1}" ${meta.cur === k + 1 ? "selected" : ""}>${k + 1}</option>`).join("");
             control = `<select data-tsig="${esc(meta.sig)}" data-tgroup="${t.group}" aria-label="Orden manual del tercero del grupo ${t.group}">${opts}</select>`;
+          } else if (meta && meta.type === "in") {
+            control = `<span class="muted">clasifica por DG</span>`;
+          } else if (meta && meta.type === "out") {
+            control = `<span class="muted">no clasifica</span>`;
           }
           return `<tr class="${cls}">
             <td class="tpos">${i + 1}</td>
