@@ -1,122 +1,118 @@
-# Futboledos ⚽
+# Futboledos ⚽ — Quiniela del Mundial 2026
 
-Quiniela de predicciones del Mundial. **Sitio 100% estático** (GitHub Pages),
-sin backend ni base de datos. El estado vive en tres ficheros JSON publicados en
-el repositorio; el scoring se calcula en el cliente.
+**Sitio 100% estático** (GitHub Pages), sin backend ni base de datos. Toda la
+puntuación se calcula en el navegador a partir de ficheros JSON/TXT publicados en
+el repositorio. Sin build, sin dependencias: HTML + módulos ES nativos.
 
-## Ciclo de vida del dato
+## Las dos partes
 
 ```
- Usuario (UI)                Admin                       Visualizador
- ───────────                 ─────                       ────────────
- 1. Rellena el form
- 2. UI genera bloque  ──email manual──▶  3. merge_submissions.py
-    POOL_SUBMISSION_V1                      valida · dedup · deadline
-                                            genera participants.json
-                                         4. commit  ──▶ GitHub Pages  ──▶ 5. score = predictions ∩ results
+ Parte 1 — Predicción                Admin                  Parte 2 — Visualizador
+ ────────────────────                ─────                  ──────────────────────
+ predicciones.html                                          index.html
+ · pronostica los 104 partidos       guarda el .txt en      · ranking individual
+ · genera un bloque de texto  ─env─▶  data/submissions/  ─▶ · ranking de pools
+   FUTBOLEDOS_PRED_V1                 y lo añade a            · estadísticas
+ · todo en el navegador              registry.json           · score = pred ∩ oficial
 ```
 
-El producto es el **ciclo completo**: creación → email → merge → score → visualización.
+El participante rellena `predicciones.html`, copia el bloque de texto que se
+genera solo y te lo envía. Tú lo guardas como `data/submissions/<nick>.txt` y lo
+declaras en `data/registry.json`. El visualizador puntúa en vivo contra los
+resultados oficiales.
 
 ## Estructura
 
-**Sin build, sin dependencias.** HTML + módulos ES nativos que el navegador
-ejecuta directamente; GitHub Pages sirve los archivos tal cual.
-
 ```
-index.html                Visualizador / clasificación
-submit.html               Formulario de predicción
-.nojekyll                 Evita el procesado Jekyll de GitHub Pages
-css/styles.css            Estilos
+predicciones.html          Parte 1: formulario de pronóstico (autocontenido, funciona con file://)
+index.html                 Parte 2: visualizador (carga js/visualizer.js como módulo)
+css/styles.css             Estilos (tema oscuro, compartido)
 js/
-  types.js                Modelo de datos (JSDoc, solo documentación)
-  scoring.js              score = count(predictions ∩ confirmed_outcomes) + contradicciones
-  submission.js           Validación cliente + generación del bloque + deadline
-  standings.js            Clasificación de grupo (pura): puntos, GF/GC/DG, J/G/E/P, orden
-  groupstage.js           Render + recálculo inmediato de las tablas de grupo
-  data.js                 Carga de JSON (rutas relativas) con estados de error
-  home.js                 Render del visualizador
-  submit.js               Render del formulario (predicciones + fase de grupos)
+  visualizer.js            Router + render de las vistas
+  data.js                  Carga de los ficheros de /data
+  parse_prediction.js      Texto FUTBOLEDOS_PRED_V1 → objeto estructurado
+  scoring.js               Motor de puntuación (partido, ranking, terceros, KO, progresión)
+  leaderboard.js           Ranking individual + desempates
+  pools.js                 Ranking de pools (media por participante activo)
+  stats.js                 Estadísticas (distribución, exact-score heroes, contrarian, precisión)
+  history.js               Movimiento de ranking y top movers (vs snapshot)
 data/
-  catalog.json            Opciones oficiales + closes_at (deadline)
-  groups.json             Fixtures de fase de grupos (schema_version 1)
-  participants.json       GENERADO por el merge — nunca editar a mano
-  results.json            Resultados oficiales (confirmed_outcomes)
+  registry.json            ÍNDICE (admin, a mano): participantes + pools
+  scoring_rules.json       Reglas de puntos + meta (evento, fecha límite)
+  teams.json               id de equipo → nombre
+  official/results.txt     Resultados oficiales (admin) en formato FUTBOLEDOS_PRED_V1
+  submissions/<nick>.txt   Predicciones recibidas
+  snapshots/               Cortes de la clasificación para el movimiento de ranking
+  groups.json · round_of_32.json · knockout_rounds.json · third_place_assignment_table.json
+                           Fixtures y bracket oficial (referencia)
 scripts/
-  merge_submissions.py    Merge flow del administrador (Spec 8) — requiere Python
+  snapshot.mjs             Genera un corte de la clasificación (admin)
+  test_*.mjs               Tests (Node, sin navegador)
 ```
 
-## Las tres fuentes de verdad
+## Modelo de datos
 
 | Fichero | Quién lo edita | Contiene |
 |---|---|---|
-| `catalog.json` | Admin (manual) | Opciones válidas, categorías exclusivas, `closes_at` |
-| `participants.json` | **Script de merge** | Submissions validadas y deduplicadas |
-| `results.json` | Admin (manual, tras el evento) | `confirmed_outcomes` para el scoring |
+| `data/submissions/<nick>.txt` | Admin (pega lo recibido) | La predicción tal cual la exporta `predicciones.html` |
+| `data/registry.json` | Admin (a mano) | Qué predicciones existen y cómo se agrupan en pools |
+| `data/official/results.txt` | Admin (según se juega) | Resultados oficiales, en el mismo formato de predicción |
+| `data/scoring_rules.json` | Admin | Valores de puntos, desempates, fecha límite |
 
-## Formato de submission (POOL_SUBMISSION_V1)
+**Identidad y pools.** Cada predicción se identifica por **nick** (un fichero). Los
+pools solo referencian nicks; un mismo nick puede estar en varios pools con su
+misma predicción. Una persona que quiera otra predicción usa otro nick. Un pool
+necesita ≥3 participantes activos para entrar en el ranking oficial de pools.
 
+> La web estática no puede listar `data/submissions/` sola, por eso el
+> `registry.json` declara los ficheros. Pensado para <50 participantes; se
+> mantiene a mano.
+
+## Puntuación (resumen)
+
+El total es la suma de cinco bloques: partidos de grupo, ranking de grupo,
+mejores terceros, eliminatorias y bonus de progresión. Los valores están en
+`data/scoring_rules.json` y la página **«Cómo se puntúa»** (`?view=scoring`) los
+explica leyéndolos de ahí. Definición completa en `docs/06_points_system.docx`;
+pools en `docs/07_points_system_pools.docx`; estadísticas en
+`docs/08_part_2_visualization.docx`.
+
+## Flujo del admin
+
+**Nueva predicción recibida:**
+1. Guarda el texto en `data/submissions/<nick>.txt`.
+2. Añade el participante (y su pool, si tiene) a `data/registry.json`.
+
+**Cargar resultados oficiales:**
+1. Rellena los marcadores reales en `predicciones.html` según se juega y exporta.
+2. Pega el bloque en `data/official/results.txt`. Los partidos sin marcador
+   (`-`) cuentan como pendientes; la puntuación se recalcula sola.
+
+**Movimiento de ranking (opcional):**
+```bash
+node scripts/snapshot.mjs "Tras la jornada 1"
 ```
-POOL_SUBMISSION_V1
-nickname: marcos
-pool_name: champions_friends
-submitted_at: 2026-05-28T10:12:00+02:00
-predictions:
-  - winner_real_madrid
-  - top_scorer_mbappe
-  - finalist_city
-END_POOL_SUBMISSION
-```
-
-**Envío:** email a `pools@futboledos.example.com` con asunto exacto
-`POOL_SUBMISSION_V1`. Cualquier otro asunto/formato se ignora en el merge.
-
-> `submitted_at` lo genera el dispositivo del usuario: es **informativo**, no
-> prueba de envío a tiempo. El rechazo definitivo por deadline lo decide el
-> admin según la recepción real del email.
-
-## Reglas de negocio clave
-
-- **Deadline** (`closes_at`): la UI deshabilita el form; el merge rechaza lo posterior.
-- **Duplicados**: `(nickname, pool_name)` → gana la primera submission válida. Mismo nickname en pools distintos = permitido.
-- **Pool names públicos**: sin contraseña ni invitación. Decisión de diseño intencional.
-- **Contradicciones**: dos predicciones de la misma categoría `exclusive: true` se resaltan en el visualizador.
-- **Malformadas**: se mueven a `scripts/emails/rejected/` con motivo en `rejected.log`.
-
-## Clasificación dinámica de grupo
-
-En la página de predicción, cada grupo muestra una tabla que se recalcula **al
-instante** desde los marcadores que introduce el usuario (no se edita a mano):
-
-- Victoria 3 pts · empate 1 · derrota 0.
-- `GF`/`GC` goles a favor/contra · `DG = GF − GC` · `J` jugados · `G`/`E`/`P` victorias/empates/derrotas.
-- Un partido con cualquiera de los dos goles vacío **no** afecta a la tabla.
-- Orden: 1) Pts · 2) DG · 3) GF · 4) nombre alfabético.
-
-Los equipos de cada grupo se **derivan** de los partidos (el esquema no los lista
-aparte). Datos en `data/groups.json`.
+Congela la clasificación actual en `data/snapshots/NNN.json`. Commitéalo: la
+próxima actualización mostrará las flechas de movimiento respecto a ese corte.
 
 ## Desarrollo
 
-No hay nada que instalar. Los módulos ES + `fetch` necesitan servirse por HTTP
-(no funcionan abriendo el HTML con `file://`), así que para previsualizar en
-local levanta cualquier servidor estático. Con Python (que ya necesitas para el
-merge) basta:
+Los módulos ES + `fetch` necesitan servirse por HTTP (no con `file://`). Con
+Python:
 
 ```bash
-python -m http.server 8000   # desde la raíz del repo
-# abrir http://localhost:8000/
+python -m http.server 8000   # desde la raíz del repo → http://localhost:8000/
+```
+
+`predicciones.html` sí funciona con `file://` (es autocontenido).
+
+**Tests** (Node, sin navegador):
+
+```bash
+npm test    # parser + motor + estadísticas + historia + render del visualizador
 ```
 
 ## Despliegue (GitHub Pages)
 
-Sin CI ni build: en GitHub → **Settings → Pages → Deploy from a branch**, rama
-principal, carpeta raíz `/`. El `.nojekyll` evita que Pages procese los archivos.
-
-## Merge (admin)
-
-```bash
-cd scripts
-python merge_submissions.py --inbox ./emails/
-# revisar diff de ../data/participants.json y commitear
-```
+Sin CI ni build: **Settings → Pages → Deploy from a branch**, rama principal,
+carpeta raíz `/`. El `.nojekyll` evita el procesado Jekyll.

@@ -57,6 +57,7 @@ async function main() {
   else if (pool) renderPool(ctx, pool);
   else if (match) renderMatch(ctx, match);
   else if (view === "matches") renderMatches(ctx);
+  else if (view === "scoring") renderScoring(ctx);
   else renderHome(ctx);
 }
 
@@ -88,9 +89,21 @@ function statusBanner(official) {
 }
 
 // ── Vista: clasificación general ─────────────────────────────────────────────
+function deadlineBanner(rules) {
+  const iso = rules && rules.meta && rules.meta.submission_deadline;
+  if (!iso) return "";
+  const d = new Date(iso);
+  const closed = Date.now() >= d.getTime();
+  const when = d.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+  return `<div class="banner ${closed ? "danger" : ""}">⏱️ ${closed
+    ? `Las predicciones se cerraron el ${when}.`
+    : `Las predicciones se cierran el ${when}. <a href="./predicciones.html">Haz la tuya</a>.`}</div>`;
+}
+
 function renderHome(ctx) {
   document.title = "Clasificación · Futboledos WC26";
   $app.innerHTML = `
+    ${deadlineBanner(ctx.rules)}
     ${statusBanner(ctx.official)}
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
@@ -99,10 +112,10 @@ function renderHome(ctx) {
     ${poolTable(ctx)}
     <h2 class="section">Estadísticas del torneo</h2>
     ${statsPanel(ctx)}
-    <p class="legend muted">Total = grupos + ranking de grupo + mejores terceros + eliminatorias + bonus de progresión (SPEC 06). Pulsa un nombre para ver su desglose.</p>`;
+    <p class="legend muted">Total = grupos + ranking de grupo + mejores terceros + eliminatorias + bonus de progresión. Pulsa un nombre para ver su desglose, o <a href="?view=scoring">cómo se puntúa</a>.</p>`;
 }
 
-// Panel de engagement (SPEC 08): precisión global + favorito de la peña + acceso a partidos.
+// Panel de engagement: precisión global + campeón más votado + acceso a partidos.
 function statsPanel(ctx) {
   const acc = globalAccuracy(ctx.predictions, ctx.official, ctx.board);
   const champs = championDistribution(ctx.predictions);
@@ -115,7 +128,7 @@ function statsPanel(ctx) {
       </div>`
     : `<p class="muted">Sin partidos oficiales aún: la precisión global aparecerá cuando se carguen resultados.</p>`;
   const champList = champs.length
-    ? `<div class="champ-fav"><h3>Favorito de la peña 🏆</h3>${champs.slice(0, 5).map((c) => `
+    ? `<div class="champ-fav"><h3>Campeón más votado 🏆</h3>${champs.slice(0, 5).map((c) => `
         <div class="bar-row"><span class="bar-l">${esc(teamName(c.id))}</span>
           <span class="bar-track"><span class="bar-fill" style="width:${c.pct}%"></span></span>
           <b class="bar-v">${c.count}</b></div>`).join("")}</div>`
@@ -326,7 +339,7 @@ function renderMatches(ctx) {
   document.title = "Partidos · Futboledos WC26";
   let html = `<p><a class="back" href="?view=all">← Clasificación general</a></p>
     <h1>Predicciones por partido</h1>
-    <p class="muted">Cómo repartió la peña cada partido de la fase de grupos. Pulsa para ver el detalle.</p>`;
+    <p class="muted">Reparto de predicciones en cada partido de la fase de grupos. Pulsa para ver el detalle.</p>`;
   for (const g of GROUP_LETTERS) {
     html += `<h3>Grupo ${g}</h3>`;
     for (let i = 1; i <= 6; i++) {
@@ -393,6 +406,60 @@ function renderMatch(ctx, id) {
       html += `<p>🎯 <strong>Exact-score heroes:</strong> ${heroes.heroes.map((n) => `<a class="chip" href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`).join(" ")}</p>`;
   }
   $app.innerHTML = html;
+}
+
+// ── Vista: cómo se puntúa (generada desde scoring_rules.json) ────────────────
+function renderScoring(ctx) {
+  document.title = "Cómo se puntúa · Futboledos WC26";
+  const r = ctx.rules;
+  const gm = r.group_match, gr = r.group_ranking, bt = r.best_third, ko = r.knockout_match, pb = r.progression_bonus, pool = r.pool;
+  const iso = r.meta && r.meta.submission_deadline;
+  const dl = iso ? new Date(iso).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : null;
+  $app.innerHTML = `
+    <p><a class="back" href="?view=all">← Clasificación general</a></p>
+    <h1>Cómo se puntúa</h1>
+    <p class="muted">El total de cada participante es la suma de cinco bloques, calculados automáticamente comparando tu predicción con los resultados oficiales.</p>
+    ${dl ? `<div class="banner">⏱️ Fecha límite para enviar tu predicción: <strong>${dl}</strong>.</div>` : ""}
+
+    <h2 class="section">1 · Partidos de grupo</h2>
+    <ul class="rules">
+      <li><b>+${gm.exact_score}</b> marcador exacto <span class="muted">(no acumula con lo de abajo)</span></li>
+      <li><b>+${gm.correct_outcome}</b> resultado (1·X·2) acertado</li>
+      <li><b>+${gm.correct_goal_difference}</b> diferencia de goles acertada</li>
+      <li><b>+${gm.exact_home_goals}</b> goles del local exactos · <b>+${gm.exact_away_goals}</b> goles del visitante exactos</li>
+    </ul>
+    <p class="muted">Máximo ${gm.max_points} puntos por partido.</p>
+
+    <h2 class="section">2 · Ranking de grupo</h2>
+    <ul class="rules">
+      <li>Posición acertada: <b>+${gr.position_points["1"]}</b> el 1.º · <b>+${gr.position_points["2"]}</b> el 2.º · <b>+${gr.position_points["3"]}</b> el 3.º · <b>+${gr.position_points["4"]}</b> el 4.º</li>
+      <li><b>+${gr.qualified_team}</b> por cada equipo que clasifica acertado (da igual la posición)</li>
+      <li><b>+${gr.complete_group_order_bonus}</b> si aciertas el orden completo del grupo</li>
+    </ul>
+
+    <h2 class="section">3 · Mejores terceros</h2>
+    <ul class="rules">
+      <li><b>+${bt.correct_team}</b> por cada grupo cuyo tercero clasificado aciertas</li>
+      <li><b>+${bt.complete_key_bonus}</b> si aciertas los 8 terceros clasificados</li>
+    </ul>
+
+    <h2 class="section">4 · Eliminatorias</h2>
+    <ul class="rules">
+      <li><b>+${ko.correct_qualified_team}</b> por acertar quién pasa de ronda</li>
+      <li>Si aciertas el cruce (los dos equipos): <b>+${ko.exact_score}</b> marcador exacto, o <b>+${ko.correct_outcome}</b> el resultado</li>
+      <li><b>+${ko.correct_home_team}</b> / <b>+${ko.correct_away_team}</b> por cada equipo del cruce acertado</li>
+    </ul>
+
+    <h2 class="section">5 · Bonus de progresión</h2>
+    <p class="muted">Por cada equipo que predices que llega a una ronda y de verdad llega:</p>
+    <ul class="rules">
+      <li>Dieciseisavos <b>+${pb.round_of_32}</b> · Octavos <b>+${pb.round_of_16}</b> · Cuartos <b>+${pb.quarter_final}</b> · Semis <b>+${pb.semi_final}</b></li>
+      <li>Finalista <b>+${pb.runner_up}</b> · Campeón <b>+${pb.champion}</b></li>
+      <li>3.º puesto <b>+${pb.third_place}</b> · 4.º puesto <b>+${pb.fourth_place}</b></li>
+    </ul>
+
+    <h2 class="section">Competición por pools</h2>
+    <p>Cada pool puntúa como la <strong>media de puntos por participante activo</strong>, para que un grupo pequeño pueda competir con uno grande. Hace falta un mínimo de <strong>${pool.min_active_participants}</strong> participantes activos para entrar en el ranking de pools.</p>`;
 }
 
 main();

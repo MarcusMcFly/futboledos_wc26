@@ -98,7 +98,7 @@ export function globalAccuracy(predictions, official, board) {
   };
 }
 
-/** Favorito de la peña: distribución de campeones pronosticados. */
+/** Campeón más votado: distribución de campeones pronosticados. */
 export function championDistribution(predictions) {
   const c = new Map();
   for (const p of predictions) {

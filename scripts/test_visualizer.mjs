@@ -47,9 +47,12 @@ has(user, "Grupo A", "user: partido a partido");
 has(user, "México", "user: nombres de equipo");
 
 has(home, "Estadísticas del torneo", "home: panel de stats");
-has(home, "Favorito de la peña", "home: favorito de la peña");
+has(home, "Campeón más votado", "home: campeón más votado");
 has(home, "Movimiento", "home: sección de movimiento (hay snapshot)");
 has(home, "▲1", "home: Carlos-Seco sube 1 desde el snapshot A-H");
+has(home, "Las predicciones se cierran el 11 de junio de 2026", "home: banner de fecha límite");
+if (home.includes("SPEC 0")) { fail++; console.error("  ✗ home: NO debe mostrar 'SPEC 0x'"); } else pass++;
+if (/de la peña|la peña/.test(home)) { fail++; console.error("  ✗ home: NO debe contener 'la peña'"); } else pass++;
 
 const matches = await route("?view=matches");
 has(matches, "Predicciones por partido", "matches: título");
@@ -65,6 +68,13 @@ has(match, "Exact-score heroes", "match: heroes");
 
 const mover = await route("?nick=Carlos-Seco");
 has(mover, "Movimiento", "user: tarjeta de movimiento");
+
+const scoring = await route("?view=scoring");
+has(scoring, "Cómo se puntúa", "scoring: título");
+has(scoring, "Partidos de grupo", "scoring: bloque grupos");
+has(scoring, "Bonus de progresión", "scoring: bloque progresión");
+has(scoring, "11 de junio de 2026", "scoring: fecha límite");
+has(scoring, "+25", "scoring: valor de campeón desde rules");
 
 const err = await route("?nick=noexiste");
 has(err, "no encontrado", "error: nick inexistente");
