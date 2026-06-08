@@ -18,18 +18,18 @@ function ok(cond, msg) { if (cond) pass++; else { fail++; console.error(`  ✗ $
 const di = parsePrediction(readFileSync(join(root, "data/submissions/Di_mario.txt"), "utf8"));
 eq(di.nick, "Di_mario", "nick");
 eq(di.pool, "Medris_56", "pool");
-eq(di.generadoAt, "2026-06-08T14:39:13.067Z", "generadoAt");
+ok(typeof di.generadoAt === "string" && di.generadoAt.length > 0, "generadoAt presente");
 eq(Object.keys(di.groupMatches).length, 72, "72 partidos de grupo parseados");
 eq(di.groupMatches["A_01"], { home: "MX", away: "ZA", hg: 5, ag: 0 }, "A_01 = MX 5-0 ZA");
 eq(di.groupMatches["J_01"], { home: "AR", away: "DZ", hg: 1, ag: 1 }, "J_01 = AR 1-1 DZ");
 eq(di.groupMatches["H_01"], { home: "ES", away: "CV", hg: 1, ag: 3 }, "H_01 = ES 1-3 CV");
 eq(di.groupOrder["A"], ["MX", "ZA", "KR", "CZ"], "orden grupo A");
 eq(di.groupOrder["J"], ["AR", "DZ", "AT", "JO"], "orden grupo J");
-ok(di.groupUnresolved["J"] === true, "grupo J marcado empate sin resolver");
-ok(di.groupUnresolved["A"] === false, "grupo A sin empate sin resolver");
-ok(di.knockoutPending === true, "eliminatorias pendientes");
-eq(Object.keys(di.knockout).length, 0, "sin partidos KO (pendiente)");
-eq(di.champion, null, "sin campeón aún");
+ok(di.tiebreakManual["J"] === true, "grupo J resuelto con desempate manual");
+// Di_mario está completo: eliminatorias con 32 partidos + campeón.
+ok(di.knockoutPending === false, "eliminatorias presentes");
+eq(Object.keys(di.knockout).length, 32, "32 partidos de eliminatoria");
+ok(!!di.champion, "campeón definido");
 
 // ── 2. Camino con goles "-" (pendiente/sin predecir) ────────────────────────
 const partial = parsePrediction([

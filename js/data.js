@@ -1,29 +1,29 @@
-// Carga de las fuentes de verdad estaticas desde /data (rutas relativas).
-// Cada fetch puede fallar (red, JSON invalido) -> la UI muestra estado de error.
+// Carga de las fuentes de verdad estáticas desde /data (rutas relativas, sin
+// caché). Cada fetch puede fallar → la UI muestra estado de error.
 // @ts-check
-/** @typedef {import("./types.js").Catalog} Catalog */
-/** @typedef {import("./types.js").ParticipantsFile} ParticipantsFile */
-/** @typedef {import("./types.js").Results} Results */
 
-/**
- * @template T
- * @param {string} file
- * @returns {Promise<T>}
- */
 async function loadJson(file) {
-  // Ruta relativa: funciona igual en la raiz o en subcarpeta de GitHub Pages.
   const res = await fetch(`./data/${file}`, { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error(`No se pudo cargar ${file} (HTTP ${res.status}).`);
-  }
-  return /** @type {Promise<T>} */ (res.json());
+  if (!res.ok) throw new Error(`No se pudo cargar ${file} (HTTP ${res.status}).`);
+  return res.json();
 }
 
-/** @returns {Promise<Catalog>} */
-export const loadCatalog = () => loadJson("catalog.json");
-/** @returns {Promise<ParticipantsFile>} */
-export const loadParticipants = () => loadJson("participants.json");
-/** @returns {Promise<Results>} */
-export const loadResults = () => loadJson("results.json");
-/** @returns {Promise<{ groups: import("./standings.js").Group[] }>} */
-export const loadGroups = () => loadJson("groups.json");
+async function loadText(file) {
+  const res = await fetch(`./data/${file}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`No se pudo cargar ${file} (HTTP ${res.status}).`);
+  return res.text();
+}
+
+export const loadRegistry = () => loadJson("registry.json");
+export const loadRules = () => loadJson("scoring_rules.json");
+export const loadTeams = () => loadJson("teams.json");
+export const loadSubmission = (file) => loadText(`submissions/${file}`);
+
+// El oficial puede no existir aún (torneo sin empezar) → texto vacío = todo pendiente.
+export async function loadOfficial() {
+  try {
+    return await loadText("official/results.txt");
+  } catch {
+    return "";
+  }
+}
