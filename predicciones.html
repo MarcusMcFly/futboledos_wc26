@@ -109,6 +109,9 @@
         border: 1px solid var(--border); border-radius: 6px; color: var(--text);
       }
       .tb-error { color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem; min-height: 1rem; }
+      .tb-msg { font-size: 0.8rem; margin-top: 0.3rem; min-height: 1rem; color: var(--muted); }
+      .tb-msg.err { color: var(--danger); }
+      .tb-msg.ok { color: var(--accent); }
 
       /* Caja dataset */
       .dataset {
@@ -1001,22 +1004,34 @@
       }
 
       function tiebreakPanelHtml(manualSets, rows) {
+        const nameOfId = (id) => (rows.find((r) => r.id === id) || {}).name || nameOf(id);
         const sets = manualSets.map((msd) => {
           const sig = msd.sig;
-          const ordered = rows.filter((r) => msd.ids.includes(r.id)); // orden mostrado actual
-          const n = ordered.length;
-          const rowsHtml = ordered.map((r, i) => {
-            const opts = Array.from({ length: n }, (_, k) =>
-              `<option value="${k + 1}" ${i === k ? "selected" : ""}>${k + 1}</option>`).join("");
+          const ov = state.tiebreaks[sig] || {};
+          const n = msd.ids.length;
+          // Filas en orden estable (fallback) para que no salten al elegir; el número fija el orden.
+          const rowsHtml = msd.ids.map((id) => {
+            const cur = Number.isInteger(ov[id]) ? ov[id] : "";
+            const opts = [`<option value="" ${cur === "" ? "selected" : ""}>—</option>`]
+              .concat(Array.from({ length: n }, (_, k) =>
+                `<option value="${k + 1}" ${cur === k + 1 ? "selected" : ""}>${k + 1}</option>`))
+              .join("");
             return `<div class="tb-row">
-              <span class="tb-team">${esc(r.name)}</span>
-              <label class="sr-only" for="tb_${sig}_${r.id}">Posición manual de ${esc(r.name)}</label>
-              <select id="tb_${sig}_${r.id}" data-sig="${esc(sig)}" data-team="${r.id}">${opts}</select>
+              <span class="tb-team">${esc(nameOfId(id))}</span>
+              <label class="sr-only" for="tb_${sig}_${id}">Posición final de ${esc(nameOfId(id))}</label>
+              <select id="tb_${sig}_${id}" data-sig="${esc(sig)}" data-team="${id}">${opts}</select>
             </div>`;
           }).join("");
+          const positions = msd.ids.map((id) => ov[id]).filter((p) => Number.isInteger(p));
+          let msg = `Asigna una posición (1–${n}) a cada equipo.`, cls = "";
+          if (positions.length === n) {
+            if (new Set(positions).size === n) { msg = "✓ Orden fijado."; cls = "ok"; }
+            else { msg = "Cada equipo debe ocupar una posición distinta."; cls = "err"; }
+          }
           return `<div class="tb-set" data-sig="${esc(sig)}">
-            <div class="tb-set-label">Empate sin resolver entre ${n} equipos (igualados tras enfrentamiento directo, DG y GF)</div>
+            <div class="tb-set-label">Empate entre ${n} equipos (igualados tras enfrentamiento directo, DG y GF). Fija el orden final:</div>
             ${rowsHtml}
+            <div class="tb-msg ${cls}">${esc(msg)}</div>
           </div>`;
         }).join("");
         return `<div class="tiebreak-panel">
@@ -1047,23 +1062,21 @@
 
       function wireTiebreak(group) {
         const card = document.querySelector(`[data-group="${cssEsc(group.groupId)}"]`);
-        card.querySelectorAll(".tb-set select").forEach((sel) => {
-          sel.addEventListener("change", () => {
-            const sig = sel.dataset.sig, teamId = sel.dataset.team, newPos = Number(sel.value);
-            const { rows, manualSets } = rankGroup(group);
-            const msd = manualSets.find((s) => s.sig === sig);
-            if (!msd) return;
-            // Orden efectivo actual del set; intercambia (swap) con quien ocupa newPos.
-            const curOrder = rows.filter((r) => msd.ids.includes(r.id)).map((r) => r.id);
-            const oldPos = curOrder.indexOf(teamId) + 1;
-            if (newPos === oldPos) return;
-            const other = curOrder[newPos - 1];
-            const map = {};
-            curOrder.forEach((id, i) => (map[id] = i + 1));
-            map[teamId] = newPos; map[other] = oldPos;
-            state.tiebreaks[sig] = map;
-            saveState();
-            render();
+        card.querySelectorAll(".tb-set").forEach((setEl) => {
+          const sig = setEl.dataset.sig;
+          setEl.querySelectorAll("select").forEach((sel) => {
+            sel.addEventListener("change", () => {
+              // El override se reconstruye desde TODOS los selects del set (no swap):
+              // así el orden de fallback también queda registrado al elegirlo explícitamente.
+              const map = {};
+              setEl.querySelectorAll("select").forEach((s) => {
+                if (s.value !== "") map[s.dataset.team] = Number(s.value);
+              });
+              if (Object.keys(map).length) state.tiebreaks[sig] = map;
+              else delete state.tiebreaks[sig];
+              saveState();
+              render();
+            });
           });
         });
       }
