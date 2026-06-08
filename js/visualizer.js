@@ -4,11 +4,12 @@
 //   ?nick=<nick>                 → detalle de un participante (desglose SPEC §12)
 // Todo se calcula en cliente desde las predicciones + el resultado oficial.
 // @ts-check
-import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission } from "./data.js";
+import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission, loadLatestSnapshot } from "./data.js";
 import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
 import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution } from "./stats.js";
+import { computeMovements, topMovers, newLeader } from "./history.js";
 
 const $app = /** @type {HTMLElement} */ (document.getElementById("app"));
 let TEAMS = {};
@@ -26,10 +27,10 @@ const ROUND_LABEL = {
 // ── Carga + enrutado ─────────────────────────────────────────────────────────
 async function main() {
   $app.innerHTML = `<div class="loading muted">Cargando…</div>`;
-  let registry, rules, teamsFile, officialText;
+  let registry, rules, teamsFile, officialText, snapshot;
   try {
-    [registry, rules, teamsFile, officialText] = await Promise.all(
-      [loadRegistry(), loadRules(), loadTeams(), loadOfficial()]);
+    [registry, rules, teamsFile, officialText, snapshot] = await Promise.all(
+      [loadRegistry(), loadRules(), loadTeams(), loadOfficial(), loadLatestSnapshot()]);
   } catch (e) { return renderError(e instanceof Error ? e.message : String(e)); }
   TEAMS = teamsFile.teams || {};
   const official = parsePrediction(officialText || "");
@@ -46,7 +47,8 @@ async function main() {
   const poolRanking = buildPoolRanking(registry.pools, byNick, rules);
   const poolsByNick = poolMembership(registry.pools);
   const predictions = subs.map((s) => s.prediction);
-  const ctx = { registry, rules, official, board, byNick, predByNick, predictions, poolRanking, poolsByNick };
+  const movements = computeMovements(board, snapshot);
+  const ctx = { registry, rules, official, board, byNick, predByNick, predictions, poolRanking, poolsByNick, snapshot, movements };
 
   const params = new URLSearchParams(location.search);
   const nick = params.get("nick"), pool = params.get("pool");
@@ -92,6 +94,7 @@ function renderHome(ctx) {
     ${statusBanner(ctx.official)}
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
+    ${ctx.movements.hasSnapshot ? `<h2 class="section">Movimiento <span class="muted">· desde ${esc(ctx.snapshot.label || "el último corte")}</span></h2>${topMoversPanel(ctx)}` : ""}
     <h2 class="section">Competición por pools <span class="muted">· media por participante activo</span></h2>
     ${poolTable(ctx)}
     <h2 class="section">Estadísticas del torneo</h2>
@@ -122,11 +125,13 @@ function statsPanel(ctx) {
 
 function leaderboardTable(ctx, rows, { showPools = false, poolInternal = false } = {}) {
   if (!rows.length) return `<p class="muted">Aún no hay participantes.</p>`;
+  const showMov = !poolInternal && ctx.movements.hasSnapshot;
   const body = rows.map((s, i) => {
     const chips = showPools ? poolChips(ctx, s.nick) : "";
     const pos = poolInternal ? i + 1 : s.rank;
+    const mov = showMov ? `<td class="lb-mov">${moveIndicator(ctx.movements.map.get(s.nick))}</td>` : "";
     return `<tr>
-      <td class="lb-pos">${pos}</td>
+      <td class="lb-pos">${pos}</td>${mov}
       <td class="lb-who"><a href="?nick=${encodeURIComponent(s.nick)}">${esc(s.nick)}</a>${chips}</td>
       <td class="lb-total">${s.score.total}</td>
       <td>${s.score.group_match_points}</td>
@@ -138,11 +143,34 @@ function leaderboardTable(ctx, rows, { showPools = false, poolInternal = false }
     </tr>`;
   }).join("");
   return `<table class="lb"><thead><tr>
-      <th>#</th><th>Participante</th><th>Total</th>
+      <th>#</th>${showMov ? "<th title='Movimiento desde el último corte'>Mov</th>" : ""}<th>Participante</th><th>Total</th>
       <th title="Partidos de grupo">Gru</th><th title="Ranking de grupo">Rnk</th>
       <th title="Mejores terceros">3º</th><th title="Eliminatorias">KO</th>
       <th title="Bonus de progresión">Bon</th><th title="Marcadores exactos">Exa</th>
     </tr></thead><tbody>${body}</tbody></table>`;
+}
+
+// Indicador de movimiento de ranking (SPEC 08 §10).
+function moveIndicator(mv) {
+  if (!mv) return "";
+  if (mv.isNew) return `<span class="mv new" title="Nuevo">●</span>`;
+  if (mv.movement == null) return "";
+  if (mv.movement > 0) return `<span class="mv up" title="Sube ${mv.movement}">▲${mv.movement}</span>`;
+  if (mv.movement < 0) return `<span class="mv down" title="Baja ${-mv.movement}">▼${-mv.movement}</span>`;
+  return `<span class="mv flat" title="Sin cambios">=</span>`;
+}
+
+// Panel de top movers + nuevo líder (SPEC 08 §10). Vacío si no hay snapshot.
+function topMoversPanel(ctx) {
+  if (!ctx.movements.hasSnapshot) return "";
+  const movers = topMovers(ctx.board, ctx.movements);
+  const nl = newLeader(ctx.board, ctx.snapshot);
+  if (!movers.length && !nl) return `<p class="muted">Sin cambios en la clasificación desde el último corte.</p>`;
+  let html = "";
+  if (nl) html += `<p class="badge-line">👑 <strong>Nuevo líder:</strong> <a href="?nick=${encodeURIComponent(nl)}">${esc(nl)}</a></p>`;
+  if (movers.length) html += `<div class="movers">${movers.map((m) =>
+    `<a class="mover" href="?nick=${encodeURIComponent(m.nick)}"><span class="mv up">▲${m.movement}</span> ${esc(m.nick)}</a>`).join("")}</div>`;
+  return html;
 }
 
 function poolChips(ctx, nick) {
@@ -211,6 +239,7 @@ function renderUser(ctx, nick) {
     <div class="view-head"><h1>${esc(nick)}</h1><span>${chips}</span></div>
     <div class="cards">
       <div class="card big"><div class="card-n">${sc.total}</div><div class="card-l">Puntos · #${s.rank} general</div></div>
+      ${ctx.movements.hasSnapshot ? `<div class="card"><div class="card-n">${moveIndicator(ctx.movements.map.get(nick)) || "—"}</div><div class="card-l">Movimiento</div></div>` : ""}
     </div>
     <h2 class="section">Desglose</h2>
     ${breakdownBars(sc)}

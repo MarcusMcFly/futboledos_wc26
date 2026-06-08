@@ -167,3 +167,16 @@ ul.kv li span { color: var(--muted); }
   .match-link .ml-fix { flex-basis: 100%; }
   .match-link .ml-meta { flex-basis: auto; }
 }
+
+/* ─────────── Movimiento de ranking (Parte 2, Fase 5) ─────────── */
+td.lb-mov { width: 2.6rem; }
+.mv { font-size: 0.8rem; font-weight: 700; }
+.mv.up { color: var(--accent); }
+.mv.down { color: var(--danger); }
+.mv.flat { color: var(--muted); font-weight: 400; }
+.mv.new { color: #2f81f7; }
+.badge-line { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.8rem; }
+.movers { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0; }
+.mover { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.7rem; text-decoration: none;
+  color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 999px; font-size: 0.88rem; }
+.mover:hover { border-color: var(--accent); }

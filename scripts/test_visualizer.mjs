@@ -48,6 +48,8 @@ has(user, "México", "user: nombres de equipo");
 
 has(home, "Estadísticas del torneo", "home: panel de stats");
 has(home, "Favorito de la peña", "home: favorito de la peña");
+has(home, "Movimiento", "home: sección de movimiento (hay snapshot)");
+has(home, "▲1", "home: Carlos-Seco sube 1 desde el snapshot A-H");
 
 const matches = await route("?view=matches");
 has(matches, "Predicciones por partido", "matches: título");
@@ -60,6 +62,9 @@ has(match, "Distribución de predicciones", "match: distribución");
 has(match, "Marcadores más comunes", "match: top marcadores");
 has(match, "Resultado oficial", "match: resumen post-partido (jugado)");
 has(match, "Exact-score heroes", "match: heroes");
+
+const mover = await route("?nick=Carlos-Seco");
+has(mover, "Movimiento", "user: tarjeta de movimiento");
 
 const err = await route("?nick=noexiste");
 has(err, "no encontrado", "error: nick inexistente");

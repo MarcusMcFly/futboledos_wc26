@@ -27,3 +27,15 @@ export async function loadOfficial() {
     return "";
   }
 }
+
+// Último snapshot commiteado (para el movimiento de ranking). null si no hay.
+export async function loadLatestSnapshot() {
+  try {
+    const index = await loadJson("snapshots/index.json");
+    const files = (index && index.snapshots) || [];
+    if (!files.length) return null;
+    return await loadJson(`snapshots/${files[files.length - 1]}`);
+  } catch {
+    return null;
+  }
+}
