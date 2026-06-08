@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "comment": "id de equipo -> nombre y grupo. Generado desde predicciones.html.",
+  "teams": {
+    "MX": {
+      "name": "México",
+      "group": "A"
+    },
+    "ZA": {
+      "name": "Sudáfrica",
+      "group": "A"
+    },
+    "KR": {
+      "name": "Corea del Sur",
+      "group": "A"
+    },
+    "CZ": {
+      "name": "República Checa",
+      "group": "A"
+    },
+    "CA": {
+      "name": "Canadá",
+      "group": "B"
+    },
+    "BA": {
+      "name": "Bosnia y Herzegovina",
+      "group": "B"
+    },
+    "QA": {
+      "name": "Catar",
+      "group": "B"
+    },
+    "CH": {
+      "name": "Suiza",
+      "group": "B"
+    },
+    "BR": {
+      "name": "Brasil",
+      "group": "C"
+    },
+    "MA": {
+      "name": "Marruecos",
+      "group": "C"
+    },
+    "HT": {
+      "name": "Haití",
+      "group": "C"
+    },
+    "SCO": {
+      "name": "Escocia",
+      "group": "C"
+    },
+    "US": {
+      "name": "Estados Unidos",
+      "group": "D"
+    },
+    "PY": {
+      "name": "Paraguay",
+      "group": "D"
+    },
+    "AU": {
+      "name": "Australia",
+      "group": "D"
+    },
+    "TR": {
+      "name": "Turquía",
+      "group": "D"
+    },
+    "DE": {
+      "name": "Alemania",
+      "group": "E"
+    },
+    "CW": {
+      "name": "Curazao",
+      "group": "E"
+    },
+    "CI": {
+      "name": "Costa de Marfil",
+      "group": "E"
+    },
+    "EC": {
+      "name": "Ecuador",
+      "group": "E"
+    },
+    "NL": {
+      "name": "Países Bajos",
+      "group": "F"
+    },
+    "JP": {
+      "name": "Japón",
+      "group": "F"
+    },
+    "SE": {
+      "name": "Suecia",
+      "group": "F"
+    },
+    "TN": {
+      "name": "Túnez",
+      "group": "F"
+    },
+    "BE": {
+      "name": "Bélgica",
+      "group": "G"
+    },
+    "EG": {
+      "name": "Egipto",
+      "group": "G"
+    },
+    "IR": {
+      "name": "Irán",
+      "group": "G"
+    },
+    "NZ": {
+      "name": "Nueva Zelanda",
+      "group": "G"
+    },
+    "ES": {
+      "name": "España",
+      "group": "H"
+    },
+    "CV": {
+      "name": "Cabo Verde",
+      "group": "H"
+    },
+    "SA": {
+      "name": "Arabia Saudita",
+      "group": "H"
+    },
+    "UY": {
+      "name": "Uruguay",
+      "group": "H"
+    },
+    "FR": {
+      "name": "Francia",
+      "group": "I"
+    },
+    "SN": {
+      "name": "Senegal",
+      "group": "I"
+    },
+    "IQ": {
+      "name": "Irak",
+      "group": "I"
+    },
+    "NO": {
+      "name": "Noruega",
+      "group": "I"
+    },
+    "AR": {
+      "name": "Argentina",
+      "group": "J"
+    },
+    "DZ": {
+      "name": "Argelia",
+      "group": "J"
+    },
+    "AT": {
+      "name": "Austria",
+      "group": "J"
+    },
+    "JO": {
+      "name": "Jordania",
+      "group": "J"
+    },
+    "PT": {
+      "name": "Portugal",
+      "group": "K"
+    },
+    "CD": {
+      "name": "RD Congo",
+      "group": "K"
+    },
+    "UZ": {
+      "name": "Uzbekistán",
+      "group": "K"
+    },
+    "CO": {
+      "name": "Colombia",
+      "group": "K"
+    },
+    "ENG": {
+      "name": "Inglaterra",
+      "group": "L"
+    },
+    "HR": {
+      "name": "Croacia",
+      "group": "L"
+    },
+    "GH": {
+      "name": "Ghana",
+      "group": "L"
+    },
+    "PA": {
+      "name": "Panamá",
+      "group": "L"
+    }
+  }
+}
