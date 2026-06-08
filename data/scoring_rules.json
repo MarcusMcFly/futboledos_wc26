@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "mode": "complex",
+  "group_match": {
+    "exact_score": 5,
+    "correct_outcome": 2,
+    "correct_goal_difference": 1,
+    "exact_home_goals": 1,
+    "exact_away_goals": 1,
+    "max_points": 5
+  },
+  "group_ranking": {
+    "position_points": { "1": 5, "2": 4, "3": 3, "4": 2 },
+    "qualified_team": 2,
+    "complete_group_order_bonus": 5
+  },
+  "best_third": {
+    "correct_team": 3,
+    "complete_key_bonus": 8,
+    "score_order": false
+  },
+  "knockout_match": {
+    "correct_qualified_team": 5,
+    "exact_score": 6,
+    "correct_outcome": 2,
+    "correct_home_team": 1,
+    "correct_away_team": 1,
+    "exact_score_overrides_outcome": true
+  },
+  "progression_bonus": {
+    "round_of_32": 2,
+    "round_of_16": 4,
+    "quarter_final": 6,
+    "semi_final": 10,
+    "runner_up": 15,
+    "champion": 25,
+    "third_place": 10,
+    "fourth_place": 6
+  },
+  "stage_multipliers": {
+    "R32": 1,
+    "R16": 1,
+    "QF": 1,
+    "SF": 1,
+    "THIRD_PLACE": 1,
+    "FINAL": 1
+  },
+  "participant_ranking_tiebreakers": [
+    "exact_group_scores",
+    "correct_knockout_qualified_teams",
+    "correct_group_winners",
+    "correct_champion",
+    "earlier_submission"
+  ],
+  "pool": {
+    "ranking_metric": "average_points_per_active_participant",
+    "active_min_predictions": 1,
+    "min_active_participants": 3,
+    "tiebreakers": ["total_points", "active_participants", "exact_score_hits", "best_individual_score"]
+  }
+}

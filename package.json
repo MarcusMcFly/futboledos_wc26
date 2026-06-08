@@ -1,0 +1,9 @@
+{
+  "name": "futboledos-wc26",
+  "private": true,
+  "type": "module",
+  "description": "Quiniela del Mundial 2026 — sitio estático (GitHub Pages). type:module permite ejecutar los módulos ES de js/ con Node para los tests.",
+  "scripts": {
+    "test": "node scripts/test_parse.mjs"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "comment": "Índice mantenido a mano por el admin. La web estática no puede listar data/submissions/, así que aquí se declara qué predicciones existen y cómo se agrupan en pools. participants: un fichero por nick. pools: cada pool referencia nicks. Un nick sin pool solo aparece en el ranking individual. Un pool necesita >=3 activos para el ranking oficial de pools (SPEC 07).",
+  "participants": [
+    { "nick": "Di_mario", "file": "Di_mario.txt" },
+    { "nick": "Alfredo56", "file": "Alfredo56.txt" },
+    { "nick": "Marquitos", "file": "Marquitos.txt" },
+    { "nick": "Carlos-Seco", "file": "Carlos-Seco.txt" },
+    { "nick": "ivancalle10", "file": "ivancalle10.txt" }
+  ],
+  "pools": [
+    { "slug": "medris_56", "name": "Medris 56", "members": ["Di_mario", "Alfredo56", "Marquitos"] },
+    { "slug": "amigos-del-curro", "name": "Amigos del curro", "members": ["Carlos-Seco"] }
+  ]
+}
