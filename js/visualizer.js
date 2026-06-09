@@ -89,21 +89,40 @@ function statusBanner(official) {
 }
 
 // ── Vista: clasificación general ─────────────────────────────────────────────
+// Fecha + hora de la fecha límite, fijada a la zona horaria del evento para que
+// no cambie según el navegador (la hora coincide con el inicio del 1er partido).
+function deadlineWhen(iso) {
+  const d = new Date(iso);
+  const tz = "Europe/Madrid";
+  const fecha = d.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric", timeZone: tz });
+  const hora = d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: tz });
+  return `${fecha} a las ${hora}`;
+}
+
 function deadlineBanner(rules) {
   const iso = rules && rules.meta && rules.meta.submission_deadline;
   if (!iso) return "";
-  const d = new Date(iso);
-  const closed = Date.now() >= d.getTime();
-  const when = d.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+  const closed = Date.now() >= new Date(iso).getTime();
+  const when = deadlineWhen(iso);
   return `<div class="banner ${closed ? "danger" : ""}">⏱️ ${closed
     ? `Las predicciones se cerraron el ${when}.`
-    : `Las predicciones se cierran el ${when}. <a href="./predicciones.html">Haz la tuya</a>.`}</div>`;
+    : `Las predicciones se cierran el ${when} (inicio del primer partido). <a href="./predicciones.html">Haz la tuya</a>.`}</div>`;
+}
+
+// Aviso de que los resultados/puntuaciones mostrados no son reales todavía.
+// Controlado por meta.simulation en scoring_rules.json: quítalo (o ponlo a false)
+// cuando se carguen resultados oficiales reales.
+function simulationBanner(rules) {
+  const sim = rules && rules.meta && rules.meta.simulation;
+  if (!sim) return "";
+  return `<div class="banner warn">🧪 <strong>Simulación:</strong> los resultados y las puntuaciones que se muestran son de prueba, no oficiales. El torneo aún no ha empezado.</div>`;
 }
 
 function renderHome(ctx) {
   document.title = "Clasificación · Futboledos WC26";
   $app.innerHTML = `
     ${deadlineBanner(ctx.rules)}
+    ${simulationBanner(ctx.rules)}
     ${statusBanner(ctx.official)}
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
@@ -414,7 +433,7 @@ function renderScoring(ctx) {
   const r = ctx.rules;
   const gm = r.group_match, gr = r.group_ranking, bt = r.best_third, ko = r.knockout_match, pb = r.progression_bonus, pool = r.pool;
   const iso = r.meta && r.meta.submission_deadline;
-  const dl = iso ? new Date(iso).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : null;
+  const dl = iso ? deadlineWhen(iso) : null;
   $app.innerHTML = `
     <p><a class="back" href="?view=all">← Clasificación general</a></p>
     <h1>Cómo se puntúa</h1>

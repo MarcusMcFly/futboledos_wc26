@@ -3,7 +3,8 @@
   "mode": "complex",
   "meta": {
     "event": "Mundial 2026",
-    "submission_deadline": "2026-06-11T23:59:00+02:00"
+    "submission_deadline": "2026-06-11T21:00:00+02:00",
+    "simulation": true
   },
   "group_match": {
     "exact_score": 5,

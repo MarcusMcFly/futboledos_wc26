@@ -6,10 +6,18 @@
     { "nick": "Alfredo56", "file": "Alfredo56.txt" },
     { "nick": "Marquitos", "file": "Marquitos.txt" },
     { "nick": "Carlos-Seco", "file": "Carlos-Seco.txt" },
-    { "nick": "ivancalle10", "file": "ivancalle10.txt" }
+    { "nick": "ivancalle10", "file": "ivancalle10.txt" },
+    { "nick": "Ales", "file": "Ales.txt" },
+    { "nick": "Mata", "file": "Mata.txt" },
+    { "nick": "Txauri", "file": "Txauri.txt" },
+    { "nick": "DCJ", "file": "DCJ.txt" },
+    { "nick": "JBC", "file": "JBC.txt" },
+    { "nick": "Julio", "file": "Julio.txt" }
   ],
   "pools": [
     { "slug": "medris_56", "name": "Medris 56", "members": ["Di_mario", "Alfredo56", "Marquitos"] },
-    { "slug": "amigos-del-curro", "name": "Amigos del curro", "members": ["Carlos-Seco"] }
+    { "slug": "amigos-del-curro", "name": "Amigos del curro", "members": ["Carlos-Seco"] },
+    { "slug": "troles", "name": "Troles", "members": ["Ales", "Mata"] },
+    { "slug": "quinielas_panda", "name": "Quinielas panda", "members": ["Txauri"] }
   ]
 }

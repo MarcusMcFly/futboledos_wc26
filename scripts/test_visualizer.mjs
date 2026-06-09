@@ -49,8 +49,11 @@ has(user, "México", "user: nombres de equipo");
 has(home, "Estadísticas del torneo", "home: panel de stats");
 has(home, "Campeón más votado", "home: campeón más votado");
 has(home, "Movimiento", "home: sección de movimiento (hay snapshot)");
-has(home, "▲1", "home: Carlos-Seco sube 1 desde el snapshot A-H");
+has(home, "▼1", "home: ivancalle10 baja 1 desde el snapshot A-H");
+has(home, "●", "home: indicador de participante nuevo (no estaba en el snapshot)");
 has(home, "Las predicciones se cierran el 11 de junio de 2026", "home: banner de fecha límite");
+has(home, "a las 21:00", "home: banner de fecha límite con hora");
+has(home, "Simulación", "home: aviso de simulación (meta.simulation)");
 if (home.includes("SPEC 0")) { fail++; console.error("  ✗ home: NO debe mostrar 'SPEC 0x'"); } else pass++;
 if (/de la peña|la peña/.test(home)) { fail++; console.error("  ✗ home: NO debe contener 'la peña'"); } else pass++;
 
