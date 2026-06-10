@@ -12,12 +12,18 @@
     { "nick": "Txauri", "file": "Txauri.txt" },
     { "nick": "DCJ", "file": "DCJ.txt" },
     { "nick": "JBC", "file": "JBC.txt" },
-    { "nick": "Julio", "file": "Julio.txt" }
+    { "nick": "Julio", "file": "Julio.txt" },
+    { "nick": "Fuentes", "file": "Fuentes.txt" },
+    { "nick": "Jacobo", "file": "Jacobo.txt" },
+    { "nick": "JesusGG", "file": "JesusGG.txt" },
+    { "nick": "Marcus", "file": "Marcus.txt" },
+    { "nick": "Morses", "file": "Morses.txt" },
+    { "nick": "Verde", "file": "Verde.txt" }
   ],
   "pools": [
     { "slug": "medris_56", "name": "Medris 56", "members": ["Di_mario", "Alfredo56", "Marquitos"] },
     { "slug": "amigos-del-curro", "name": "Amigos del curro", "members": ["Carlos-Seco"] },
-    { "slug": "troles", "name": "Troles", "members": ["Ales", "Mata"] },
-    { "slug": "quinielas_panda", "name": "Quinielas panda", "members": ["Txauri"] }
+    { "slug": "troles", "name": "Troles", "members": ["Ales", "Mata", "Jacobo"] },
+    { "slug": "quinielas_panda", "name": "Quinielas panda", "members": ["Txauri", "Fuentes", "JesusGG", "Marcus"] }
   ]
 }
