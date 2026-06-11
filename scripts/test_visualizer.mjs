@@ -30,17 +30,17 @@ async function route(search) {
 
 const home = await route("");
 has(home, "Clasificación general", "home: título");
-has(home, "Di_mario", "home: participante");
+has(home, "Marcus", "home: participante");
 has(home, "Competición por pools", "home: sección pools");
-has(home, "Medris 56", "home: pool elegible");
-has(home, "?nick=Di_mario", "home: enlace a detalle");
+has(home, "Quinielas panda", "home: pool elegible");
+has(home, "?nick=Marcus", "home: enlace a detalle");
 
-const pool = await route("?pool=medris_56");
-has(pool, "Medris 56", "pool: nombre");
+const pool = await route("?pool=quinielas_panda");
+has(pool, "Quinielas panda", "pool: nombre");
 has(pool, "Media / activo", "pool: tarjeta media");
 has(pool, "Miembros", "pool: sección miembros");
 
-const user = await route("?nick=Di_mario");
+const user = await route("?nick=Marcus");
 has(user, "Desglose", "user: desglose");
 has(user, "Marcadores exactos", "user: detalles");
 has(user, "Grupo A", "user: partido a partido");
@@ -49,7 +49,7 @@ has(user, "México", "user: nombres de equipo");
 has(home, "Estadísticas del torneo", "home: panel de stats");
 has(home, "Campeón más votado", "home: campeón más votado");
 has(home, "Movimiento", "home: sección de movimiento (hay snapshot)");
-has(home, "▼1", "home: ivancalle10 baja 1 desde el snapshot A-H");
+has(home, "▼8", "home: ivancalle10 baja 8 (rank 1→9) desde el snapshot A-H");
 has(home, "●", "home: indicador de participante nuevo (no estaba en el snapshot)");
 has(home, "Las predicciones se cierran el 11 de junio de 2026", "home: banner de fecha límite");
 has(home, "a las 21:00", "home: banner de fecha límite con hora");

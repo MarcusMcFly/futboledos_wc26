@@ -2,9 +2,6 @@
   "schema_version": 1,
   "comment": "Índice mantenido a mano por el admin. La web estática no puede listar data/submissions/, así que aquí se declara qué predicciones existen y cómo se agrupan en pools. participants: un fichero por nick. pools: cada pool referencia nicks. Un nick sin pool solo aparece en el ranking individual. Un pool necesita >=3 activos para el ranking oficial de pools (SPEC 07).",
   "participants": [
-    { "nick": "Di_mario", "file": "Di_mario.txt" },
-    { "nick": "Alfredo56", "file": "Alfredo56.txt" },
-    { "nick": "Marquitos", "file": "Marquitos.txt" },
     { "nick": "Carlos-Seco", "file": "Carlos-Seco.txt" },
     { "nick": "ivancalle10", "file": "ivancalle10.txt" },
     { "nick": "Ales", "file": "Ales.txt" },
@@ -18,12 +15,25 @@
     { "nick": "JesusGG", "file": "JesusGG.txt" },
     { "nick": "Marcus", "file": "Marcus.txt" },
     { "nick": "Morses", "file": "Morses.txt" },
-    { "nick": "Verde", "file": "Verde.txt" }
+    { "nick": "Verde", "file": "Verde.txt" },
+    { "nick": "Alberto_Soria", "file": "Alberto_Soria.txt" },
+    { "nick": "Asturfutbol", "file": "Asturfutbol.txt" },
+    { "nick": "Benjamin", "file": "Benjamin.txt" },
+    { "nick": "Blazquez_96", "file": "Blazquez_96.txt" },
+    { "nick": "Borja", "file": "Borja.txt" },
+    { "nick": "CMC", "file": "CMC.txt" },
+    { "nick": "Kike", "file": "Kike.txt" },
+    { "nick": "Pollico", "file": "Pollico.txt" },
+    { "nick": "VBJ", "file": "VBJ.txt" },
+    { "nick": "Vic", "file": "Vic.txt" }
   ],
   "pools": [
-    { "slug": "medris_56", "name": "Medris 56", "members": ["Di_mario", "Alfredo56", "Marquitos"] },
     { "slug": "amigos-del-curro", "name": "Amigos del curro", "members": ["Carlos-Seco"] },
     { "slug": "troles", "name": "Troles", "members": ["Ales", "Mata", "Jacobo"] },
-    { "slug": "quinielas_panda", "name": "Quinielas panda", "members": ["Txauri", "Fuentes", "JesusGG", "Marcus"] }
+    { "slug": "quinielas_panda", "name": "Quinielas panda", "members": ["Txauri", "Fuentes", "JesusGG", "Marcus", "Alberto_Soria"] },
+    { "slug": "soriflauticos", "name": "Soriflauticos", "members": ["Asturfutbol"] },
+    { "slug": "amigos-del-suso", "name": "Amigos del Suso", "members": ["Benjamin"] },
+    { "slug": "futboledos-wc26", "name": "Futboledos WC26", "members": ["Blazquez_96"] },
+    { "slug": "inmundicia", "name": "Inmundicia", "members": ["Pollico"] }
   ]
 }

@@ -14,19 +14,19 @@ function eq(actual, expected, msg) {
 }
 function ok(cond, msg) { if (cond) pass++; else { fail++; console.error(`  ✗ ${msg}`); } }
 
-// ── 1. Predicción real de Di_mario ──────────────────────────────────────────
-const di = parsePrediction(readFileSync(join(root, "data/submissions/Di_mario.txt"), "utf8"));
-eq(di.nick, "Di_mario", "nick");
-eq(di.pool, "Medris_56", "pool");
+// ── 1. Predicción real de Marcus ─────────────────────────────────────────────
+const di = parsePrediction(readFileSync(join(root, "data/submissions/Marcus.txt"), "utf8"));
+eq(di.nick, "Marcus", "nick");
+eq(di.pool, "Quinielas_panda", "pool");
 ok(typeof di.generadoAt === "string" && di.generadoAt.length > 0, "generadoAt presente");
 eq(Object.keys(di.groupMatches).length, 72, "72 partidos de grupo parseados");
-eq(di.groupMatches["A_01"], { home: "MX", away: "ZA", hg: 5, ag: 0 }, "A_01 = MX 5-0 ZA");
-eq(di.groupMatches["J_01"], { home: "AR", away: "DZ", hg: 1, ag: 1 }, "J_01 = AR 1-1 DZ");
-eq(di.groupMatches["H_01"], { home: "ES", away: "CV", hg: 1, ag: 3 }, "H_01 = ES 1-3 CV");
-eq(di.groupOrder["A"], ["MX", "ZA", "KR", "CZ"], "orden grupo A");
-eq(di.groupOrder["J"], ["AR", "DZ", "AT", "JO"], "orden grupo J");
-ok(di.tiebreakManual["J"] === true, "grupo J resuelto con desempate manual");
-// Di_mario está completo: eliminatorias con 32 partidos + campeón.
+eq(di.groupMatches["A_01"], { home: "MX", away: "ZA", hg: 3, ag: 2 }, "A_01 = MX 3-2 ZA");
+eq(di.groupMatches["J_01"], { home: "AR", away: "DZ", hg: 4, ag: 1 }, "J_01 = AR 4-1 DZ");
+eq(di.groupMatches["H_01"], { home: "ES", away: "CV", hg: 3, ag: 0 }, "H_01 = ES 3-0 CV");
+eq(di.groupOrder["A"], ["MX", "KR", "CZ", "ZA"], "orden grupo A");
+eq(di.groupOrder["D"], ["US", "TR", "PY", "AU"], "orden grupo D");
+ok(di.tiebreakManual["D"] === true, "grupo D resuelto con desempate manual");
+// Marcus está completo: eliminatorias con 32 partidos + campeón.
 ok(di.knockoutPending === false, "eliminatorias presentes");
 eq(Object.keys(di.knockout).length, 32, "32 partidos de eliminatoria");
 ok(!!di.champion, "campeón definido");
