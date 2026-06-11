@@ -39,6 +39,7 @@ body {
 .banner { border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
 .banner.warn { background: rgba(210,153,34,0.12); border: 1px solid var(--warn); }
 .banner.danger { background: rgba(248,81,73,0.12); border: 1px solid var(--danger); }
+.banner.welcome { background: linear-gradient(90deg, rgba(46,160,67,0.16), rgba(56,139,253,0.16)); border: 1px solid var(--accent); text-align: center; font-size: 1.05rem; }
 
 .error-state { text-align: center; padding: 2rem; color: var(--danger); }
 

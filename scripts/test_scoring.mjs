@@ -69,24 +69,27 @@ const champ = scoreProgression(
 eq(champ.points, 47, "§10.3 campeón acertado → 2+4+6+10+25 = 47");
 
 // ── Integración: datos reales ────────────────────────────────────────────────
-const official = parsePrediction(readFileSync(join(root, "data/official/results.txt"), "utf8"));
+// El oficial vivo (data/official/results.txt) arranca vacío en la salida del
+// torneo, así que para la integración usamos una predicción completa real como
+// "oficial de referencia": un documento FUTBOLEDOS_PRED_V1 con todo relleno.
+const official = parsePrediction(readFileSync(join(root, "data/submissions/Marcus.txt"), "utf8"));
 const subs = readdirSync(join(root, "data/submissions")).filter((f) => f.endsWith(".txt"))
   .map((f) => ({ nick: f.replace(".txt", ""), prediction: parsePrediction(readFileSync(join(root, "data/submissions", f), "utf8")) }));
 
-// Auto-puntuación: el oficial contra sí mismo = máximo de la fase de grupos.
+// Auto-puntuación: la referencia contra sí misma = máximo en cada fase.
 const self = scoreParticipant(official, official, rules);
 eq(self.details.exact_group_scores, 72, "auto-score: 72 marcadores de grupo exactos");
 eq(self.score.group_match_points, 360, "auto-score: 72×5 = 360 pts de grupo");
 eq(self.details.correct_group_winners, 12, "auto-score: 12 ganadores de grupo");
 ok(self.breakdown.bestThirds.fullKey === true, "auto-score: clave de terceros completa");
-eq(self.details.correct_qualified_knockout_teams, 0, "auto-score: KO pendiente en el oficial → 0 clasificados");
+eq(self.details.correct_qualified_knockout_teams, 32, "auto-score: 32 clasificados de eliminatoria");
 
-// Leaderboard de los 5 participantes contra el oficial de ejemplo.
+// Leaderboard de todos los participantes contra la predicción de referencia.
 const board = buildLeaderboard(subs, official, rules);
 ok(board.every((s, i) => i === 0 || board[i - 1].score.total >= s.score.total), "leaderboard ordenado por total ↓");
 ok(board[0].rank === 1, "primer puesto = rank 1");
 
-console.log("\n=== Leaderboard individual (vs oficial de ejemplo: grupos jugados, KO por jugar) ===");
+console.log("\n=== Leaderboard individual (vs predicción de referencia completa) ===");
 console.log("Pos Nick           Total  Grupos Ranking 3os  Exactos GanaGrupo");
 for (const s of board) {
   console.log(

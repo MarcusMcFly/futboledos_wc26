@@ -19,6 +19,8 @@ globalThis.fetch = async (url) => {
 let pass = 0, fail = 0;
 const has = (html, needle, msg) => (html.includes(needle) ? pass++ :
   (fail++, console.error(`  ✗ ${msg} — no contiene ${JSON.stringify(needle)}`)));
+const not = (html, needle, msg) => (!html.includes(needle) ? pass++ :
+  (fail++, console.error(`  ✗ ${msg} — no debería contener ${JSON.stringify(needle)}`)));
 
 async function route(search) {
   globalThis.location = { search };
@@ -48,12 +50,13 @@ has(user, "México", "user: nombres de equipo");
 
 has(home, "Estadísticas del torneo", "home: panel de stats");
 has(home, "Campeón más votado", "home: campeón más votado");
-has(home, "Movimiento", "home: sección de movimiento (hay snapshot)");
-has(home, "▼8", "home: ivancalle10 baja 8 (rank 1→9) desde el snapshot A-H");
-has(home, "●", "home: indicador de participante nuevo (no estaba en el snapshot)");
+not(home, "Movimiento", "home: sin sección de movimiento (no hay snapshot al arrancar)");
 has(home, "Las predicciones se cierran el 11 de junio de 2026", "home: banner de fecha límite");
 has(home, "a las 21:00", "home: banner de fecha límite con hora");
-has(home, "Simulación", "home: aviso de simulación (meta.simulation)");
+not(home, "Simulación", "home: sin aviso de simulación (meta.simulation:false)");
+has(home, "El torneo aún no ha empezado", "home: banner de torneo sin resultados oficiales");
+has(home, "¡El torneo da comienzo!", "home: mensaje de bienvenida de arranque");
+has(home, "Feliz Mundial 2026", "home: saludo de bienvenida");
 if (home.includes("SPEC 0")) { fail++; console.error("  ✗ home: NO debe mostrar 'SPEC 0x'"); } else pass++;
 if (/de la peña|la peña/.test(home)) { fail++; console.error("  ✗ home: NO debe contener 'la peña'"); } else pass++;
 
@@ -66,11 +69,11 @@ has(matches, "dist-seg", "matches: barra de distribución");
 const match = await route("?match=A_01");
 has(match, "Distribución de predicciones", "match: distribución");
 has(match, "Marcadores más comunes", "match: top marcadores");
-has(match, "Resultado oficial", "match: resumen post-partido (jugado)");
-has(match, "Exact-score heroes", "match: heroes");
+has(match, "por jugar", "match: partido aún sin jugar (sin resultado oficial)");
+not(match, "Resultado oficial", "match: sin resumen post-partido (no jugado)");
 
 const mover = await route("?nick=Carlos-Seco");
-has(mover, "Movimiento", "user: tarjeta de movimiento");
+not(mover, "Movimiento", "user: sin tarjeta de movimiento (no hay snapshot al arrancar)");
 
 const scoring = await route("?view=scoring");
 has(scoring, "Cómo se puntúa", "scoring: título");

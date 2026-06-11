@@ -4,7 +4,7 @@
   "meta": {
     "event": "Mundial 2026",
     "submission_deadline": "2026-06-11T21:00:00+02:00",
-    "simulation": true
+    "simulation": false
   },
   "group_match": {
     "exact_score": 5,

@@ -118,9 +118,18 @@ function simulationBanner(rules) {
   return `<div class="banner warn">🧪 <strong>Simulación:</strong> los resultados y las puntuaciones que se muestran son de prueba, no oficiales. El torneo aún no ha empezado.</div>`;
 }
 
+// Saludo de arranque: solo mientras no haya resultados oficiales (el pistoletazo
+// de salida). En cuanto se cargue el primer resultado, lo releva el statusBanner.
+function welcomeBanner(official) {
+  const { groupDone, champion } = officialProgress(official);
+  if (groupDone > 0 || champion) return "";
+  return `<div class="banner welcome">🎉 <strong>¡El torneo da comienzo!</strong> Las predicciones están echadas y ahora solo queda rodar el balón. Mucha suerte a todos y… <strong>¡Feliz Mundial 2026!</strong> ⚽🌎</div>`;
+}
+
 function renderHome(ctx) {
   document.title = "Clasificación · Futboledos WC26";
   $app.innerHTML = `
+    ${welcomeBanner(ctx.official)}
     ${deadlineBanner(ctx.rules)}
     ${simulationBanner(ctx.rules)}
     ${statusBanner(ctx.official)}
