@@ -10,7 +10,13 @@ let appHTML = "";
 const appEl = { set innerHTML(v) { appHTML = v; }, get innerHTML() { return appHTML; } };
 globalThis.document = { getElementById: (id) => (id === "app" ? appEl : null), title: "" };
 globalThis.fetch = async (url) => {
-  const path = join(root, url.replace(/^\.\//, ""));
+  // El oficial vivo (data/official/results.txt) cambia según se juegan partidos;
+  // los tests congelan el estado de arranque (oficial en blanco) con un fixture
+  // para no romperse cada vez que el admin registra un resultado.
+  const rel = url.replace(/^\.\//, "");
+  const path = /official\/results\.txt$/.test(rel)
+    ? join(root, "scripts", "fixtures", "official_launch.txt")
+    : join(root, rel);
   if (!existsSync(path)) return { ok: false, status: 404 };
   const text = readFileSync(path, "utf8");
   return { ok: true, status: 200, json: async () => JSON.parse(text), text: async () => text };
@@ -51,7 +57,7 @@ has(user, "México", "user: nombres de equipo");
 has(home, "Estadísticas del torneo", "home: panel de stats");
 has(home, "Campeón más votado", "home: campeón más votado");
 not(home, "Movimiento", "home: sin sección de movimiento (no hay snapshot al arrancar)");
-has(home, "Las predicciones se cierran el 11 de junio de 2026", "home: banner de fecha límite");
+has(home, "Las predicciones se cerraron el 11 de junio de 2026", "home: banner de fecha límite (ya cerrada)");
 has(home, "a las 21:00", "home: banner de fecha límite con hora");
 not(home, "Simulación", "home: sin aviso de simulación (meta.simulation:false)");
 has(home, "El torneo aún no ha empezado", "home: banner de torneo sin resultados oficiales");
