@@ -83,17 +83,33 @@ pools en `docs/07_points_system_pools.docx`; estadísticas en
 1. Guarda el texto en `data/submissions/<nick>.txt`.
 2. Añade el participante (y su pool, si tiene) a `data/registry.json`.
 
-**Cargar resultados oficiales:**
-1. Rellena los marcadores reales en `predicciones.html` según se juega y exporta.
-2. Pega el bloque en `data/official/results.txt`. Los partidos sin marcador
-   (`-`) cuentan como pendientes; la puntuación se recalcula sola.
+**Cargar un resultado oficial (según se juega):**
 
-**Movimiento de ranking (opcional):**
-```bash
-node scripts/snapshot.mjs "Tras la jornada 1"
-```
-Congela la clasificación actual en `data/snapshots/NNN.json`. Commitéalo: la
-próxima actualización mostrará las flechas de movimiento respecto a ese corte.
+Cada línea del bloque `[PARTIDOS]` de `data/official/results.txt` es
+`<GRUPO>_<NN> <LOCAL> <gl> <gv> <VISITANTE>` (p. ej. `D_01 US - - PY`), con `-`
+mientras no se ha jugado. Para registrar un partido jugado:
+
+1. **Snapshot ANTES de editar** (para que salgan las flechas de movimiento en
+   esta misma actualización):
+   ```bash
+   node scripts/snapshot.mjs "Antes de D_01 (Estados Unidos-Paraguay)"
+   ```
+   Congela la clasificación actual en `data/snapshots/NNN.json` y la añade a
+   `index.json`. La web compara el tablero nuevo contra ese corte → flechas
+   ▲/▼ + panel «Movimiento».
+2. Rellena el marcador en la línea (`D_01 US 4 1 PY`) y **recalcula** los
+   contadores de cabecera: `partidos: X/72` y `grupos_completos: Y/12`. El resto
+   (leaderboard, banners) se recalcula solo.
+3. Commitea y pushea los tres ficheros juntos: `results.txt`,
+   `snapshots/NNN.json`, `snapshots/index.json`.
+
+**Agente `actualizar-resultado` (recomendado para fase de grupos).** El subagente
+`.claude/agents/actualizar-resultado.md` automatiza el flujo anterior: le das el
+resultado en cualquier forma —`"Estados Unidos 4 - Paraguay 1"`, `"D_01 4 1"` o
+`"US 4 1 PY"`— y él resuelve el partido vía `data/teams.json`, genera el snapshot
+baseline, escribe el marcador y recalcula los contadores. Deja los cambios sin
+commitear para que los revises. Solo cubre **fase de grupos** (las eliminatorias
+se registran a mano por ahora). Aparece en `/agents` tras reiniciar Claude Code.
 
 ## Desarrollo
 
@@ -116,3 +132,10 @@ npm test    # parser + motor + estadísticas + historia + render del visualizado
 
 Sin CI ni build: **Settings → Pages → Deploy from a branch**, rama principal,
 carpeta raíz `/`. El `.nojekyll` evita el procesado Jekyll.
+
+## Licencia
+
+Código bajo **Apache License 2.0** — ver [`LICENSE`](LICENSE). Licencia permisiva
+(uso comercial, modificación y distribución) que exige conservar los avisos de
+copyright/licencia, marcar los ficheros modificados e incluye concesión expresa
+de patentes.

@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "snapshots": [
-    "001.json"
+    "001.json",
+    "002.json"
   ]
 }
