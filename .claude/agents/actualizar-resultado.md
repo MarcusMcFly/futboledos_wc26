@@ -18,9 +18,13 @@ editar) y no se puede inventar nada.
   la propagación `Wxx/Lxx`, `terceros_clave/terceros_clasificados`, `campeon:`).
   Si te piden registrar una eliminatoria, **párate y avisa** de que aún no está
   soportado.
-- Registras **un solo partido por invocación**. Si el usuario da varios,
-  procésalos de uno en uno (snapshot + edición por cada uno, en orden), o pide
-  que los pase uno a uno.
+- Puedes registrar **uno o varios partidos por invocación** (un "lote"). Pero
+  el snapshot baseline es **uno solo para todo el lote**: lo generas ANTES de
+  editar el primer partido y NO vuelves a generar otro entre partidos. Así las
+  flechas ▲/▼ reflejan el **movimiento neto de todos los partidos del lote a la
+  vez** (lo que el usuario espera al meter varios de golpe). Hacer un snapshot
+  por partido es un ERROR: dejaría como baseline un estado intermedio y las
+  flechas solo mostrarían el efecto del último partido.
 
 ## Reglas inviolables
 
@@ -35,9 +39,12 @@ editar) y no se puede inventar nada.
 
 ## Procedimiento
 
-Ejecútalo en este orden exacto.
+Ejecútalo en este orden exacto. **Con un lote de varios partidos, completa los
+pasos 1 y 2 para TODOS los partidos primero; luego un ÚNICO snapshot (paso 3);
+luego edita todas las líneas (paso 4); luego reporta (paso 5).** El snapshot
+nunca va entre dos ediciones del mismo lote.
 
-### 1. Resolver el partido
+### 1. Resolver el partido (cada partido del lote)
 
 La entrada del usuario es flexible. Acepta cualquiera de estas formas:
 - Nombres en español con marcador: `"Bélgica 2-1 Egipto"`, `"Bélgica 2 Egipto 1"`.
@@ -72,22 +79,29 @@ Para resolver:
 
 Si algo no cuadra, párate y pregunta. No continúes con suposiciones.
 
-### 3. Snapshot baseline (ANTES de editar results.txt)
+### 3. Snapshot baseline (UNO solo, ANTES de editar results.txt)
 
 Esto es crítico y el orden NO es negociable: el snapshot congela la
-clasificación **actual** (antes del nuevo resultado) como línea base. Así la web
-compara el tablero nuevo contra el snapshot y dibuja las flechas ▲/▼ + el panel
-"Movimiento" para esta misma actualización. Si lo haces después de editar, no
-hay movimiento que mostrar.
+clasificación **actual** (antes de los nuevos resultados) como línea base. Así la
+web compara el tablero nuevo contra el snapshot y dibuja las flechas ▲/▼ + el
+panel "Movimiento" para esta misma actualización. Si lo haces después de editar,
+no hay movimiento que mostrar.
+
+**Genera exactamente UN snapshot por invocación**, aunque el lote tenga varios
+partidos: va antes de editar el primero y captura el estado previo a todo el
+lote. La web solo compara contra el último snapshot del index, así que el
+movimiento será el neto de todos los partidos juntos.
 
 Desde la raíz del repo, ejecuta:
 
 ```
-node scripts/snapshot.mjs "Antes de <ID> (<NombreLocal>-<NombreVisitante>)"
+node scripts/snapshot.mjs "Antes de <etiqueta>"
 ```
 
-Usa nombres cortos de equipo en la etiqueta, al estilo del snapshot existente:
-`"Antes de B_01 (Canada-Bosnia)"`. El script autonumera el fichero
+Para la etiqueta usa nombres cortos de equipo al estilo del snapshot existente:
+con un solo partido, `"Antes de B_01 (Canada-Bosnia)"`; con un lote, identifícalo
+de forma legible, p. ej. `"Antes de jornada 4 (4 partidos)"` o
+`"Antes de B_02/C_01/C_02/D_02"`. El script autonumera el fichero
 (`data/snapshots/NNN.json`) y actualiza `data/snapshots/index.json` solo;
 no toques esos ficheros a mano. Anota qué `NNN.json` creó (lo dice por stdout).
 
@@ -95,13 +109,14 @@ no toques esos ficheros a mano. Anota qué `NNN.json` creó (lo dice por stdout)
 > pero el flujo correcto y confirmado para que salgan flechas en la actualización
 > en curso es ANTES. Sigue estas instrucciones, no el docstring.
 
-### 4. Editar results.txt
+### 4. Editar results.txt (todas las líneas del lote)
 
 Con la herramienta Edit:
-1. En la línea del partido, sustituye los dos `-` por `<gl> <gv>` respetando
-   local/visitante. Mantén el mismo formato y espaciado que las demás líneas.
-2. **Recalcula** (no incrementes a ciegas) los contadores de la cabecera leyendo
-   el fichero ya editado:
+1. Para cada partido del lote, en su línea sustituye los dos `-` por `<gl> <gv>`
+   respetando local/visitante. Mantén el mismo formato y espaciado que las demás
+   líneas.
+2. **Recalcula** (no incrementes a ciegas) los contadores de la cabecera **una
+   sola vez, al final**, leyendo el fichero ya editado con todos los partidos:
    - `partidos: X/72` → X = nº de líneas de `[PARTIDOS]` con marcador numérico.
    - `grupos_completos: Y/12` → Y = nº de grupos (A–L) cuyos 6 partidos
      (`<G>_01`..`<G>_06`) tienen todos marcador.
@@ -109,8 +124,9 @@ Con la herramienta Edit:
 ### 5. Terminar y reportar
 
 No commitees, no pushees, no corras tests. Reporta de forma concisa:
-- La línea final escrita (p. ej. `G_01 BE 2 1 EG`).
+- La línea final escrita de **cada** partido (p. ej. `G_01 BE 2 1 EG`).
 - Los contadores nuevos (`partidos: X/72`, `grupos_completos: Y/12`).
-- El fichero de snapshot creado (`data/snapshots/NNN.json`) y su etiqueta.
-- Recordatorio: revisar y **commitear/pushear desde VS Code** los tres ficheros
-  juntos (`results.txt`, `snapshots/NNN.json`, `snapshots/index.json`).
+- El **único** fichero de snapshot creado (`data/snapshots/NNN.json`) y su
+  etiqueta.
+- Recordatorio: revisar y **commitear/pushear desde VS Code** los ficheros
+  juntos (`results.txt`, el `snapshots/NNN.json` creado, `snapshots/index.json`).

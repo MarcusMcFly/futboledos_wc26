@@ -2,7 +2,7 @@ FUTBOLEDOS_PRED_V1
 nick: RESULTADO_OFICIAL
 pool: -
 generado: 2026-06-11T19:00:00.000Z
-partidos: 4/72  grupos_completos: 0/12
+partidos: 8/72  grupos_completos: 0/12
 
 [PARTIDOS]
 A_01 MX 2 0 ZA
@@ -12,19 +12,19 @@ A_04 MX - - KR
 A_05 CZ - - MX
 A_06 ZA - - KR
 B_01 CA 1 1 BA
-B_02 QA - - CH
+B_02 QA 1 1 CH
 B_03 CH - - BA
 B_04 CA - - QA
 B_05 CH - - CA
 B_06 BA - - QA
-C_01 BR - - MA
-C_02 HT - - SCO
+C_01 BR 1 1 MA
+C_02 HT 0 1 SCO
 C_03 SCO - - MA
 C_04 BR - - HT
 C_05 SCO - - BR
 C_06 MA - - HT
 D_01 US 4 1 PY
-D_02 AU - - TR
+D_02 AU 2 0 TR
 D_03 US - - AU
 D_04 TR - - PY
 D_05 TR - - US

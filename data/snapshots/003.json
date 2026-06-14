@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-14T06:36:05.944Z",
+  "label": "Antes de B_02 (Catar-Suiza)",
+  "completed_group_matches": 4,
+  "completed_ko_matches": 0,
+  "rankings": [
+    {
+      "nick": "JesusGG",
+      "rank": 1,
+      "points": 12
+    },
+    {
+      "nick": "Txauri",
+      "rank": 1,
+      "points": 12
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 1,
+      "points": 12
+    },
+    {
+      "nick": "Alberto_Soria",
+      "rank": 1,
+      "points": 12
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 5,
+      "points": 10
+    },
+    {
+      "nick": "VBJ",
+      "rank": 5,
+      "points": 10
+    },
+    {
+      "nick": "Ales",
+      "rank": 7,
+      "points": 9
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 7,
+      "points": 9
+    },
+    {
+      "nick": "Kike",
+      "rank": 7,
+      "points": 9
+    },
+    {
+      "nick": "CMC",
+      "rank": 7,
+      "points": 9
+    },
+    {
+      "nick": "Vic",
+      "rank": 7,
+      "points": 9
+    },
+    {
+      "nick": "Morses",
+      "rank": 12,
+      "points": 8
+    },
+    {
+      "nick": "Verde",
+      "rank": 12,
+      "points": 8
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 12,
+      "points": 8
+    },
+    {
+      "nick": "Julio",
+      "rank": 12,
+      "points": 8
+    },
+    {
+      "nick": "Pollico",
+      "rank": 12,
+      "points": 8
+    },
+    {
+      "nick": "DCJ",
+      "rank": 17,
+      "points": 7
+    },
+    {
+      "nick": "Marcus",
+      "rank": 17,
+      "points": 7
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 17,
+      "points": 7
+    },
+    {
+      "nick": "Mata",
+      "rank": 20,
+      "points": 6
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 20,
+      "points": 6
+    },
+    {
+      "nick": "JBC",
+      "rank": 22,
+      "points": 5
+    },
+    {
+      "nick": "Borja",
+      "rank": 22,
+      "points": 5
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 24,
+      "points": 2
+    }
+  ]
+}
