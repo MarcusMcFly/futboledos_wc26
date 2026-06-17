@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-17T14:01:35.869Z",
+  "label": "Antes de J_02 (Austria-Jordania)",
+  "completed_group_matches": 19,
+  "completed_ko_matches": 0,
+  "rankings": [
+    {
+      "nick": "Txauri",
+      "rank": 1,
+      "points": 51
+    },
+    {
+      "nick": "Ales",
+      "rank": 2,
+      "points": 39
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 2,
+      "points": 39
+    },
+    {
+      "nick": "Alberto_Soria",
+      "rank": 4,
+      "points": 38
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 4,
+      "points": 38
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 6,
+      "points": 37
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 7,
+      "points": 36
+    },
+    {
+      "nick": "VBJ",
+      "rank": 7,
+      "points": 36
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 7,
+      "points": 36
+    },
+    {
+      "nick": "JBC",
+      "rank": 10,
+      "points": 35
+    },
+    {
+      "nick": "DCJ",
+      "rank": 11,
+      "points": 34
+    },
+    {
+      "nick": "Verde",
+      "rank": 12,
+      "points": 33
+    },
+    {
+      "nick": "Kike",
+      "rank": 13,
+      "points": 32
+    },
+    {
+      "nick": "Vic",
+      "rank": 13,
+      "points": 32
+    },
+    {
+      "nick": "Borja",
+      "rank": 15,
+      "points": 31
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 15,
+      "points": 31
+    },
+    {
+      "nick": "Mata",
+      "rank": 17,
+      "points": 30
+    },
+    {
+      "nick": "CMC",
+      "rank": 17,
+      "points": 30
+    },
+    {
+      "nick": "Marcus",
+      "rank": 17,
+      "points": 30
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 20,
+      "points": 29
+    },
+    {
+      "nick": "Pollico",
+      "rank": 20,
+      "points": 29
+    },
+    {
+      "nick": "Julio",
+      "rank": 20,
+      "points": 29
+    },
+    {
+      "nick": "Morses",
+      "rank": 23,
+      "points": 27
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 24,
+      "points": 26
+    }
+  ]
+}
