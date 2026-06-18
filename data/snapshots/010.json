@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-18T04:59:48.324Z",
+  "label": "Antes de L_01/L_02/K_02 (3 partidos)",
+  "completed_group_matches": 21,
+  "completed_ko_matches": 0,
+  "rankings": [
+    {
+      "nick": "Txauri",
+      "rank": 1,
+      "points": 52
+    },
+    {
+      "nick": "Ales",
+      "rank": 2,
+      "points": 43
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 3,
+      "points": 41
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 3,
+      "points": 41
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 3,
+      "points": 41
+    },
+    {
+      "nick": "Alberto_Soria",
+      "rank": 6,
+      "points": 40
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 6,
+      "points": 40
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 8,
+      "points": 38
+    },
+    {
+      "nick": "Borja",
+      "rank": 8,
+      "points": 38
+    },
+    {
+      "nick": "VBJ",
+      "rank": 8,
+      "points": 38
+    },
+    {
+      "nick": "DCJ",
+      "rank": 11,
+      "points": 37
+    },
+    {
+      "nick": "JBC",
+      "rank": 12,
+      "points": 36
+    },
+    {
+      "nick": "Mata",
+      "rank": 13,
+      "points": 35
+    },
+    {
+      "nick": "Verde",
+      "rank": 13,
+      "points": 35
+    },
+    {
+      "nick": "Kike",
+      "rank": 13,
+      "points": 35
+    },
+    {
+      "nick": "Vic",
+      "rank": 13,
+      "points": 35
+    },
+    {
+      "nick": "Julio",
+      "rank": 17,
+      "points": 34
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 17,
+      "points": 34
+    },
+    {
+      "nick": "Marcus",
+      "rank": 19,
+      "points": 33
+    },
+    {
+      "nick": "Pollico",
+      "rank": 20,
+      "points": 32
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 21,
+      "points": 31
+    },
+    {
+      "nick": "Morses",
+      "rank": 22,
+      "points": 30
+    },
+    {
+      "nick": "CMC",
+      "rank": 22,
+      "points": 30
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 24,
+      "points": 29
+    }
+  ]
+}
