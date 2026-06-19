@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-19T04:59:57.998Z",
+  "label": "Antes de A_04/B_03/B_04 (Mexico-Corea, Suiza-Bosnia, Canada-Catar)",
+  "completed_group_matches": 25,
+  "completed_ko_matches": 0,
+  "rankings": [
+    {
+      "nick": "Txauri",
+      "rank": 1,
+      "points": 60
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 2,
+      "points": 55
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 2,
+      "points": 55
+    },
+    {
+      "nick": "Alberto_Soria",
+      "rank": 4,
+      "points": 51
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 4,
+      "points": 51
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 6,
+      "points": 50
+    },
+    {
+      "nick": "Ales",
+      "rank": 6,
+      "points": 50
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 6,
+      "points": 50
+    },
+    {
+      "nick": "VBJ",
+      "rank": 9,
+      "points": 47
+    },
+    {
+      "nick": "JBC",
+      "rank": 9,
+      "points": 47
+    },
+    {
+      "nick": "Verde",
+      "rank": 11,
+      "points": 46
+    },
+    {
+      "nick": "DCJ",
+      "rank": 12,
+      "points": 45
+    },
+    {
+      "nick": "Mata",
+      "rank": 13,
+      "points": 44
+    },
+    {
+      "nick": "Borja",
+      "rank": 13,
+      "points": 44
+    },
+    {
+      "nick": "Kike",
+      "rank": 13,
+      "points": 44
+    },
+    {
+      "nick": "Vic",
+      "rank": 13,
+      "points": 44
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 17,
+      "points": 42
+    },
+    {
+      "nick": "Julio",
+      "rank": 17,
+      "points": 42
+    },
+    {
+      "nick": "Pollico",
+      "rank": 19,
+      "points": 41
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 19,
+      "points": 41
+    },
+    {
+      "nick": "CMC",
+      "rank": 21,
+      "points": 40
+    },
+    {
+      "nick": "Marcus",
+      "rank": 21,
+      "points": 40
+    },
+    {
+      "nick": "Morses",
+      "rank": 23,
+      "points": 39
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 24,
+      "points": 37
+    }
+  ]
+}
