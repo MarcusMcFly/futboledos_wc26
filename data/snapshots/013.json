@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-20T05:59:30.679Z",
+  "label": "Antes de C_03/C_04/D_03/D_04 (4 partidos)",
+  "completed_group_matches": 28,
+  "completed_ko_matches": 0,
+  "rankings": [
+    {
+      "nick": "Txauri",
+      "rank": 1,
+      "points": 64
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 1,
+      "points": 64
+    },
+    {
+      "nick": "Alberto_Soria",
+      "rank": 3,
+      "points": 61
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 4,
+      "points": 60
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 4,
+      "points": 60
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 6,
+      "points": 57
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 7,
+      "points": 56
+    },
+    {
+      "nick": "Ales",
+      "rank": 8,
+      "points": 54
+    },
+    {
+      "nick": "JBC",
+      "rank": 9,
+      "points": 53
+    },
+    {
+      "nick": "Borja",
+      "rank": 9,
+      "points": 53
+    },
+    {
+      "nick": "Kike",
+      "rank": 9,
+      "points": 53
+    },
+    {
+      "nick": "Vic",
+      "rank": 9,
+      "points": 53
+    },
+    {
+      "nick": "VBJ",
+      "rank": 13,
+      "points": 51
+    },
+    {
+      "nick": "Verde",
+      "rank": 13,
+      "points": 51
+    },
+    {
+      "nick": "Pollico",
+      "rank": 13,
+      "points": 51
+    },
+    {
+      "nick": "DCJ",
+      "rank": 13,
+      "points": 51
+    },
+    {
+      "nick": "Marcus",
+      "rank": 13,
+      "points": 51
+    },
+    {
+      "nick": "Mata",
+      "rank": 18,
+      "points": 50
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 19,
+      "points": 49
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 20,
+      "points": 47
+    },
+    {
+      "nick": "Morses",
+      "rank": 20,
+      "points": 47
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 22,
+      "points": 46
+    },
+    {
+      "nick": "Julio",
+      "rank": 23,
+      "points": 45
+    },
+    {
+      "nick": "CMC",
+      "rank": 24,
+      "points": 44
+    }
+  ]
+}
