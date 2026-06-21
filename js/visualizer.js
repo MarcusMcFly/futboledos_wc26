@@ -103,10 +103,9 @@ function deadlineBanner(rules) {
   const iso = rules && rules.meta && rules.meta.submission_deadline;
   if (!iso) return "";
   const closed = Date.now() >= new Date(iso).getTime();
+  if (closed) return "";
   const when = deadlineWhen(iso);
-  return `<div class="banner ${closed ? "danger" : ""}">⏱️ ${closed
-    ? `Las predicciones se cerraron el ${when}.`
-    : `Las predicciones se cierran el ${when} (inicio del primer partido). <a href="./predicciones.html">Haz la tuya</a>.`}</div>`;
+  return `<div class="banner">⏱️ Las predicciones se cierran el ${when} (inicio del primer partido). <a href="./predicciones.html">Haz la tuya</a>.</div>`;
 }
 
 // Aviso de que los resultados/puntuaciones mostrados no son reales todavía.
