@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-23T19:17:55.800Z",
+  "label": "Antes de J_04/K_03 (Jordania-Argelia, Portugal-Uzbekistan)",
+  "completed_group_matches": 43,
+  "completed_ko_matches": 0,
+  "rankings": [
+    {
+      "nick": "Alberto_Soria",
+      "rank": 1,
+      "points": 101
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 2,
+      "points": 99
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 2,
+      "points": 99
+    },
+    {
+      "nick": "Txauri",
+      "rank": 4,
+      "points": 98
+    },
+    {
+      "nick": "Marcus",
+      "rank": 5,
+      "points": 91
+    },
+    {
+      "nick": "Kike",
+      "rank": 6,
+      "points": 90
+    },
+    {
+      "nick": "Vic",
+      "rank": 6,
+      "points": 90
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 8,
+      "points": 89
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 9,
+      "points": 88
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 10,
+      "points": 85
+    },
+    {
+      "nick": "VBJ",
+      "rank": 11,
+      "points": 83
+    },
+    {
+      "nick": "DCJ",
+      "rank": 11,
+      "points": 83
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 11,
+      "points": 83
+    },
+    {
+      "nick": "Ales",
+      "rank": 14,
+      "points": 82
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 14,
+      "points": 82
+    },
+    {
+      "nick": "JBC",
+      "rank": 14,
+      "points": 82
+    },
+    {
+      "nick": "Pollico",
+      "rank": 17,
+      "points": 81
+    },
+    {
+      "nick": "CMC",
+      "rank": 18,
+      "points": 80
+    },
+    {
+      "nick": "Borja",
+      "rank": 19,
+      "points": 79
+    },
+    {
+      "nick": "Mata",
+      "rank": 20,
+      "points": 77
+    },
+    {
+      "nick": "Morses",
+      "rank": 20,
+      "points": 77
+    },
+    {
+      "nick": "Verde",
+      "rank": 22,
+      "points": 76
+    },
+    {
+      "nick": "Julio",
+      "rank": 23,
+      "points": 71
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 24,
+      "points": 62
+    }
+  ]
+}
