@@ -8,7 +8,7 @@ import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission, loadL
 import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
-import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution } from "./stats.js";
+import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats } from "./stats.js";
 import { computeMovements, topMovers, newLeader } from "./history.js";
 
 const $app = /** @type {HTMLElement} */ (document.getElementById("app"));
@@ -380,8 +380,45 @@ function renderMatches(ctx) {
         ${distBar(dist)}
         <span class="ml-meta muted">${played ? `oficial ${om.hg}–${om.ag}` : `${dist.total} pred.`}</span></a>`;
     }
+    html += groupClosingHtml(ctx, g);
   }
   $app.innerHTML = html;
+}
+
+// Clasificación final + estadísticas cruzadas de un grupo ya cerrado. "" si el
+// grupo no ha terminado o el oficial aún no tiene el orden ([CLASIFICACION]).
+function groupClosingHtml(ctx, g) {
+  const rows = groupStandings(ctx.official, g);
+  if (!rows) return "";
+  const cs = groupCrossStats(ctx.board, ctx.predByNick, ctx.official, g);
+  const perPos = cs ? new Map(cs.perPos.map((p) => [p.pos, p])) : null;
+  const sign = (n) => (n > 0 ? `+${n}` : `${n}`);
+
+  let html = `<h4 class="gclose-h">Clasificación final</h4>
+    <table class="standings gclose">
+      <thead><tr><th>#</th><th>Equipo</th><th>Pts</th><th>PJ</th><th>G</th><th>E</th><th>P</th>
+        <th>GF</th><th>GC</th><th>DG</th><th title="% que lo pronosticó en esta posición">Predicho aquí</th></tr></thead>
+      <tbody>`;
+  rows.forEach((s, i) => {
+    const pp = perPos && perPos.get(i + 1);
+    html += `<tr><td class="lb-pos">${i + 1}</td><td>${esc(teamName(s.id))}</td>
+      <td class="pts">${s.pts}</td><td>${s.j}</td><td>${s.w}</td><td>${s.d}</td><td>${s.l}</td>
+      <td>${s.gf}</td><td>${s.gc}</td><td>${sign(s.dg)}</td>
+      <td class="muted">${pp ? `${pp.pct}%` : "—"}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+
+  if (cs) {
+    html += `<p class="gclose-stats">Acertaron: 1.º <b>${cs.winnerPct}%</b> · 2 clasificados <b>${cs.top2Pct}%</b>
+      · orden completo <b>${cs.fullPct}%</b> · media <b>${cs.avgPoints}</b> pts <span class="muted">(${cs.total} pred.)</span></p>`;
+    if (cs.surprise)
+      html += `<p class="gclose-surprise">😮 Sorpresa del grupo: <strong>${esc(teamName(cs.surprise.id))}</strong>
+        <span class="muted">(pronosticada ${cs.surprise.avgPredPos}.º → terminó ${cs.surprise.actualPos}.º)</span></p>`;
+    if (cs.heroes.length)
+      html += `<p class="gclose-heroes">🎯 Orden completo (4/4): ${cs.heroes.map((n) =>
+        `<a class="chip" href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`).join(" ")}</p>`;
+  }
+  return html;
 }
 
 function distBar(dist) {

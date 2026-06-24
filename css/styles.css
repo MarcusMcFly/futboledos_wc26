@@ -76,6 +76,21 @@ table.standings th { color: var(--muted); font-weight: 600; }
 table.standings td.pts { font-weight: 700; color: var(--accent); }
 table.standings tbody tr:nth-child(-n+2) td:first-child { color: var(--text); font-weight: 600; }
 
+/* Clasificación final de grupo cerrado (vista Partidos) */
+h4.gclose-h { margin: 0.9rem 0 0; font-size: 0.9rem; color: var(--muted); }
+table.standings.gclose { font-size: 0.84rem; margin-top: 0.35rem; }
+table.standings.gclose th, table.standings.gclose td { padding: 0.3rem 0.4rem; text-align: center; }
+table.standings.gclose th:nth-child(2), table.standings.gclose td:nth-child(2) { text-align: left; }
+table.standings.gclose td.lb-pos { color: var(--muted); }
+table.standings.gclose tbody tr:nth-child(-n+2) td:nth-child(2) { color: var(--text); font-weight: 600; }
+table.standings.gclose th:last-child, table.standings.gclose td:last-child { border-left: 1px solid var(--border); }
+.gclose-stats { font-size: 0.84rem; margin: 0.5rem 0 0.2rem; }
+.gclose-surprise, .gclose-heroes { font-size: 0.84rem; margin: 0.2rem 0; }
+@media (max-width: 560px) {
+  table.standings.gclose th:nth-child(n+4):nth-child(-n+9),
+  table.standings.gclose td:nth-child(n+4):nth-child(-n+9) { display: none; } /* oculta PJ/G/E/P/GF/GC en móvil */
+}
+
 /* ─────────── Visualizador (Parte 2) ─────────── */
 .loading { padding: 3rem; text-align: center; }
 .view-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }

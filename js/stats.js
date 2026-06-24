@@ -98,6 +98,92 @@ export function globalAccuracy(predictions, official, board) {
   };
 }
 
+const GROUP_LETTERS = "ABCDEFGHIJKL".split("");
+
+/** ¿Están jugados los 6 partidos del grupo `g` en el oficial? */
+export function groupComplete(official, g) {
+  for (let i = 1; i <= 6; i++) {
+    const m = official.groupMatches[`${g}_0${i}`];
+    if (!m || m.hg == null || m.ag == null) return false;
+  }
+  return true;
+}
+
+/**
+ * Tabla de clasificación final de un grupo CERRADO, en el orden oficial
+ * (official.groupOrder[g], ya resuelto por enfrentamiento directo). Cada fila trae
+ * Pts/PJ/G/E/P/GF/GC/DG calculados desde los marcadores. null si el grupo no está
+ * completo o el oficial aún no tiene el orden (sección [CLASIFICACION]).
+ */
+export function groupStandings(official, g) {
+  if (!groupComplete(official, g)) return null;
+  const order = official.groupOrder[g];
+  if (!order || order.length < 4) return null;
+  const stat = new Map(order.map((id) => [id, { id, pts: 0, j: 0, w: 0, d: 0, l: 0, gf: 0, gc: 0, dg: 0 }]));
+  for (let i = 1; i <= 6; i++) {
+    const m = official.groupMatches[`${g}_0${i}`];
+    const h = stat.get(m.home), a = stat.get(m.away);
+    if (!h || !a) continue;
+    h.j++; a.j++;
+    h.gf += m.hg; h.gc += m.ag; a.gf += m.ag; a.gc += m.hg;
+    if (m.hg > m.ag) { h.pts += 3; h.w++; a.l++; }
+    else if (m.hg < m.ag) { a.pts += 3; a.w++; h.l++; }
+    else { h.pts++; a.pts++; h.d++; a.d++; }
+  }
+  return order.map((id) => { const s = stat.get(id); s.dg = s.gf - s.gc; return s; });
+}
+
+/**
+ * Estadísticas cruzadas (predicciones × resultado real) de un grupo CERRADO.
+ * `board` = participantes puntuados (con breakdown.groupRankDetails[g]);
+ * `predByNick` = Map nick→predicción. Solo cuenta a quien predijo el orden completo.
+ * null si el grupo no está completo o nadie predijo su orden.
+ */
+export function groupCrossStats(board, predByNick, official, g) {
+  if (!groupComplete(official, g)) return null;
+  const off = official.groupOrder[g];
+  if (!off || off.length < 4) return null;
+  const offTop2 = new Set([off[0], off[1]]);
+  let total = 0, winner = 0, top2 = 0, full = 0, sumPts = 0;
+  const heroes = [];
+  const posHit = [0, 0, 0, 0];                          // aciertos por posición final
+  const predPosSum = new Map(off.map((id) => [id, 0])); // Σ posiciones predichas por equipo
+  const predPosCnt = new Map(off.map((id) => [id, 0]));
+  for (const entry of board) {
+    const pred = predByNick.get(entry.nick);
+    const po = pred && pred.groupOrder[g];
+    if (!po || po.length < 4) continue;
+    total++;
+    const detail = entry.breakdown && entry.breakdown.groupRankDetails[g];
+    sumPts += detail ? detail.points : 0;
+    if (po[0] === off[0]) winner++;
+    if (offTop2.has(po[0]) && offTop2.has(po[1])) top2++;
+    if (off.every((id, i) => po[i] === id)) { full++; heroes.push(entry.nick); }
+    for (let i = 0; i < 4; i++) if (po[i] === off[i]) posHit[i]++;
+    for (const id of off) {
+      const idx = po.indexOf(id);
+      if (idx >= 0) { predPosSum.set(id, predPosSum.get(id) + idx + 1); predPosCnt.set(id, predPosCnt.get(id) + 1); }
+    }
+  }
+  if (!total) return null;
+  // Sorpresa: equipo con mayor distancia |posición media predicha − posición real|.
+  let surprise = null;
+  off.forEach((id, i) => {
+    const cnt = predPosCnt.get(id);
+    if (!cnt) return;
+    const avg = predPosSum.get(id) / cnt;
+    const gap = Math.abs(avg - (i + 1));
+    if (!surprise || gap > surprise.gap) surprise = { id, avgPredPos: round1(avg), actualPos: i + 1, gap: round1(gap) };
+  });
+  return {
+    total, winner, top2, full, heroes,
+    winnerPct: pctOf(winner, total), top2Pct: pctOf(top2, total), fullPct: pctOf(full, total),
+    avgPoints: round1(sumPts / total),
+    perPos: off.map((id, i) => ({ id, pos: i + 1, count: posHit[i], pct: pctOf(posHit[i], total) })),
+    surprise,
+  };
+}
+
 /** Campeón más votado: distribución de campeones pronosticados. */
 export function championDistribution(predictions) {
   const c = new Map();
