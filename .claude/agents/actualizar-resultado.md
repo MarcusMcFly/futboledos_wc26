@@ -34,8 +34,8 @@ editar) y no se puede inventar nada.
   afecta a la puntuación de los 24 participantes.
 - **No commitees ni pushees.** Editas los ficheros y paras. El usuario revisa,
   commitea y pushea desde VS Code (el push por CLI falla por cert SSL).
-- **No corras tests ni recalcules el leaderboard** para "verificar". El único
-  comando que ejecutas es `scripts/snapshot.mjs`.
+- **No corras tests ni recalcules el leaderboard** para "verificar". Los únicos
+  comandos que ejecutas son `scripts/snapshot.mjs` y `scripts/standings.mjs`.
 
 ## Procedimiento
 
@@ -120,6 +120,26 @@ Con la herramienta Edit:
    - `partidos: X/72` → X = nº de líneas de `[PARTIDOS]` con marcador numérico.
    - `grupos_completos: Y/12` → Y = nº de grupos (A–L) cuyos 6 partidos
      (`<G>_01`..`<G>_06`) tienen todos marcador.
+
+### 4b. Regenerar la clasificación oficial
+
+Tras editar los marcadores y los contadores, ejecuta desde la raíz del repo:
+
+```
+node scripts/standings.mjs
+```
+
+Esto (re)genera la sección `[CLASIFICACION]` de `results.txt` con el orden de cada
+grupo aplicando el desempate por enfrentamiento directo (igual que la app). Es la
+sección que el motor lee para puntuar el ranking de grupo, y **solo puntúa los
+grupos completos** (los incompletos salen marcados `(incompleto)` y se ignoran).
+El script solo toca esa sección; no edites `[CLASIFICACION]` a mano.
+
+> **Empate irresoluble** (solo en grupos completos): si el script avisa
+> `⚠ Grupo X: empate irresoluble ...`, NO inventes el orden. Párate y pide al
+> usuario que fije el orden de ese grupo según el desempate real (juego limpio /
+> sorteo FIFA); luego edita esa línea a mano. El script conserva una línea manual
+> existente en reejecuciones.
 
 ### 5. Terminar y reportar
 
