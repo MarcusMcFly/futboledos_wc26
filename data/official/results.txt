@@ -2,27 +2,27 @@ FUTBOLEDOS_PRED_V1
 nick: RESULTADO_OFICIAL
 pool: -
 generado: 2026-06-11T19:00:00.000Z
-partidos: 48/72  grupos_completos: 0/12
+partidos: 54/72  grupos_completos: 3/12
 
 [PARTIDOS]
 A_01 MX 2 0 ZA
 A_02 KR 2 1 CZ
 A_03 CZ 1 1 ZA
 A_04 MX 1 0 KR
-A_05 CZ - - MX
-A_06 ZA - - KR
+A_05 CZ 0 3 MX
+A_06 ZA 1 0 KR
 B_01 CA 1 1 BA
 B_02 QA 1 1 CH
 B_03 CH 4 1 BA
 B_04 CA 6 0 QA
-B_05 CH - - CA
-B_06 BA - - QA
+B_05 CH 2 1 CA
+B_06 BA 3 1 QA
 C_01 BR 1 1 MA
 C_02 HT 0 1 SCO
 C_03 SCO 0 1 MA
 C_04 BR 3 0 HT
-C_05 SCO - - BR
-C_06 MA - - HT
+C_05 SCO 0 3 BR
+C_06 MA 4 2 HT
 D_01 US 4 1 PY
 D_02 AU 2 0 TR
 D_03 US 2 0 AU
@@ -77,6 +77,20 @@ L_03 ENG 0 0 GH
 L_04 PA 0 1 HR
 L_05 PA - - ENG
 L_06 HR - - GH
+
+[CLASIFICACION]
+A 1:MX 2:ZA 3:KR 4:CZ
+B 1:CH 2:CA 3:BA 4:QA
+C 1:BR 2:MA 3:SCO 4:HT
+D 1:US 2:AU 3:PY 4:TR (incompleto)
+E 1:DE 2:CI 3:EC 4:CW (incompleto)
+F 1:NL 2:JP 3:SE 4:TN (incompleto)
+G 1:EG 2:IR 3:BE 4:NZ (incompleto)
+H 1:ES 2:UY 3:CV 4:SA (incompleto)
+I 1:FR 2:NO 3:SN 4:IQ (incompleto)
+J 1:AR 2:AT 3:DZ 4:JO (incompleto)
+K 1:CO 2:PT 3:CD 4:UZ (incompleto)
+L 1:ENG 2:GH 3:HR 4:PA (incompleto)
 
 [DIECISEISAVOS]
 terceros_clave:

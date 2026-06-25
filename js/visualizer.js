@@ -394,7 +394,8 @@ function groupClosingHtml(ctx, g) {
   const perPos = cs ? new Map(cs.perPos.map((p) => [p.pos, p])) : null;
   const sign = (n) => (n > 0 ? `+${n}` : `${n}`);
 
-  let html = `<h4 class="gclose-h">Clasificación final</h4>
+  let html = `<p class="gclose-msg">🏁 Grupo ${g} cerrado · clasificación definitiva</p>
+    <h4 class="gclose-h">Clasificación final</h4>
     <table class="standings gclose">
       <thead><tr><th>#</th><th>Equipo</th><th>Pts</th><th>PJ</th><th>G</th><th>E</th><th>P</th>
         <th>GF</th><th>GC</th><th>DG</th><th title="% que lo pronosticó en esta posición">Predicho aquí</th></tr></thead>

@@ -77,6 +77,8 @@ table.standings td.pts { font-weight: 700; color: var(--accent); }
 table.standings tbody tr:nth-child(-n+2) td:first-child { color: var(--text); font-weight: 600; }
 
 /* Clasificación final de grupo cerrado (vista Partidos) */
+.gclose-msg { margin: 0.6rem 0 0.2rem; padding: 0.45rem 0.7rem; font-size: 0.86rem; font-weight: 600;
+  border-left: 3px solid var(--accent); border-radius: 4px; background: rgba(46,160,67,0.10); }
 h4.gclose-h { margin: 0.9rem 0 0; font-size: 0.9rem; color: var(--muted); }
 table.standings.gclose { font-size: 0.84rem; margin-top: 0.35rem; }
 table.standings.gclose th, table.standings.gclose td { padding: 0.3rem 0.4rem; text-align: center; }
