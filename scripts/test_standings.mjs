@@ -14,8 +14,13 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const rules = JSON.parse(readFileSync(join(root, "data/scoring_rules.json"), "utf8"));
 // Base sin [CLASIFICACION] para que el test sea determinista, exista o no la
 // sección en el fichero real (el generador puede haberla escrito ya).
-const officialText = readFileSync(join(root, "data/official/results.txt"), "utf8")
-  .replace(/\n\[CLASIFICACION\][\s\S]*?(?=\n\[DIECISEISAVOS\])/, "");
+// El grupo B es el ejemplo de "incompleto" del test: lo blanqueamos para que NO
+// dependa de cuántos de sus partidos se hayan jugado ya en el fichero real (que va
+// cambiando según se registran resultados). withGroupBlank está hoisted más abajo.
+const officialText = withGroupBlank(
+  readFileSync(join(root, "data/official/results.txt"), "utf8")
+    .replace(/\n\[CLASIFICACION\][\s\S]*?(?=\n\[DIECISEISAVOS\])/, ""),
+  "B");
 const groups = loadGroups();
 const groupA = groups.find((g) => g.groupId === "A");
 
@@ -23,6 +28,12 @@ let pass = 0, fail = 0;
 const eq = (a, e, m) => (JSON.stringify(a) === JSON.stringify(e) ? pass++ :
   (fail++, console.error(`  ✗ ${m}\n      esperado ${JSON.stringify(e)}, obtenido ${JSON.stringify(a)}`)));
 const ok = (c, m) => (c ? pass++ : (fail++, console.error(`  ✗ ${m}`)));
+
+// Deja en blanco (`- -`) los 6 partidos de un grupo → queda oficialmente incompleto.
+function withGroupBlank(text, g) {
+  return text.replace(new RegExp(`^${g}_0[1-6] (\\S+) \\S+ \\S+ (\\S+)$`, "gm"),
+    (line, h, a) => `${line.split(/\s+/)[0]} ${h} - - ${a}`);
+}
 
 // Sustituye las líneas A_0n de [PARTIDOS] por un marcador completo del grupo A.
 function withGroupA(text, scores) {

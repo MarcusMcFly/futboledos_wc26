@@ -88,6 +88,16 @@ table.standings.gclose tbody tr:nth-child(-n+2) td:nth-child(2) { color: var(--t
 table.standings.gclose th:last-child, table.standings.gclose td:last-child { border-left: 1px solid var(--border); }
 .gclose-stats { font-size: 0.84rem; margin: 0.5rem 0 0.2rem; }
 .gclose-surprise, .gclose-heroes { font-size: 0.84rem; margin: 0.2rem 0; }
+
+/* Clasificación PRONOSTICADA por grupo (vista de participante) */
+table.standings.predrank { font-size: 0.84rem; margin: 0.35rem 0 0.6rem; }
+table.standings.predrank th, table.standings.predrank td { padding: 0.3rem 0.45rem; }
+table.standings.predrank th:nth-child(2), table.standings.predrank td:nth-child(2) { text-align: left; }
+table.standings.predrank td.lb-pos { color: var(--muted); width: 2rem; }
+table.standings.predrank tr.rank-hit td:nth-child(2) { color: var(--text); font-weight: 600; }
+table.standings.predrank tr.rank-bonus td { color: var(--accent); font-weight: 600; border-top: 1px solid var(--border); }
+table.standings.predrank tr.rank-total td { font-weight: 700; border-top: 1px solid var(--border); }
+table.standings.predrank tfoot td:first-child { text-align: left; }
 @media (max-width: 560px) {
   table.standings.gclose th:nth-child(n+4):nth-child(-n+9),
   table.standings.gclose td:nth-child(n+4):nth-child(-n+9) { display: none; } /* oculta PJ/G/E/P/GF/GC en móvil */

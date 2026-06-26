@@ -46,19 +46,28 @@ function groupQualifiers(order, group, thirdsSet) {
 
 export function scoreGroupRanking(predOrder, offOrder, group, predThirdsSet, offThirdsSet, rules) {
   const r = rules.group_ranking;
-  const pending = { points: 0, status: "pending", positions: 0, qualified: 0, completeOrder: false, winnerCorrect: false };
+  const pending = { points: 0, status: "pending", positions: 0, qualified: 0, completeOrder: false, winnerCorrect: false, completeBonus: 0, lines: [] };
   if (!offOrder || offOrder.length < 4) return pending;
-  let positions = 0;
-  for (let i = 0; i < 4; i++)
-    if (predOrder[i] && predOrder[i] === offOrder[i]) positions += r.position_points[String(i + 1)];
   const predQ = new Set(groupQualifiers(predOrder, group, predThirdsSet));
-  let qualified = 0;
-  for (const t of groupQualifiers(offOrder, group, offThirdsSet)) if (predQ.has(t)) qualified++;
-  let pts = positions + qualified * r.qualified_team;
+  const offQ = new Set(groupQualifiers(offOrder, group, offThirdsSet));
+  // Desglose por línea (posición predicha): puntos de acierto de plaza + bonus por
+  // clasificado correcto, atribuidos al equipo que el participante puso en esa fila.
+  let positions = 0, qualified = 0;
+  const lines = [];
+  for (let i = 0; i < 4; i++) {
+    const team = predOrder[i] || null;
+    const posCorrect = !!team && team === offOrder[i];
+    const posPoints = posCorrect ? r.position_points[String(i + 1)] : 0;
+    const qualBonus = team && predQ.has(team) && offQ.has(team) ? r.qualified_team : 0;
+    if (posCorrect) positions += posPoints;
+    if (qualBonus) qualified++;
+    lines.push({ pos: i + 1, team, official: offOrder[i] || null, posCorrect, posPoints, qualBonus, points: posPoints + qualBonus });
+  }
   const completeOrder = predOrder.length === 4 && predOrder.every((t, i) => t === offOrder[i]);
-  if (completeOrder) pts += r.complete_group_order_bonus;
+  const completeBonus = completeOrder ? r.complete_group_order_bonus : 0;
+  const pts = positions + qualified * r.qualified_team + completeBonus;
   const winnerCorrect = !!predOrder[0] && predOrder[0] === offOrder[0];
-  return { points: pts, status: "scored", positions, qualified, completeOrder, winnerCorrect };
+  return { points: pts, status: "scored", positions, qualified, completeOrder, winnerCorrect, completeBonus, lines };
 }
 
 // ── §7/§17 · Mejores terceros (por pertenencia, no por orden) ────────────────

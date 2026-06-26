@@ -342,8 +342,48 @@ function groupMatchBreakdown(ctx, scored, pred) {
       const res = scored.breakdown.groupMatchDetails[id] || { points: 0, status: "pending" };
       rows.push(matchLine(teamName(om.home), teamName(om.away), pm, om, res));
     }
-    return `<div class="grp"><h3>Grupo ${g}</h3>${rows.join("")}</div>`;
+    return `<div class="grp"><h3>Grupo ${g}</h3>${rows.join("")}${groupRankingTable(g, scored, pred)}</div>`;
   }).join("");
+}
+
+const POS_LABEL = ["1.º", "2.º", "3.º", "4.º"];
+
+// Clasificación PRONOSTICADA del grupo + puntos que ha dado cada línea (acierto de
+// plaza + bonus por clasificado). Mientras el grupo no esté cerrado, queda pendiente.
+function groupRankingTable(g, scored, pred) {
+  const det = scored.breakdown.groupRankDetails[g] || { status: "pending", lines: [], points: 0, completeBonus: 0 };
+  const predOrder = pred.groupOrder[g] || [];
+  const isScored = det.status === "scored";
+  if (!isScored && !predOrder.length) return "";
+
+  const rows = [];
+  for (let i = 0; i < 4; i++) {
+    const line = isScored ? det.lines[i] : null;
+    const team = line ? line.team : (predOrder[i] || null);
+    const mark = line && line.posCorrect ? " ✅" : "";
+    const rowCls = line && line.posCorrect ? "rank-hit" : "";
+    const offCell = line && line.official ? esc(teamName(line.official)) : "—";
+    const ptsCell = isScored
+      ? (line && line.points > 0 ? "+" + line.points : "0")
+      : `<span class="muted">pte</span>`;
+    rows.push(`<tr class="${rowCls}">
+      <td class="lb-pos">${POS_LABEL[i]}</td>
+      <td>${team ? esc(teamName(team)) : "—"}${mark}</td>
+      <td class="muted">${offCell}</td>
+      <td class="pts">${ptsCell}</td></tr>`);
+  }
+
+  let foot = "";
+  if (isScored && det.completeBonus > 0)
+    foot += `<tr class="rank-bonus"><td colspan="3">🎯 Orden completo acertado</td><td class="pts">+${det.completeBonus}</td></tr>`;
+  foot += isScored
+    ? `<tr class="rank-total"><td colspan="3">Total ranking del grupo</td><td class="pts">${det.points}</td></tr>`
+    : `<tr><td colspan="4" class="muted">Se puntúa cuando el grupo esté completo.</td></tr>`;
+
+  return `<table class="standings predrank">
+    <thead><tr><th>#</th><th>Tu clasificación</th><th>Oficial</th><th>Pts</th></tr></thead>
+    <tbody>${rows.join("")}</tbody>
+    <tfoot>${foot}</tfoot></table>`;
 }
 
 function koBreakdown(ctx, scored, pred) {
