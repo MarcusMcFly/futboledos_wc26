@@ -88,6 +88,22 @@ function statusBanner(official) {
   return `<div class="banner warn">📊 Resultados oficiales cargados: ${parts.join(" · ")}. Puntuación provisional, se recalcula con cada resultado.</div>`;
 }
 
+// Lista de grupos que ya tienen sus 6 partidos jugados (y por tanto puntúan en el
+// ranking de grupo). Se muestra debajo del statusBanner mientras haya alguno cerrado
+// pero el torneo no haya terminado.
+function completedGroupsBanner(official) {
+  const byGroup = {};
+  for (const [id, m] of Object.entries(official.groupMatches)) {
+    const grp = id.split("_")[0];
+    (byGroup[grp] = byGroup[grp] || []).push(m);
+  }
+  const done = Object.keys(byGroup)
+    .filter((grp) => byGroup[grp].length === 6 && byGroup[grp].every((m) => m.hg != null && m.ag != null))
+    .sort();
+  if (!done.length) return "";
+  return `<div class="banner ok-banner">✅ Grupos completos: <strong>${done.join(" · ")}</strong>. Su ranking de grupo ya está consolidado.</div>`;
+}
+
 // ── Vista: clasificación general ─────────────────────────────────────────────
 // Fecha + hora de la fecha límite, fijada a la zona horaria del evento para que
 // no cambie según el navegador (la hora coincide con el inicio del 1er partido).
@@ -132,6 +148,7 @@ function renderHome(ctx) {
     ${deadlineBanner(ctx.rules)}
     ${simulationBanner(ctx.rules)}
     ${statusBanner(ctx.official)}
+    ${completedGroupsBanner(ctx.official)}
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
     ${ctx.movements.hasSnapshot ? `<h2 class="section">Movimiento <span class="muted">· desde ${esc(ctx.snapshot.label || "el último corte")}</span></h2>${topMoversPanel(ctx)}` : ""}

@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-26T05:40:44.892Z",
+  "label": "Antes de jornada 6 (6 partidos: D_05/D_06/E_05/E_06/F_05/F_06)",
+  "completed_group_matches": 54,
+  "completed_ko_matches": 0,
+  "rankings": [
+    {
+      "nick": "Blazquez_96",
+      "rank": 1,
+      "points": 185
+    },
+    {
+      "nick": "Alberto_Soria",
+      "rank": 2,
+      "points": 179
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 3,
+      "points": 178
+    },
+    {
+      "nick": "Txauri",
+      "rank": 4,
+      "points": 172
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 5,
+      "points": 169
+    },
+    {
+      "nick": "Marcus",
+      "rank": 5,
+      "points": 169
+    },
+    {
+      "nick": "Morses",
+      "rank": 7,
+      "points": 162
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 7,
+      "points": 162
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 9,
+      "points": 159
+    },
+    {
+      "nick": "Kike",
+      "rank": 10,
+      "points": 156
+    },
+    {
+      "nick": "Vic",
+      "rank": 10,
+      "points": 156
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 12,
+      "points": 151
+    },
+    {
+      "nick": "Pollico",
+      "rank": 13,
+      "points": 149
+    },
+    {
+      "nick": "Ales",
+      "rank": 14,
+      "points": 148
+    },
+    {
+      "nick": "DCJ",
+      "rank": 15,
+      "points": 147
+    },
+    {
+      "nick": "JBC",
+      "rank": 16,
+      "points": 146
+    },
+    {
+      "nick": "CMC",
+      "rank": 16,
+      "points": 146
+    },
+    {
+      "nick": "VBJ",
+      "rank": 18,
+      "points": 141
+    },
+    {
+      "nick": "Verde",
+      "rank": 19,
+      "points": 139
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 20,
+      "points": 138
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 21,
+      "points": 132
+    },
+    {
+      "nick": "Borja",
+      "rank": 22,
+      "points": 130
+    },
+    {
+      "nick": "Mata",
+      "rank": 23,
+      "points": 124
+    },
+    {
+      "nick": "Julio",
+      "rank": 24,
+      "points": 111
+    }
+  ]
+}
