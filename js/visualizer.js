@@ -286,6 +286,12 @@ function renderUser(ctx, nick) {
   if (!s || !pred) return renderError(`Participante "${nick}" no encontrado.`);
   document.title = `${nick} · Futboledos WC26`;
   const d = s.details, sc = s.score;
+  // Rankings de grupo "perfectos": orden exacto acertado (la puntuación máxima del
+  // grupo, +23 ó +25 con el bonus de orden completo). Solo cuentan grupos cerrados.
+  const perfectRankGroups = GROUP_LETTERS.filter((g) => {
+    const r = s.breakdown.groupRankDetails[g];
+    return r && r.completeOrder;
+  }).length;
   const chips = poolChips(ctx, nick) || `<span class="muted">sin pool</span>`;
   const champRow = ctx.official.champion
     ? `Campeón: <strong>${esc(teamName(pred.champion))}</strong> ${d.correct_champion ? "✅" : "❌ (oficial: " + esc(teamName(ctx.official.champion)) + ")"}`
@@ -304,6 +310,7 @@ function renderUser(ctx, nick) {
       <li><span>Marcadores exactos</span><b>${d.exact_scores}</b></li>
       <li><span>Resultados (signo) acertados</span><b>${d.correct_signs}</b></li>
       <li><span>Ganadores de grupo</span><b>${d.correct_group_winners}/12</b></li>
+      <li><span>Rankings de grupo perfectos <span class="muted">(orden exacto)</span></span><b>${perfectRankGroups}/12</b></li>
       <li><span>Mejores terceros</span><b>${d.correct_best_thirds}/8</b></li>
       <li><span>Clasificados de eliminatoria</span><b>${d.correct_qualified_knockout_teams}/32</b></li>
     </ul>
