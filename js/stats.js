@@ -6,6 +6,8 @@ import { getOutcome } from "./scoring.js";
 
 const round1 = (n) => Math.round(n * 10) / 10;
 const pctOf = (n, total) => (total ? round1((n / total) * 100) : 0);
+// Desviación media mínima (en posiciones) para considerar a un equipo "sorpresa".
+const MIN_SURPRISE_GAP = 1;
 
 /** Distribución de un partido de grupo: local/empate/visitante + marcadores. (§5/§14) */
 export function groupMatchDistribution(predictions, matchId) {
@@ -166,15 +168,19 @@ export function groupCrossStats(board, predByNick, official, g) {
     }
   }
   if (!total) return null;
-  // Sorpresa: equipo con mayor distancia |posición media predicha − posición real|.
-  let surprise = null;
+  // Sorpresa: equipo con mayor distancia |posición media predicha − posición real|,
+  // pero SOLO si esa desviación es de al menos una posición completa. Si el grupo
+  // salió casi como se esperaba (p. ej. pronosticado 3,8.º y acabó 4.º → gap 0,2),
+  // no hay sorpresa y se devuelve null en vez del "menos esperado" trivial.
+  let surprise = null, bestGap = -1;
   off.forEach((id, i) => {
     const cnt = predPosCnt.get(id);
     if (!cnt) return;
     const avg = predPosSum.get(id) / cnt;
     const gap = Math.abs(avg - (i + 1));
-    if (!surprise || gap > surprise.gap) surprise = { id, avgPredPos: round1(avg), actualPos: i + 1, gap: round1(gap) };
+    if (gap > bestGap) { bestGap = gap; surprise = { id, avgPredPos: round1(avg), actualPos: i + 1, gap: round1(gap) }; }
   });
+  if (bestGap < MIN_SURPRISE_GAP) surprise = null;
   return {
     total, winner, top2, full, heroes,
     winnerPct: pctOf(winner, total), top2Pct: pctOf(top2, total), fullPct: pctOf(full, total),

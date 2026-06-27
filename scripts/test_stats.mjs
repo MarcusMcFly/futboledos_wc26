@@ -96,6 +96,13 @@ eq(cs.perPos.map((p) => p.pct), [50, 50, 25, 25], "cross: % predicho en cada pos
 eq([cs.surprise.id, cs.surprise.avgPredPos, cs.surprise.actualPos], ["CZ", 3, 4], "cross: sorpresa = CZ (3.0 → 4)");
 ok(groupCrossStats(boardA, predByNick, offA, "B") === null, "cross: null si el grupo no está completo");
 
+// Sorpresa solo si la desviación media ≥ 1 posición: si el grupo salió como se
+// pronosticó, el equipo de mayor gap (gap 0) NO debe marcarse como sorpresa.
+const predsClose = [ord("Q1", ["MX", "KR", "ZA", "CZ"]), ord("Q2", ["MX", "KR", "ZA", "CZ"])];
+const boardClose = buildLeaderboard(predsClose.map((p) => ({ nick: p.nick, prediction: p })), offA, rules);
+const csClose = groupCrossStats(boardClose, new Map(predsClose.map((p) => [p.nick, p])), offA, "A");
+ok(csClose.surprise === null, "cross: sin sorpresa si el grupo salió como se pronosticó (gap < 1)");
+
 function round1(n) { return Math.round(n * 10) / 10; }
 console.log(`\nstats: ${pass} OK, ${fail} fallos`);
 process.exit(fail ? 1 : 0);
