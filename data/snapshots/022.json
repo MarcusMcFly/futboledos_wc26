@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-28T06:01:30.363Z",
+  "label": "Antes de jornada final J/K/L (6 partidos)",
+  "completed_group_matches": 66,
+  "completed_ko_matches": 0,
+  "rankings": [
+    {
+      "nick": "Alberto_Soria",
+      "rank": 1,
+      "points": 298
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 2,
+      "points": 289
+    },
+    {
+      "nick": "Txauri",
+      "rank": 3,
+      "points": 285
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 4,
+      "points": 280
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 5,
+      "points": 277
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 6,
+      "points": 275
+    },
+    {
+      "nick": "Marcus",
+      "rank": 7,
+      "points": 273
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 8,
+      "points": 272
+    },
+    {
+      "nick": "Morses",
+      "rank": 9,
+      "points": 270
+    },
+    {
+      "nick": "Kike",
+      "rank": 10,
+      "points": 261
+    },
+    {
+      "nick": "Vic",
+      "rank": 10,
+      "points": 261
+    },
+    {
+      "nick": "DCJ",
+      "rank": 10,
+      "points": 261
+    },
+    {
+      "nick": "Ales",
+      "rank": 13,
+      "points": 260
+    },
+    {
+      "nick": "JBC",
+      "rank": 14,
+      "points": 257
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 15,
+      "points": 255
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 16,
+      "points": 248
+    },
+    {
+      "nick": "CMC",
+      "rank": 17,
+      "points": 241
+    },
+    {
+      "nick": "Pollico",
+      "rank": 18,
+      "points": 236
+    },
+    {
+      "nick": "VBJ",
+      "rank": 19,
+      "points": 225
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 20,
+      "points": 220
+    },
+    {
+      "nick": "Verde",
+      "rank": 21,
+      "points": 218
+    },
+    {
+      "nick": "Mata",
+      "rank": 22,
+      "points": 211
+    },
+    {
+      "nick": "Julio",
+      "rank": 23,
+      "points": 206
+    },
+    {
+      "nick": "Borja",
+      "rank": 24,
+      "points": 204
+    }
+  ]
+}
