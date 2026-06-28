@@ -93,24 +93,24 @@ K 1:CO 2:PT 3:CD 4:UZ
 L 1:ENG 2:HR 3:GH 4:PA
 
 [DIECISEISAVOS]
-terceros_clave:
-terceros_clasificados:
-M73 2A 2B ? - - ? q:-
-M74 1E 3ABCDF ? - - ? q:-
-M75 1F 2C ? - - ? q:-
-M76 1C 2F ? - - ? q:-
-M77 1I 3CDFGH ? - - ? q:-
-M78 2E 2I ? - - ? q:-
-M79 1A 3CEFHI ? - - ? q:-
-M80 1L 3EHIJK ? - - ? q:-
-M81 1D 3BEFIJ ? - - ? q:-
-M82 1G 3AEHIJ ? - - ? q:-
-M83 2K 2L ? - - ? q:-
-M84 1H 2J ? - - ? q:-
-M85 1B 3EFGIJ ? - - ? q:-
-M86 1J 2H ? - - ? q:-
-M87 1K 3DEIJL ? - - ? q:-
-M88 2D 2G ? - - ? q:-
+terceros_clave: BDEFIJKL
+terceros_clasificados: K:CD F:SE L:GH E:EC B:BA J:DZ D:PY I:SN
+M73 2A 2B ZA - - CA q:-
+M74 1E 3ABCDF DE - - SN q:-
+M75 1F 2C NL - - MA q:-
+M76 1C 2F BR - - JP q:-
+M77 1I 3CDFGH FR - - SE q:-
+M78 2E 2I CI - - NO q:-
+M79 1A 3CEFHI MX - - EC q:-
+M80 1L 3EHIJK ENG - - CD q:-
+M81 1D 3BEFIJ US - - BA q:-
+M82 1G 3AEHIJ BE - - PY q:-
+M83 2K 2L PT - - HR q:-
+M84 1H 2J ES - - AT q:-
+M85 1B 3EFGIJ CH - - DZ q:-
+M86 1J 2H AR - - CV q:-
+M87 1K 3DEIJL CO - - GH q:-
+M88 2D 2G AU - - EG q:-
 r32_completados: 0/16
 
 [OCTAVOS]
