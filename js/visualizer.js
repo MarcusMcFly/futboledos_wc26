@@ -83,6 +83,12 @@ function statusBanner(official) {
   const { groupDone, koDone, champion } = officialProgress(official);
   if (groupDone === 0) return `<div class="banner warn">⏳ El torneo aún no ha empezado: no hay resultados oficiales. Las puntuaciones aparecerán a 0 hasta que se carguen.</div>`;
   if (champion) return `<div class="banner ok-banner">🏆 Torneo finalizado. Campeón oficial: <strong>${esc(teamName(champion))}</strong>.</div>`;
+  // Fase de grupos completa: lo anuncia el banner de "Fase de grupos completada".
+  // Mientras no haya eliminatorias, no mostramos el aviso provisional de grupos.
+  if (groupDone >= 72) {
+    if (!koDone) return "";
+    return `<div class="banner warn">📊 Eliminatorias: ${koDone}/32 partidos disputados. Puntuación provisional, se recalcula con cada resultado.</div>`;
+  }
   const parts = [`${groupDone}/72 partidos de grupo`];
   if (koDone) parts.push(`${koDone}/32 de eliminatoria`);
   return `<div class="banner warn">📊 Resultados oficiales cargados: ${parts.join(" · ")}. Puntuación provisional, se recalcula con cada resultado.</div>`;
@@ -101,7 +107,16 @@ function completedGroupsBanner(official) {
     .filter((grp) => byGroup[grp].length === 6 && byGroup[grp].every((m) => m.hg != null && m.ag != null))
     .sort();
   if (!done.length) return "";
-  return `<div class="banner ok-banner">✅ Grupos completos: <strong>${done.join(" · ")}</strong>. Su ranking de grupo ya está consolidado.</div>`;
+  if (done.length < 12)
+    return `<div class="banner ok-banner">✅ Grupos completos: <strong>${done.join(" · ")}</strong>. Su ranking de grupo ya está consolidado.</div>`;
+  // Los 12 grupos cerrados: mensaje de fase de grupos completada + los 8 mejores terceros.
+  const thirds = official.thirdsQualified || [];
+  const thirdsHtml = thirds.length
+    ? `<br>🥉 <strong>8 mejores terceros clasificados:</strong> ${thirds
+        .map((t) => `${esc(teamName(t.id))} <span class="muted">(${esc(t.group)})</span>`)
+        .join(" · ")}`
+    : "";
+  return `<div class="banner ok-banner">🏁 <strong>¡Fase de grupos completada!</strong> Los 12 grupos están cerrados y sus rankings consolidados.${thirdsHtml}</div>`;
 }
 
 // ── Vista: clasificación general ─────────────────────────────────────────────
