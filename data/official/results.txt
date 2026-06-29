@@ -95,7 +95,7 @@ L 1:ENG 2:HR 3:GH 4:PA
 [DIECISEISAVOS]
 terceros_clave: BDEFIJKL
 terceros_clasificados: K:CD F:SE L:GH E:EC B:BA J:DZ D:PY I:SN
-M73 2A 2B ZA - - CA q:-
+M73 2A 2B ZA 0 1 CA q:CA
 M74 1E 3ABCDF DE - - SN q:-
 M75 1F 2C NL - - MA q:-
 M76 1C 2F BR - - JP q:-
@@ -111,11 +111,11 @@ M85 1B 3EFGIJ CH - - DZ q:-
 M86 1J 2H AR - - CV q:-
 M87 1K 3DEIJL CO - - GH q:-
 M88 2D 2G AU - - EG q:-
-r32_completados: 0/16
+r32_completados: 1/16
 
 [OCTAVOS]
 M89 W74 W77 ? - - ? q:-
-M90 W73 W75 ? - - ? q:-
+M90 W73 W75 CA - - ? q:-
 M91 W76 W78 ? - - ? q:-
 M92 W79 W80 ? - - ? q:-
 M93 W83 W84 ? - - ? q:-
