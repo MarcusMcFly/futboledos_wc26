@@ -180,12 +180,16 @@ function renderHome(ctx) {
 function statsPanel(ctx) {
   const acc = globalAccuracy(ctx.predictions, ctx.official, ctx.board);
   const champs = championDistribution(ctx.predictions);
+  // Partidos jugados sobre el total del Mundial: 72 de grupos + 32 de eliminatoria = 104.
+  const { groupDone, koDone } = officialProgress(ctx.official);
+  const totalMatches = Object.keys(ctx.official.groupMatches).length + Object.keys(ctx.official.knockout).length;
+  const playedMatches = groupDone + koDone;
   const accCards = acc.completedMatches
     ? `<div class="cards">
-        <div class="card"><div class="card-n">${acc.correctSignPct}%</div><div class="card-l">Aciertos de signo</div></div>
-        <div class="card"><div class="card-n">${acc.exactPct}%</div><div class="card-l">Marcadores exactos</div></div>
+        <div class="card"><div class="card-n">${acc.correctSignPct}%</div><div class="card-l">Aciertos de signo <span class="muted">(grupos)</span></div></div>
+        <div class="card"><div class="card-n">${acc.exactPct}%</div><div class="card-l">Marcadores exactos <span class="muted">(grupos)</span></div></div>
         <div class="card"><div class="card-n">${acc.avgPointsUser}</div><div class="card-l">Media de puntos</div></div>
-        <div class="card"><div class="card-n">${acc.completedMatches}/72</div><div class="card-l">Partidos jugados</div></div>
+        <div class="card"><div class="card-n">${playedMatches}/${totalMatches}</div><div class="card-l">Partidos jugados</div></div>
       </div>`
     : `<p class="muted">Sin partidos oficiales aún: la precisión global aparecerá cuando se carguen resultados.</p>`;
   const champList = champs.length
@@ -642,8 +646,8 @@ function renderKoMatch(ctx, id) {
   }
 
   if (dist.fixtures.length)
-    html += `<h3>Cruces más pronosticados</h3>
-      <ul class="ko-people">${dist.fixtures.slice(0, 8).map((f) =>
+    html += `<h3>Cruces pronosticados <span class="muted">(${dist.fixtures.length})</span></h3>
+      <ul class="ko-people">${dist.fixtures.map((f) =>
         `<li><div class="kp-head"><span>${esc(teamName(f.home))} <span class="muted">vs</span> ${esc(teamName(f.away))}</span><b>${f.count} (${f.pct}%)</b></div>
           <div class="kp-who">${chipList(f.nicks)}</div></li>`).join("")}</ul>`;
 

@@ -168,6 +168,12 @@ puesto (no `q:-`):
 - `[TERCER_PUESTO]` → `completados: X/1`
 - `[FINAL]` → `completados: X/1`
 
+> **Total del torneo = 104 partidos** (72 de grupos + 32 de eliminatoria). La web
+> calcula el contador global "Partidos jugados X/104" sumando los 72 de grupos ya
+> jugados + los KO con `q:` puesto, así que cada resultado de eliminatoria que
+> registres avanza ese marcador (p. ej. tras M73 pasó a 73/104). No hay una línea
+> de "total" que mantener a mano: la web lo deriva de los datos.
+
 **4d · Campeón (solo al registrar la FINAL, M104).** Sustituye `campeon: -` por
 `campeon: <clasificado de M104>`.
 
