@@ -190,6 +190,72 @@ export function groupCrossStats(board, predByNick, official, g) {
   };
 }
 
+/**
+ * Distribución de un partido de ELIMINATORIA (analogía KO del §5 de grupos).
+ * Como cada participante pronostica su propio cuadro, no comparten rival: lo que se
+ * agrega es a quién pronostican que PASA (clasificado), qué cruce esperan y con qué
+ * marcador. `total` = nº de predicciones con entrada para este partido.
+ */
+export function koMatchDistribution(predictions, matchId) {
+  const qual = new Map();     // team_id → veces pronosticado como clasificado
+  const fixture = new Map();  // "home|away" → veces pronosticado ese cruce
+  const exact = new Map();    // "hg-ag" → veces pronosticado ese marcador
+  let total = 0;
+  for (const p of predictions) {
+    const m = p.knockout[matchId];
+    if (!m) continue;
+    total++;
+    if (m.qualified) qual.set(m.qualified, (qual.get(m.qualified) || 0) + 1);
+    if (m.home && m.away) {
+      const k = `${m.home}|${m.away}`;
+      fixture.set(k, (fixture.get(k) || 0) + 1);
+    }
+    if (m.hg != null && m.ag != null) {
+      const k = `${m.hg}-${m.ag}`;
+      exact.set(k, (exact.get(k) || 0) + 1);
+    }
+  }
+  const sorted = (mp) => [...mp.entries()].sort((a, b) => b[1] - a[1]);
+  return {
+    matchId, total,
+    qualifiers: sorted(qual).map(([id, count]) => ({ id, count, pct: pctOf(count, total) })),
+    fixtures: sorted(fixture).map(([k, count]) => {
+      const [home, away] = k.split("|");
+      return { home, away, count, pct: pctOf(count, total) };
+    }),
+    exactScores: sorted(exact).map(([score, count]) => ({ score, count, pct: pctOf(count, total) })),
+  };
+}
+
+/**
+ * Héroes de un partido de eliminatoria ya resuelto (clasificado oficial conocido).
+ * `qualHeroes` = acertaron quién pasa; `exactHeroes` = acertaron cruce + marcador.
+ * null si el partido aún no tiene clasificado/resultado oficial.
+ */
+export function koHeroes(predictions, official, matchId) {
+  const om = official.knockout[matchId];
+  if (!om || om.hg == null || om.ag == null || !om.qualified) return null;
+  const qualHeroes = [], exactHeroes = [];
+  let total = 0, qualHits = 0, fixtureHits = 0, signHits = 0;
+  for (const p of predictions) {
+    const m = p.knockout[matchId];
+    if (!m) continue;
+    total++;
+    if (m.qualified && m.qualified === om.qualified) { qualHits++; qualHeroes.push(p.nick); }
+    if (m.home === om.home && m.away === om.away) {
+      fixtureHits++;
+      if (m.hg != null && m.ag != null) {
+        if (getOutcome(m.hg, m.ag) === getOutcome(om.hg, om.ag)) signHits++;
+        if (m.hg === om.hg && m.ag === om.ag) exactHeroes.push(p.nick);
+      }
+    }
+  }
+  return {
+    total, qualHits, fixtureHits, signHits, qualHeroes, exactHeroes,
+    qualPct: pctOf(qualHits, total), fixturePct: pctOf(fixtureHits, total),
+  };
+}
+
 /** Campeón más votado: distribución de campeones pronosticados. */
 export function championDistribution(predictions) {
   const c = new Map();

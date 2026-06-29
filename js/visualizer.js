@@ -8,7 +8,7 @@ import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission, loadL
 import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
-import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats } from "./stats.js";
+import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes } from "./stats.js";
 import { computeMovements, topMovers, newLeader } from "./history.js";
 
 const $app = /** @type {HTMLElement} */ (document.getElementById("app"));
@@ -52,11 +52,13 @@ async function main() {
 
   const params = new URLSearchParams(location.search);
   const nick = params.get("nick"), pool = params.get("pool");
-  const match = params.get("match"), view = params.get("view");
+  const match = params.get("match"), komatch = params.get("komatch"), view = params.get("view");
   if (nick) renderUser(ctx, nick);
   else if (pool) renderPool(ctx, pool);
   else if (match) renderMatch(ctx, match);
+  else if (komatch) renderKoMatch(ctx, komatch);
   else if (view === "matches") renderMatches(ctx);
+  else if (view === "ko-matches") renderKoMatches(ctx);
   else if (view === "scoring") renderScoring(ctx);
   else renderHome(ctx);
 }
@@ -442,9 +444,9 @@ function matchLine(homeN, awayN, pm, om, res, qualified) {
 
 // ── Vista: lista de partidos con distribución (SPEC 08 §5) ───────────────────
 function renderMatches(ctx) {
-  document.title = "Partidos · Futboledos WC26";
+  document.title = "Partidos · Fase de grupos · Futboledos WC26";
   let html = `<p><a class="back" href="?view=all">← Clasificación general</a></p>
-    <h1>Predicciones por partido</h1>
+    <h1>Partidos · Fase de grupos</h1>
     <p class="muted">Reparto de predicciones en cada partido de la fase de grupos. Pulsa para ver el detalle.</p>`;
   for (const g of GROUP_LETTERS) {
     html += `<h3>Grupo ${g}</h3>`;
@@ -520,7 +522,7 @@ function renderMatch(ctx, id) {
   const played = om.hg != null && om.ag != null;
   const outName = { HOME_WIN: `Gana ${teamName(om.home)}`, DRAW: "Empate", AWAY_WIN: `Gana ${teamName(om.away)}` };
 
-  let html = `<p><a class="back" href="?view=matches">← Partidos</a></p>
+  let html = `<p><a class="back" href="?view=matches">← Partidos fase de grupos</a></p>
     <div class="view-head"><h1>${esc(teamName(om.home))} <span class="muted">vs</span> ${esc(teamName(om.away))}</h1>
       <span class="muted">Grupo ${id[0]}${played ? ` · oficial ${om.hg}–${om.ag}` : " · por jugar"}</span></div>
     <h2 class="section">Distribución de predicciones <span class="muted">(${dist.total})</span></h2>`;
@@ -548,6 +550,101 @@ function renderMatch(ctx, id) {
       </ul>`;
     if (heroes.heroes.length)
       html += `<p>🎯 <strong>Exact-score heroes:</strong> ${heroes.heroes.map((n) => `<a class="chip" href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`).join(" ")}</p>`;
+  }
+  $app.innerHTML = html;
+}
+
+// ── Vista: lista de partidos de eliminatoria ─────────────────────────────────
+// Cada participante rellena su propio cuadro, así que no comparten rival: lo que se
+// agrega por partido es a quién pronostican que PASA (distribución de clasificados).
+const KO_COLORS = ["#2ea043", "#2f81f7", "#d29922", "#a371f7", "#db61a2", "#3fb950"];
+
+// Etiqueta del cruce: equipos oficiales si el cuadro ya los resolvió, si no los
+// códigos de plaza (W74, 3ABCDF…) en gris.
+function koFixtureLabel(om) {
+  if (om.home && om.away)
+    return `${esc(teamName(om.home))} <span class="muted">vs</span> ${esc(teamName(om.away))}`;
+  return `<span class="muted">${esc(om.home_slot)} vs ${esc(om.away_slot)}</span>`;
+}
+
+// Barra apilada de clasificados pronosticados (top equipos + "otros").
+function koDistBar(qualifiers) {
+  if (!qualifiers.length) return `<span class="dist empty muted">sin predicciones</span>`;
+  const top = qualifiers.slice(0, KO_COLORS.length);
+  const segs = top.map((q, i) =>
+    `<span class="dist-seg" style="width:${q.pct}%;background:${KO_COLORS[i]}" title="${esc(teamName(q.id))} · ${q.pct}% (${q.count})"></span>`).join("");
+  const restPct = Math.max(0, Math.round((100 - top.reduce((s, q) => s + q.pct, 0)) * 10) / 10);
+  const rest = restPct > 0 ? `<span class="dist-seg" style="width:${restPct}%;background:var(--border)"></span>` : "";
+  return `<span class="dist">${segs}${rest}</span>`;
+}
+
+function renderKoMatches(ctx) {
+  document.title = "Partidos · Fase eliminatoria · Futboledos WC26";
+  const ids = Object.keys(ctx.official.knockout).sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+  let html = `<p><a class="back" href="?view=all">← Clasificación general</a></p>
+    <h1>Partidos · Fase eliminatoria</h1>
+    <p class="muted">Cada participante rellena su propio cuadro, así que aquí se agrega a quién pronostican que <strong>pasa</strong> de cada eliminatoria. Pulsa un cruce para ver el detalle.</p>`;
+  if (!ids.length) {
+    html += `<p class="muted">El cuadro de eliminatorias aún no está disponible.</p>`;
+    $app.innerHTML = html; return;
+  }
+  let lastRound = null;
+  for (const mid of ids) {
+    const om = ctx.official.knockout[mid];
+    if (om.round !== lastRound) { html += `<h3>${ROUND_LABEL[om.round] || om.round}</h3>`; lastRound = om.round; }
+    const dist = koMatchDistribution(ctx.predictions, mid);
+    const played = om.hg != null && om.ag != null && om.qualified;
+    html += `<a class="match-link" href="?komatch=${mid}">
+      <span class="ml-fix">${koFixtureLabel(om)}</span>
+      ${koDistBar(dist.qualifiers)}
+      <span class="ml-meta muted">${played ? `pasa ${esc(teamName(om.qualified))}` : `${dist.total} pred.`}</span></a>`;
+  }
+  $app.innerHTML = html;
+}
+
+// ── Vista: detalle de un partido de eliminatoria ─────────────────────────────
+function renderKoMatch(ctx, id) {
+  const om = ctx.official.knockout[id];
+  if (!om) return renderError(`Partido de eliminatoria "${id}" no disponible.`);
+  const dist = koMatchDistribution(ctx.predictions, id);
+  const heroes = koHeroes(ctx.predictions, ctx.official, id);
+  const played = om.hg != null && om.ag != null && om.qualified;
+  document.title = `${ROUND_LABEL[om.round] || om.round} · Futboledos WC26`;
+
+  let html = `<p><a class="back" href="?view=ko-matches">← Partidos fase eliminatoria</a></p>
+    <div class="view-head"><h1>${koFixtureLabel(om)}</h1>
+      <span class="muted">${ROUND_LABEL[om.round] || om.round} · ${esc(om.home_slot)} vs ${esc(om.away_slot)}${played ? ` · oficial ${om.hg}–${om.ag}` : " · por jugar"}</span></div>
+    <h2 class="section">¿Quién pasa? <span class="muted">(${dist.total} pred.)</span></h2>`;
+
+  if (dist.qualifiers.length) {
+    html += `${koDistBar(dist.qualifiers)}
+      <div class="champ-fav">${dist.qualifiers.slice(0, 6).map((q, i) => `
+        <div class="bar-row"><span class="bar-l">${esc(teamName(q.id))}</span>
+          <span class="bar-track"><span class="bar-fill" style="width:${q.pct}%;background:${KO_COLORS[i] || "var(--accent)"}"></span></span>
+          <b class="bar-v">${q.count}</b></div>`).join("")}</div>`;
+  } else {
+    html += `<p class="muted">Nadie ha pronosticado este cruce todavía.</p>`;
+  }
+
+  if (dist.fixtures.length)
+    html += `<h3>Cruces más pronosticados</h3>
+      <ul class="kv">${dist.fixtures.slice(0, 5).map((f) =>
+        `<li><span>${esc(teamName(f.home))} vs ${esc(teamName(f.away))}</span><b>${f.count} (${f.pct}%)</b></li>`).join("")}</ul>`;
+
+  if (dist.exactScores.length)
+    html += `<h3>Marcadores más comunes</h3>
+      <ul class="kv">${dist.exactScores.slice(0, 3).map((s) =>
+        `<li><span>${s.score}</span><b>${s.count} (${s.pct}%)</b></li>`).join("")}</ul>`;
+
+  if (played && heroes) {
+    html += `<h2 class="section">Resultado oficial: ${om.hg}–${om.ag} <span class="muted">· pasa ${esc(teamName(om.qualified))}</span></h2>
+      <ul class="kv">
+        <li><span>Acertaron quién pasa</span><b>${heroes.qualHits} / ${heroes.total}</b></li>
+        <li><span>Acertaron el cruce (ambos equipos)</span><b>${heroes.fixtureHits} / ${heroes.total}</b></li>
+        <li><span>Acertaron el marcador exacto</span><b>${heroes.exactHeroes.length} / ${heroes.total}</b></li>
+      </ul>`;
+    if (heroes.exactHeroes.length)
+      html += `<p>🎯 <strong>Marcador exacto:</strong> ${heroes.exactHeroes.map((n) => `<a class="chip" href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`).join(" ")}</p>`;
   }
   $app.innerHTML = html;
 }

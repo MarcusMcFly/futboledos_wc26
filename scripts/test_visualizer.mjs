@@ -66,10 +66,23 @@ if (home.includes("SPEC 0")) { fail++; console.error("  ✗ home: NO debe mostra
 if (/de la peña|la peña/.test(home)) { fail++; console.error("  ✗ home: NO debe contener 'la peña'"); } else pass++;
 
 const matches = await route("?view=matches");
-has(matches, "Predicciones por partido", "matches: título");
+has(matches, "Partidos · Fase de grupos", "matches: título");
 has(matches, "Grupo A", "matches: grupos");
 has(matches, "?match=A_01", "matches: enlace a detalle de partido");
 has(matches, "dist-seg", "matches: barra de distribución");
+
+const koMatches = await route("?view=ko-matches");
+has(koMatches, "Partidos · Fase eliminatoria", "ko-matches: título");
+has(koMatches, "Dieciseisavos", "ko-matches: ronda R32");
+has(koMatches, "Final", "ko-matches: ronda final");
+has(koMatches, "?komatch=M73", "ko-matches: enlace a detalle de cruce");
+has(koMatches, "dist-seg", "ko-matches: barra de clasificados");
+
+const koMatch = await route("?komatch=M73");
+has(koMatch, "¿Quién pasa?", "ko-match: distribución de clasificados");
+has(koMatch, "Cruces más pronosticados", "ko-match: top cruces");
+has(koMatch, "por jugar", "ko-match: cruce aún sin jugar");
+not(koMatch, "Resultado oficial", "ko-match: sin resumen post-partido (no jugado)");
 
 const match = await route("?match=A_01");
 has(match, "Distribución de predicciones", "match: distribución");
