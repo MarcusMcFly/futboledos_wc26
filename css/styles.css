@@ -183,6 +183,14 @@ ul.kv li span { color: var(--muted); }
 .sw.away { background: #2f81f7; }
 .contra-pick { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.9rem; font-size: 0.9rem; }
 
+/* Lista de cruces/marcadores con las personas que los pronosticaron (vista KO) */
+ul.ko-people { list-style: none; padding: 0; margin: 0.4rem 0; max-width: 34rem; }
+ul.ko-people li { padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.kp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.kp-head b { color: var(--accent); white-space: nowrap; }
+.kp-who { margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.kp-who .chip { margin-left: 0; }
+
 /* Lista de partidos */
 .match-link { display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 0.6rem; margin: 0.2rem 0;
   background: var(--panel); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); }

@@ -578,6 +578,10 @@ function koFixtureLabel(om) {
   return `${koSide(om.home, om.home_slot)} <span class="muted">vs</span> ${koSide(om.away, om.away_slot)}`;
 }
 
+// Chips enlazadas a la ficha de cada participante.
+const chipList = (nicks) => nicks.map((n) =>
+  `<a class="chip" href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`).join(" ");
+
 // Barra apilada de clasificados pronosticados (top equipos + "otros").
 function koDistBar(qualifiers) {
   if (!qualifiers.length) return `<span class="dist empty muted">sin predicciones</span>`;
@@ -639,13 +643,15 @@ function renderKoMatch(ctx, id) {
 
   if (dist.fixtures.length)
     html += `<h3>Cruces más pronosticados</h3>
-      <ul class="kv">${dist.fixtures.slice(0, 5).map((f) =>
-        `<li><span>${esc(teamName(f.home))} vs ${esc(teamName(f.away))}</span><b>${f.count} (${f.pct}%)</b></li>`).join("")}</ul>`;
+      <ul class="ko-people">${dist.fixtures.slice(0, 8).map((f) =>
+        `<li><div class="kp-head"><span>${esc(teamName(f.home))} <span class="muted">vs</span> ${esc(teamName(f.away))}</span><b>${f.count} (${f.pct}%)</b></div>
+          <div class="kp-who">${chipList(f.nicks)}</div></li>`).join("")}</ul>`;
 
   if (dist.exactScores.length)
     html += `<h3>Marcadores más comunes</h3>
-      <ul class="kv">${dist.exactScores.slice(0, 3).map((s) =>
-        `<li><span>${s.score}</span><b>${s.count} (${s.pct}%)</b></li>`).join("")}</ul>`;
+      <ul class="ko-people">${dist.exactScores.slice(0, 6).map((s) =>
+        `<li><div class="kp-head"><span>${s.score}</span><b>${s.count} (${s.pct}%)</b></div>
+          <div class="kp-who">${chipList(s.nicks)}</div></li>`).join("")}</ul>`;
 
   if (played && heroes) {
     html += `<h2 class="section">Resultado oficial: ${om.hg}–${om.ag} <span class="muted">· pasa ${esc(teamName(om.qualified))}</span></h2>
@@ -654,8 +660,12 @@ function renderKoMatch(ctx, id) {
         <li><span>Acertaron el cruce (ambos equipos)</span><b>${heroes.fixtureHits} / ${heroes.total}</b></li>
         <li><span>Acertaron el marcador exacto</span><b>${heroes.exactHeroes.length} / ${heroes.total}</b></li>
       </ul>`;
+    if (heroes.qualHeroes.length)
+      html += `<p>✅ <strong>Acertaron quién pasa:</strong> ${chipList(heroes.qualHeroes)}</p>`;
+    if (heroes.fixtureHeroes.length)
+      html += `<p>🤝 <strong>Acertaron el cruce:</strong> ${chipList(heroes.fixtureHeroes)}</p>`;
     if (heroes.exactHeroes.length)
-      html += `<p>🎯 <strong>Marcador exacto:</strong> ${heroes.exactHeroes.map((n) => `<a class="chip" href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`).join(" ")}</p>`;
+      html += `<p>🎯 <strong>Marcador exacto:</strong> ${chipList(heroes.exactHeroes)}</p>`;
   }
   $app.innerHTML = html;
 }
