@@ -707,9 +707,9 @@ function renderScoring(ctx) {
 
     <h2 class="section">4 · Eliminatorias</h2>
     <ul class="rules">
-      <li><b>+${ko.correct_qualified_team}</b> por acertar quién pasa de ronda</li>
-      <li>Si aciertas el cruce (los dos equipos): <b>+${ko.exact_score}</b> marcador exacto, o <b>+${ko.correct_outcome}</b> el resultado</li>
-      <li><b>+${ko.correct_home_team}</b> / <b>+${ko.correct_away_team}</b> por cada equipo del cruce acertado</li>
+      <li><b>+${ko.correct_home_team}</b> por acertar el equipo local del cruce y <b>+${ko.correct_away_team}</b> por el visitante <span class="muted">(máx. +${ko.correct_home_team + ko.correct_away_team} por tener los dos)</span></li>
+      <li><b>Solo si aciertas el cruce completo</b> (los dos equipos), además: <b>+${ko.exact_score}</b> si clavas el marcador exacto, <b>o +${ko.correct_outcome}</b> si aciertas el resultado (1·X·2)</li>
+      <li><b>+${ko.correct_qualified_team}</b> por acertar quién pasa de ronda <span class="muted">(cuenta aunque falles el cruce y el marcador)</span></li>
     </ul>
 
     <h2 class="section">5 · Bonus de progresión</h2>
