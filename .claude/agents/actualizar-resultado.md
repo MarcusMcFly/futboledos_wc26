@@ -140,7 +140,10 @@ al final. Ejemplos:
 - Decisivo: `M73 2A 2B ZA - - CA q:-` → `M73 2A 2B ZA 0 1 CA q:CA`
 - Con penaltis: `M83 2K 2L PT - - HR q:-` → `M83 2K 2L PT 3 3 HR q:HR pen:3-4`
 
-**4b · Propaga al cruce siguiente.** Sea `NN` el número del partido (M73 → 73):
+**4b · Propaga al cruce siguiente (OBLIGATORIO en cada partido).** Es lo que hace
+que, en cuanto un equipo se clasifica, su **nombre aparezca ya en el cruce de la
+ronda siguiente** (p. ej. al registrar M73 con Sudáfrica 0-1 Canadá, Canadá debe
+quedar puesta en la línea de octavos M90). Sea `NN` el número del partido (M73 → 73):
 - El **ganador** se propaga a la plaza `WNN`. Con Grep busca la línea de una ronda
   posterior que contenga `WNN` como plaza (2.º o 3.º token). En esa línea,
   sustituye el `?` de la casilla de equipo correspondiente por el código del

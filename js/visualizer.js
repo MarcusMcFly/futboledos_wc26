@@ -559,12 +559,23 @@ function renderMatch(ctx, id) {
 // agrega por partido es a quién pronostican que PASA (distribución de clasificados).
 const KO_COLORS = ["#2ea043", "#2f81f7", "#d29922", "#a371f7", "#db61a2", "#3fb950"];
 
-// Etiqueta del cruce: equipos oficiales si el cuadro ya los resolvió, si no los
-// códigos de plaza (W74, 3ABCDF…) en gris.
+// Plaza de origen en texto legible: "Ganador M75" / "Perdedor M101" para las rondas
+// que dependen de otros partidos, o el código tal cual en dieciseisavos (1E, 2B, 3ABCDF…).
+function slotLabel(slot) {
+  const w = /^W(\d+)$/.exec(slot); if (w) return `Ganador M${w[1]}`;
+  const l = /^L(\d+)$/.exec(slot); if (l) return `Perdedor M${l[1]}`;
+  return slot;
+}
+
+// Etiqueta del cruce: CADA lado se resuelve por separado. Si el equipo ya está puesto
+// (un ganador propagado desde la ronda anterior), se muestra su nombre aunque el rival
+// siga pendiente; si no, su plaza de origen en gris. Así, en cuanto un equipo se
+// clasifica, aparece ya en su cruce de la ronda siguiente.
+function koSide(team, slot) {
+  return team ? esc(teamName(team)) : `<span class="muted">${esc(slotLabel(slot))}</span>`;
+}
 function koFixtureLabel(om) {
-  if (om.home && om.away)
-    return `${esc(teamName(om.home))} <span class="muted">vs</span> ${esc(teamName(om.away))}`;
-  return `<span class="muted">${esc(om.home_slot)} vs ${esc(om.away_slot)}</span>`;
+  return `${koSide(om.home, om.home_slot)} <span class="muted">vs</span> ${koSide(om.away, om.away_slot)}`;
 }
 
 // Barra apilada de clasificados pronosticados (top equipos + "otros").
