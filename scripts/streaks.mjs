@@ -11,7 +11,9 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { loadCurrentBoard } from "./snapshot.mjs";
-import { computeStreaks } from "../js/history.js";
+import { computeStreaks, benchmarkCrossings } from "../js/history.js";
+
+const BENCHMARK_NICK = "JesusGG"; // participante de referencia (ver js/visualizer.js)
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(root, p), "utf8");
@@ -22,12 +24,15 @@ const snapshots = (index.snapshots || []).map((f) => JSON.parse(read(`data/snaps
 
 const { board } = loadCurrentBoard();
 const { badges, relegation, hasHistory } = computeStreaks(board, snapshots);
+const lastSnapshot = snapshots.length ? snapshots[snapshots.length - 1] : null;
+const cross = benchmarkCrossings(board, lastSnapshot, BENCHMARK_NICK);
+const hasCross = cross.present && (cross.passed.length || cross.droppedBehind.length);
 
 if (!hasHistory) {
   console.log("Sin histórico suficiente para rachas (hace falta al menos un corte previo).");
   process.exit(0);
 }
-if (!badges.length && !relegation.length) {
+if (!badges.length && !relegation.length && !hasCross) {
   console.log("No hay rachas destacables ahora mismo.");
   process.exit(0);
 }
@@ -38,4 +43,9 @@ if (badges.length) {
 if (relegation.length) {
   console.log("Zona de descenso (3 últimos puestos):");
   for (const r of relegation) console.log(`  🔻 ${r.nick}: ${r.streak} jornadas en descenso`);
+}
+if (hasCross) {
+  console.log(`La línea de ${BENCHMARK_NICK} (última actualización):`);
+  if (cross.passed.length) console.log(`  🟢 adelantaron a ${BENCHMARK_NICK}: ${cross.passed.join(", ")}`);
+  if (cross.droppedBehind.length) console.log(`  🔴 cayeron por detrás de ${BENCHMARK_NICK}: ${cross.droppedBehind.join(", ")}`);
 }

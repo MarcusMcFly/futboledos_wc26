@@ -1,5 +1,5 @@
 // Test de movimiento de ranking / top movers + rachas. node scripts/test_history.mjs
-import { computeMovements, topMovers, newLeader, computeStreaks } from "../js/history.js";
+import { computeMovements, topMovers, newLeader, computeStreaks, benchmarkCrossings } from "../js/history.js";
 
 let pass = 0, fail = 0;
 const eq = (a, e, m) => (JSON.stringify(a) === JSON.stringify(e) ? pass++ :
@@ -77,6 +77,28 @@ const smallDrop = computeStreaks(
   [{ nick: "X", rank: 1, score: { total: 30 } }, { nick: "Y", rank: 2, score: { total: 20 } }, { nick: "Z", rank: 3, score: { total: 10 } }],
   [{ rankings: [{ nick: "X", rank: 1 }, { nick: "Y", rank: 2 }, { nick: "Z", rank: 3 }] }]);
 ok(smallDrop.relegation.length === 0, "descenso: con <6 participantes no hay zona de descenso");
+
+// ── Cruces respecto al benchmark (JesusGG) ───────────────────────────────────
+// snapshot: A1 B2 J3 C4 D5  →  ahora: A1 C2 J3 B4 D5 (J fijo en 3).
+//   C: 4→2 (debajo→encima de J) = adelantó    ·    B: 2→4 (encima→debajo) = cayó
+const bmSnap = { rankings: [{ nick: "A", rank: 1 }, { nick: "B", rank: 2 }, { nick: "J", rank: 3 }, { nick: "C", rank: 4 }, { nick: "D", rank: 5 }] };
+const bmBoard = [
+  { nick: "A", rank: 1 }, { nick: "C", rank: 2 }, { nick: "J", rank: 3 }, { nick: "B", rank: 4 }, { nick: "D", rank: 5 },
+];
+const cx = benchmarkCrossings(bmBoard, bmSnap, "J");
+ok(cx.present === true, "benchmark: presente en ambos");
+eq(cx.passed, ["C"], "benchmark: C adelantó al benchmark (debajo→encima)");
+eq(cx.droppedBehind, ["B"], "benchmark: B cayó por detrás (encima→debajo)");
+
+// El benchmark se mueve: snapshot X1 J2 Y3 → ahora J1 X2 Y3. J adelanta a X.
+const mvSnap = { rankings: [{ nick: "X", rank: 1 }, { nick: "J", rank: 2 }, { nick: "Y", rank: 3 }] };
+const mvBoard = [{ nick: "J", rank: 1 }, { nick: "X", rank: 2 }, { nick: "Y", rank: 3 }];
+const cx2 = benchmarkCrossings(mvBoard, mvSnap, "J");
+eq(cx2.passed, [], "benchmark móvil: nadie lo adelanta");
+eq(cx2.droppedBehind, ["X"], "benchmark móvil: X queda por detrás al adelantarle J");
+
+ok(benchmarkCrossings(bmBoard, bmSnap, "ZZZ").present === false, "benchmark: ausente → present false");
+ok(benchmarkCrossings(bmBoard, null, "J").present === false, "benchmark: sin snapshot → present false");
 
 console.log(`\nhistory: ${pass} OK, ${fail} fallos`);
 process.exit(fail ? 1 : 0);

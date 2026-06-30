@@ -47,6 +47,37 @@ export function newLeader(board, snapshot) {
   return null;
 }
 
+// ── Cruces respecto a un participante de referencia (benchmark) ──────────────
+// JesusGG es un participante "de referencia" muy conocido: sirve de vara de medir.
+// En la última actualización (último snapshot → tablero actual) detectamos quién
+// pasó de estar POR DEBAJO a estar POR ENCIMA de él, y al revés. Se compara la
+// posición RELATIVA al benchmark en cada momento, así que vale aunque el propio
+// benchmark se mueva. Empates (mismo puesto) no cuentan como cruce (lado ambiguo).
+/**
+ * @param {object[]} board  clasificación actual (de buildLeaderboard)
+ * @param {object|null} snapshot  último snapshot commiteado
+ * @param {string} benchmarkNick
+ * @returns {{ present: boolean, benchmark?: string, passed: string[], droppedBehind: string[] }}
+ */
+export function benchmarkCrossings(board, snapshot, benchmarkNick) {
+  const rankings = (snapshot && snapshot.rankings) || [];
+  const empty = { present: false, passed: [], droppedBehind: [] };
+  if (!rankings.length || !board.length) return empty;
+  const prev = new Map(rankings.map((r) => [r.nick, r.rank]));
+  const now = new Map(board.map((s) => [s.nick, s.rank]));
+  const prevB = prev.get(benchmarkNick), nowB = now.get(benchmarkNick);
+  if (prevB == null || nowB == null) return empty; // el benchmark no está en ambos
+  const passed = [], droppedBehind = [];
+  for (const s of board) {
+    if (s.nick === benchmarkNick) continue;
+    const p = prev.get(s.nick), n = now.get(s.nick);
+    if (p == null || n == null) continue;
+    if (p > prevB && n < nowB) passed.push(s.nick);            // debajo → encima
+    else if (p < prevB && n > nowB) droppedBehind.push(s.nick); // encima → debajo
+  }
+  return { present: true, benchmark: benchmarkNick, passed, droppedBehind };
+}
+
 // ── Rachas (streaks) sobre el histórico completo de snapshots ────────────────
 // El "Movimiento" solo mira el último corte. Las rachas miran TODA la serie de
 // snapshots + el tablero actual como línea temporal de "jornadas", y destacan

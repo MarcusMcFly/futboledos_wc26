@@ -9,7 +9,11 @@ import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
 import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes } from "./stats.js";
-import { computeMovements, topMovers, newLeader, computeStreaks } from "./history.js";
+import { computeMovements, topMovers, newLeader, computeStreaks, benchmarkCrossings } from "./history.js";
+
+// Participante "de referencia": muy conocido, sirve de vara de medir. Cuando
+// alguien lo adelanta (o cae por detrás) en una actualización, se destaca.
+const BENCHMARK_NICK = "JesusGG";
 
 const $app = /** @type {HTMLElement} */ (document.getElementById("app"));
 let TEAMS = {};
@@ -50,7 +54,8 @@ async function main() {
   const predictions = subs.map((s) => s.prediction);
   const movements = computeMovements(board, snapshot);
   const streaks = computeStreaks(board, snapshots);
-  const ctx = { registry, rules, official, board, byNick, predByNick, predictions, poolRanking, poolsByNick, snapshot, movements, streaks };
+  const crossings = benchmarkCrossings(board, snapshot, BENCHMARK_NICK);
+  const ctx = { registry, rules, official, board, byNick, predByNick, predictions, poolRanking, poolsByNick, snapshot, movements, streaks, crossings };
 
   const params = new URLSearchParams(location.search);
   const nick = params.get("nick"), pool = params.get("pool");
@@ -246,12 +251,30 @@ function topMoversPanel(ctx) {
   if (!ctx.movements.hasSnapshot) return "";
   const movers = topMovers(ctx.board, ctx.movements);
   const nl = newLeader(ctx.board, ctx.snapshot);
-  if (!movers.length && !nl) return `<p class="muted">Sin cambios en la clasificación desde el último corte.</p>`;
+  const bm = benchmarkLine(ctx.crossings);
+  if (!movers.length && !nl && !bm) return `<p class="muted">Sin cambios en la clasificación desde el último corte.</p>`;
   let html = "";
   if (nl) html += `<p class="badge-line">👑 <strong>Nuevo líder:</strong> <a href="?nick=${encodeURIComponent(nl)}">${esc(nl)}</a></p>`;
+  html += bm;
   if (movers.length) html += `<div class="movers">${movers.map((m) =>
     `<a class="mover" href="?nick=${encodeURIComponent(m.nick)}"><span class="mv up">▲${m.movement}</span> ${esc(m.nick)}</a>`).join("")}</div>`;
   return html;
+}
+
+// "La línea de JesusGG": quién lo adelantó (debajo→encima) o cayó por detrás de él
+// (encima→debajo) en la última actualización. "" si no hay cruces o no está presente.
+function benchmarkLine(cross) {
+  if (!cross || !cross.present) return "";
+  const { passed, droppedBehind, benchmark } = cross;
+  if (!passed.length && !droppedBehind.length) return "";
+  const link = (n) => `<a href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`;
+  const bench = link(benchmark);
+  const parts = [];
+  if (passed.length)
+    parts.push(`<span class="bm-up">🟢 ${passed.map(link).join(", ")} ${passed.length === 1 ? "adelantó" : "adelantaron"} a ${bench}</span>`);
+  if (droppedBehind.length)
+    parts.push(`<span class="bm-down">🔴 ${bench} adelantó a ${droppedBehind.map(link).join(", ")}</span>`);
+  return `<p class="badge-line bm-line">👀 <strong>La línea de ${esc(benchmark)}:</strong> ${parts.join(" · ")}</p>`;
 }
 
 // Panel de rachas: tendencias sostenidas y positivas a lo largo del histórico de

@@ -200,10 +200,12 @@ node scripts/streaks.mjs
 
 Imprime las rachas activas con la misma lógica que el panel "Rachas" de la web
 (liderato sostenido, escaladas, jornadas en el podio/top 5, récord personal y la
-**zona de descenso**: quién lleva varias jornadas en los 3 últimos puestos),
-calculadas combinando el histórico de snapshots con la clasificación recién
-editada. **No escribe nada**: es seguro y va después de editar `results.txt` para
-que la racha incluya el resultado nuevo. Si no hay nada que destacar, lo dice.
+**zona de descenso**: quién lleva varias jornadas en los 3 últimos puestos), más
+**"la línea de JesusGG"**: quién adelantó al participante de referencia JesusGG en
+esta actualización o cayó por detrás de él. Todo calculado combinando el histórico
+de snapshots con la clasificación recién editada. **No escribe nada**: es seguro y
+va después de editar `results.txt` para que el reporte incluya el resultado nuevo.
+Si no hay nada que destacar, lo dice.
 
 Después, no commitees, no pushees, no corras tests ni `standings.mjs`. Reporta de
 forma concisa:
@@ -215,8 +217,8 @@ forma concisa:
   aplica, `campeon:`.
 - El **único** fichero de snapshot creado (`data/snapshots/NNN.json`) y su etiqueta.
 - Las **rachas destacadas** que haya detectado `streaks.mjs` (p. ej. "👑 Alberto
-  lleva 7 jornadas como líder"; o la zona de descenso, "🔻 Julio 15 jornadas en
-  descenso"), si las hay.
+  lleva 7 jornadas como líder"; la zona de descenso, "🔻 Julio 15 jornadas en
+  descenso"; o la línea de JesusGG, "🟢 JBC adelantó a JesusGG"), si las hay.
 - Recordatorio: revisar y **commitear/pushear desde VS Code** los ficheros juntos
   (`results.txt`, el `snapshots/NNN.json` creado, `snapshots/index.json`).
 
