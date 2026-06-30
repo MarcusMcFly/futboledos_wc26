@@ -21,15 +21,21 @@ const index = existsSync(indexPath) ? JSON.parse(read("data/snapshots/index.json
 const snapshots = (index.snapshots || []).map((f) => JSON.parse(read(`data/snapshots/${f}`)));
 
 const { board } = loadCurrentBoard();
-const { badges, hasHistory } = computeStreaks(board, snapshots);
+const { badges, relegation, hasHistory } = computeStreaks(board, snapshots);
 
 if (!hasHistory) {
   console.log("Sin histórico suficiente para rachas (hace falta al menos un corte previo).");
   process.exit(0);
 }
-if (!badges.length) {
+if (!badges.length && !relegation.length) {
   console.log("No hay rachas destacables ahora mismo.");
   process.exit(0);
 }
-console.log("Rachas actuales:");
-for (const b of badges) console.log(`  ${b.icon} ${b.nick}: ${b.text}`);
+if (badges.length) {
+  console.log("Rachas actuales:");
+  for (const b of badges) console.log(`  ${b.icon} ${b.nick}: ${b.text}`);
+}
+if (relegation.length) {
+  console.log("Zona de descenso (3 últimos puestos):");
+  for (const r of relegation) console.log(`  🔻 ${r.nick}: ${r.streak} jornadas en descenso`);
+}

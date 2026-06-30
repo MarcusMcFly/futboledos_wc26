@@ -171,7 +171,7 @@ function renderHome(ctx) {
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
     ${ctx.movements.hasSnapshot ? `<h2 class="section">Movimiento <span class="muted">· desde ${esc(ctx.snapshot.label || "el último corte")}</span></h2>${topMoversPanel(ctx)}` : ""}
-    ${ctx.streaks.hasHistory && ctx.streaks.badges.length ? `<h2 class="section">Rachas <span class="muted">· tendencias acumuladas</span></h2>${streaksPanel(ctx)}` : ""}
+    ${ctx.streaks.hasHistory && (ctx.streaks.badges.length || ctx.streaks.relegation.length) ? `<h2 class="section">Rachas <span class="muted">· tendencias acumuladas</span></h2>${streaksPanel(ctx)}` : ""}
     <h2 class="section">Competición por pools <span class="muted">· media por participante activo</span></h2>
     ${poolTable(ctx)}
     <h2 class="section">Estadísticas del torneo</h2>
@@ -259,12 +259,24 @@ function topMoversPanel(ctx) {
 // que no se sature; ya vienen ordenadas por relevancia desde computeStreaks.
 function streaksPanel(ctx) {
   const badges = ctx.streaks.badges.slice(0, 8);
-  if (!badges.length) return `<p class="muted">Aún no hay rachas destacables.</p>`;
-  return `<div class="streaks">${badges.map((b) =>
-    `<a class="streak streak-${b.kind}" href="?nick=${encodeURIComponent(b.nick)}">
-      <span class="streak-ico">${b.icon}</span>
-      <span class="streak-body"><b>${esc(b.nick)}</b><span class="streak-txt">${esc(b.text)}</span></span>
-    </a>`).join("")}</div>`;
+  const releg = ctx.streaks.relegation || [];
+  let html = "";
+  if (badges.length)
+    html += `<div class="streaks">${badges.map((b) =>
+      `<a class="streak streak-${b.kind}" href="?nick=${encodeURIComponent(b.nick)}">
+        <span class="streak-ico">${b.icon}</span>
+        <span class="streak-body"><b>${esc(b.nick)}</b><span class="streak-txt">${esc(b.text)}</span></span>
+      </a>`).join("")}</div>`;
+  // Zona de descenso: racha (negativa) en los 3 últimos puestos, en su propio
+  // grupo con estilo de peligro para no confundirla con los destacados positivos.
+  if (releg.length)
+    html += `<p class="streak-zone-h">⚠️ Zona de descenso <span class="muted">· 3 últimos puestos</span></p>
+      <div class="streaks">${releg.slice(0, 6).map((rz) =>
+        `<a class="streak streak-drop" href="?nick=${encodeURIComponent(rz.nick)}">
+          <span class="streak-ico">🔻</span>
+          <span class="streak-body"><b>${esc(rz.nick)}</b><span class="streak-txt">${rz.streak} jornadas en descenso</span></span>
+        </a>`).join("")}</div>`;
+  return html || `<p class="muted">Aún no hay rachas destacables.</p>`;
 }
 
 function poolChips(ctx, nick) {

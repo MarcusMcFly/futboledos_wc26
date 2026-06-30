@@ -233,6 +233,9 @@ td.lb-mov { width: 2.6rem; }
 .streak-body { display: flex; flex-direction: column; line-height: 1.2; }
 .streak-txt { font-size: 0.76rem; color: var(--muted); }
 .streak-leader { border-color: var(--accent); }
+.streak-zone-h { margin: 0.85rem 0 0.1rem; font-size: 0.85rem; font-weight: 600; color: var(--danger); }
+.streak-drop { border-color: var(--danger); }
+.streak-drop:hover { border-color: var(--danger); }
 
 /* ─────────── Cómo se puntúa ─────────── */
 ul.rules { list-style: none; padding: 0; margin: 0.4rem 0; max-width: 34rem; }

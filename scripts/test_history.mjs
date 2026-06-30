@@ -55,6 +55,28 @@ ok(!st.badges.some((b) => b.nick === "B"), "rachas: B no tiene racha positiva");
 const noHist = computeStreaks(liveBoard, []);
 ok(noHist.hasHistory === false && noHist.badges.length === 0,
   "rachas: sin snapshots → sin histórico ni badges");
+ok(Array.isArray(noHist.relegation) && noHist.relegation.length === 0,
+  "rachas: sin histórico → relegation vacío");
+
+// ── Zona de descenso ─────────────────────────────────────────────────────────
+// Campo de 6 (zona = 3 últimos puestos: rangos 4,5,6). Rangos constantes en las 4
+// jornadas (3 snapshots + tablero): A líder, B/C en podio, D/E/F atascados abajo.
+const sixRanks = ["A", "B", "C", "D", "E", "F"].map((nick, i) => ({ nick, rank: i + 1 }));
+const dropSnaps = [{ rankings: sixRanks }, { rankings: sixRanks }, { rankings: sixRanks }];
+const dropBoard = sixRanks.map((r) => ({ nick: r.nick, rank: r.rank, score: { total: 100 - r.rank } }));
+const ds = computeStreaks(dropBoard, dropSnaps);
+eq(ds.relegation.map((r) => [r.nick, r.streak]), [["D", 4], ["E", 4], ["F", 4]],
+  "descenso: D, E y F llevan 4 jornadas en los 3 últimos puestos");
+ok(!ds.badges.some((b) => ["D", "E", "F"].includes(b.nick)),
+  "descenso: los relegados NO aparecen en los destacados positivos");
+eq(ds.badges.map((b) => [b.nick, b.kind]), [["A", "leader"], ["B", "top3"], ["C", "top3"]],
+  "descenso: arriba siguen saliendo los positivos (A líder, B/C podio)");
+
+// Campo pequeño (3): la zona de descenso se desactiva (serían casi todos).
+const smallDrop = computeStreaks(
+  [{ nick: "X", rank: 1, score: { total: 30 } }, { nick: "Y", rank: 2, score: { total: 20 } }, { nick: "Z", rank: 3, score: { total: 10 } }],
+  [{ rankings: [{ nick: "X", rank: 1 }, { nick: "Y", rank: 2 }, { nick: "Z", rank: 3 }] }]);
+ok(smallDrop.relegation.length === 0, "descenso: con <6 participantes no hay zona de descenso");
 
 console.log(`\nhistory: ${pass} OK, ${fail} fallos`);
 process.exit(fail ? 1 : 0);

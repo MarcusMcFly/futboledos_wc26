@@ -67,11 +67,14 @@ function buildRankTimeline(board, snapshots) {
 }
 
 // Nº de estados más recientes consecutivos cuyo rango cumple pred (corta en hueco).
+// pred recibe (rank, state) para poder depender del tamaño del estado (p. ej. la
+// zona de descenso, que son los 3 últimos puestos del total de esa jornada).
 function trailingStates(states, nick, pred) {
   let c = 0;
   for (let i = states.length - 1; i >= 0; i--) {
-    const rank = states[i].get(nick);
-    if (rank == null || !pred(rank)) break;
+    const state = states[i];
+    const rank = state.get(nick);
+    if (rank == null || !pred(rank, state)) break;
     c++;
   }
   return c;
@@ -102,22 +105,40 @@ function isNewPersonalBest(states, nick) {
   return best !== Infinity && last < best;
 }
 
+// Zona de descenso = los 3 últimos puestos del total de esa jornada. Un rango está
+// en zona si `rank >= size - 2` (con 24 participantes: puestos 22, 23 y 24).
+const inDropZone = (rank, state) => rank >= state.size - 2;
+
 /**
- * Rachas activas de cada participante. Para repartir protagonismo, se queda con
- * UN logro por persona (el más vistoso) y devuelve la lista ya ordenada por
- * relevancia. Vacía si no hay histórico suficiente (hace falta ≥1 corte previo).
+ * Rachas activas de cada participante. Para repartir protagonismo, los logros
+ * POSITIVOS se quedan con UN destacado por persona (el más vistoso) en `badges`.
+ * Aparte, `relegation` lista a quien lleva ≥2 jornadas seguidas en la zona de
+ * descenso (3 últimos puestos); esos quedan excluidos de los destacados positivos.
+ * Vacía si no hay histórico suficiente (hace falta ≥1 corte previo).
  * @param {object[]} board  clasificación actual (de buildLeaderboard)
  * @param {object[]} snapshots  todos los snapshots en orden cronológico
- * @returns {{ badges: {nick:string, icon:string, kind:string, text:string, weight:number}[], hasHistory: boolean }}
+ * @returns {{ badges: {nick:string, icon:string, kind:string, text:string, weight:number}[], relegation: {nick:string, streak:number}[], hasHistory: boolean }}
  */
 export function computeStreaks(board, snapshots) {
   const states = buildRankTimeline(board, snapshots);
   const hasHistory = states.length >= 2; // al menos un corte previo + la jornada actual
-  if (!hasHistory) return { badges: [], hasHistory: false };
+  if (!hasHistory) return { badges: [], relegation: [], hasHistory: false };
+
+  // La zona de descenso solo tiene sentido con un campo lo bastante grande para
+  // que los 3 últimos puestos no sean (casi) toda la tabla.
+  const size = states[states.length - 1].size;
+  const zoneActive = size >= 6;
 
   const badges = [];
+  const relegation = [];
   for (const s of board) {
     const nick = s.nick;
+    // Zona de descenso (racha negativa): si está ahí ahora y lleva ≥2 jornadas,
+    // va a su lista propia y no compite por los destacados positivos.
+    if (zoneActive && inDropZone(s.rank, states[states.length - 1])) {
+      const drop = trailingStates(states, nick, inDropZone);
+      if (drop >= 2) { relegation.push({ nick, streak: drop }); continue; }
+    }
     const cands = [];
     const leader = trailingStates(states, nick, (r) => r === 1);
     if (leader >= 2) cands.push({ nick, icon: "👑", kind: "leader",
@@ -139,5 +160,6 @@ export function computeStreaks(board, snapshots) {
     }
   }
   badges.sort((a, b) => b.weight - a.weight);
-  return { badges, hasHistory: true };
+  relegation.sort((a, b) => b.streak - a.streak || a.nick.localeCompare(b.nick));
+  return { badges, relegation, hasHistory: true };
 }
