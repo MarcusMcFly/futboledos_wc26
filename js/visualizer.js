@@ -355,7 +355,52 @@ function renderUser(ctx, nick) {
     <h2 class="section">Fase de grupos · partido a partido</h2>
     ${groupMatchBreakdown(ctx, s, pred)}
     <h2 class="section">Eliminatorias</h2>
-    ${koBreakdown(ctx, s, pred)}`;
+    ${koBreakdown(ctx, s, pred)}
+    <h2 class="section">Bonus de progresión <span class="muted">· ${sc.progression_bonus_points} pts</span></h2>
+    ${progressionBreakdown(ctx, s)}`;
+}
+
+// Hasta qué ronda llega cada rango de alcance (1=R32 … 6=campeón) para el bonus.
+const REACH_LABEL = { 1: "Dieciseisavos", 2: "Octavos", 3: "Cuartos", 4: "Semifinales", 5: "Finalista", 6: "Campeón" };
+
+// Desglose del bonus de progresión: por cada equipo pronosticado que ya ha sumado,
+// hasta qué ronda se le acredita y cuántos puntos lleva. Los puntos se acumulan
+// según los equipos avanzan en el cuadro oficial, así que esta tabla crece con el
+// torneo. Los equipos que solo han llegado a dieciseisavos (todos suman lo mismo)
+// se agrupan en una fila para no saturar; los que han avanzado más van con nombre.
+// Incluye el acierto de 3.º/4.º puesto cuando se juega la final.
+function progressionBreakdown(ctx, scored) {
+  const prog = scored.breakdown.progression;
+  const total = scored.score.progression_bonus_points;
+  const r = ctx.rules.progression_bonus;
+  if (!prog || (!(prog.teams && prog.teams.length) && !prog.extraPoints))
+    return `<p class="muted">Aún no has sumado bonus de progresión. Se acredita según tus equipos avanzan en el cuadro (dieciseisavos → campeón).</p>`;
+  const teams = prog.teams || [];
+  const advanced = teams.filter((t) => t.credited >= 2);
+  const base = teams.filter((t) => t.credited === 1);
+  let rows = advanced.map((t) => {
+    const hint = t.predRank > t.credited
+      ? ` <span class="muted">(pronosticaste ${REACH_LABEL[t.predRank] || "?"})</span>` : "";
+    return `<tr>
+      <td>${esc(teamName(t.team))}</td>
+      <td>${REACH_LABEL[t.credited] || "—"}${hint}</td>
+      <td class="pts">+${t.points}</td></tr>`;
+  }).join("");
+  if (base.length) {
+    const basePts = base.reduce((s, t) => s + t.points, 0);
+    rows += `<tr>
+      <td>🎟️ ${base.length} ${base.length === 1 ? "equipo" : "equipos"} en dieciseisavos</td>
+      <td class="muted">+${r.round_of_32} cada uno</td>
+      <td class="pts">+${basePts}</td></tr>`;
+  }
+  if (prog.thirdCorrect) rows += `<tr><td>🥉 3.º puesto acertado</td><td class="muted">tercer puesto</td><td class="pts">+${r.third_place}</td></tr>`;
+  if (prog.fourthCorrect) rows += `<tr><td>4.º puesto acertado</td><td class="muted">cuarto puesto</td><td class="pts">+${r.fourth_place}</td></tr>`;
+  return `<table class="standings progbonus">
+      <thead><tr><th>Equipo</th><th>Bonus hasta</th><th>Pts</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr class="rank-total"><td colspan="2">Total bonus de progresión</td><td class="pts">${total}</td></tr></tfoot>
+    </table>
+    <p class="legend muted">Cada equipo acumula: dieciseisavos +${r.round_of_32} · octavos +${r.round_of_16} · cuartos +${r.quarter_final} · semis +${r.semi_final} · finalista +${r.runner_up} · campeón +${r.champion}. Los puntos suben a medida que tus equipos avanzan.</p>`;
 }
 
 function breakdownBars(sc) {

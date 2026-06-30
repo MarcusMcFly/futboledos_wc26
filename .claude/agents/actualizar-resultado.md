@@ -161,6 +161,15 @@ quedar puesta en la línea de octavos M90). Sea `NN` el número del partido (M73
   **final** (`W104`) y del **tercer puesto** (`W103`) no se propagan (son
   terminales).
 
+> **La propagación es lo que mantiene actualizado el "Bonus de progresión".** La
+> web deriva ese bonus de hasta qué ronda llega cada equipo en el bracket oficial
+> (los puntos se acumulan: dieciseisavos → octavos → … → campeón), y un equipo
+> "alcanza" la ronda siguiente justo cuando lo dejas puesto en ella aquí. Por eso,
+> cada vez que propagas un ganador a la ronda siguiente, sube automáticamente el
+> bonus de progresión de quien lo pronosticó (visible por equipo en la ficha de
+> usuario `?nick=`). No hay nada que escribir a mano: basta con que la propagación
+> sea correcta. El acierto de 3.º/4.º puesto se acredita al registrar M103.
+
 **4c · Actualiza el contador de la ronda.** Reescribe la línea de cuenta del
 bloque recontando los partidos de esa ronda con marcador numérico **y** `q:`
 puesto (no `q:-`):
@@ -198,7 +207,9 @@ que la racha incluya el resultado nuevo. Si no hay nada que destacar, lo dice.
 Después, no commitees, no pushees, no corras tests ni `standings.mjs`. Reporta de
 forma concisa:
 - La línea final escrita de **cada** partido (p. ej. `M73 2A 2B ZA 0 1 CA q:CA`).
-- La(s) propagación(es) hechas (p. ej. `M90 ← W73 = CA (local)`).
+- La(s) propagación(es) hechas (p. ej. `M90 ← W73 = CA (local)`) y, cuando un
+  equipo entra en una ronda nueva, el **bonus de progresión** que eso desbloquea
+  (p. ej. "Canadá alcanza octavos → suma el bonus de R16 a quien la pronosticó").
 - El contador nuevo de cada ronda tocada (p. ej. `r32_completados: 1/16`) y, si
   aplica, `campeon:`.
 - El **único** fichero de snapshot creado (`data/snapshots/NNN.json`) y su etiqueta.

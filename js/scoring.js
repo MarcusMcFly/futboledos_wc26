@@ -140,11 +140,20 @@ export function scoreProgression(pred, off, rules) {
   const predReach = computeReach(pred.knockout || {});
   const offReach = computeReach(off.knockout || {});
   let reachPoints = 0;
+  // Desglose por equipo: solo los que ya han sumado algo (su alcance oficial
+  // confirmado les acredita puntos). `credited` = rango efectivamente puntuado
+  // (mín. entre lo pronosticado y lo conseguido); `predRank`/`offRank` para poder
+  // distinguir un equipo aún vivo que puede sumar más de uno ya eliminado.
+  const teams = [];
   for (const team in predReach) {
     const offRank = offReach[team];
     if (!offRank) continue;
-    reachPoints += cumulativeReachPoints(Math.min(predReach[team], offRank), r);
+    const credited = Math.min(predReach[team], offRank);
+    const pts = cumulativeReachPoints(credited, r);
+    reachPoints += pts;
+    if (pts > 0) teams.push({ team, predRank: predReach[team], offRank, credited, points: pts });
   }
+  teams.sort((a, b) => b.points - a.points || b.credited - a.credited);
   // 3.º / 4.º puesto (M103), si está jugado (§10.5)
   let extraPoints = 0, thirdCorrect = false, fourthCorrect = false;
   const pM = (pred.knockout || {})["M103"], oM = (off.knockout || {})["M103"];
@@ -156,7 +165,7 @@ export function scoreProgression(pred, off, rules) {
     if (predThird && predThird === offThird) { extraPoints += r.third_place; thirdCorrect = true; }
     if (predFourth && predFourth === offFourth) { extraPoints += r.fourth_place; fourthCorrect = true; }
   }
-  return { points: reachPoints + extraPoints, reachPoints, extraPoints, thirdCorrect, fourthCorrect };
+  return { points: reachPoints + extraPoints, reachPoints, extraPoints, thirdCorrect, fourthCorrect, teams };
 }
 
 // ── ¿Grupo oficialmente completo? (sus 6 partidos con resultado) ─────────────

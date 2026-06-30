@@ -98,6 +98,13 @@ table.standings.predrank tr.rank-hit td:nth-child(2) { color: var(--text); font-
 table.standings.predrank tr.rank-bonus td { color: var(--accent); font-weight: 600; border-top: 1px solid var(--border); }
 table.standings.predrank tr.rank-total td { font-weight: 700; border-top: 1px solid var(--border); }
 table.standings.predrank tfoot td:first-child { text-align: left; }
+
+/* Desglose del bonus de progresión (ficha de usuario) */
+table.standings.progbonus { font-size: 0.86rem; margin: 0.35rem 0 0.4rem; max-width: 34rem; }
+table.standings.progbonus th:nth-child(2), table.standings.progbonus td:nth-child(2) { text-align: left; }
+table.standings.progbonus tr.rank-total td { font-weight: 700; border-top: 1px solid var(--border); }
+table.standings.progbonus tfoot td:first-child { text-align: left; }
+
 @media (max-width: 560px) {
   table.standings.gclose th:nth-child(n+4):nth-child(-n+9),
   table.standings.gclose td:nth-child(n+4):nth-child(-n+9) { display: none; } /* oculta PJ/G/E/P/GF/GC en móvil */

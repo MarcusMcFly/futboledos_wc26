@@ -62,6 +62,8 @@ const reachBRA = scoreProgression(
   { knockout: { M73: { round: "DIECISEISAVOS", home: "BRA", away: null }, M89: { round: "OCTAVOS", home: "BRA", away: null }, M97: { round: "CUARTOS", home: "BRA", away: null } } },
   rules);
 eq(reachBRA.points, 12, "§10.2 predijo SF, llegó a QF → 2+4+6 = 12");
+eq(reachBRA.teams, [{ team: "BRA", predRank: 4, offRank: 3, credited: 3, points: 12 }],
+  "§10.2 desglose por equipo: BRA acreditado hasta cuartos (credited 3), +12");
 const champ = scoreProgression(
   { knockout: { M73: { round: "DIECISEISAVOS", home: "C", away: null }, M89: { round: "OCTAVOS", home: "C", away: null }, M97: { round: "CUARTOS", home: "C", away: null }, M101: { round: "SEMIS", home: "C", away: null }, M104: { round: "FINAL", home: "C", away: null, qualified: "C" } } },
   { knockout: { M73: { round: "DIECISEISAVOS", home: "C", away: null }, M89: { round: "OCTAVOS", home: "C", away: null }, M97: { round: "CUARTOS", home: "C", away: null }, M101: { round: "SEMIS", home: "C", away: null }, M104: { round: "FINAL", home: "C", away: null, qualified: "C" } } },
