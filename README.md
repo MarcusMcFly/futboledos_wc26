@@ -35,18 +35,19 @@ js/
   leaderboard.js           Ranking individual + desempates
   pools.js                 Ranking de pools (media por participante activo)
   stats.js                 Estadísticas (distribución, exact-score heroes, contrarian, precisión)
-  history.js               Movimiento de ranking y top movers (vs snapshot)
+  history.js               Movimiento de ranking + rachas (líder/escalada/top 5) vs snapshots
 data/
   registry.json            ÍNDICE (admin, a mano): participantes + pools
   scoring_rules.json       Reglas de puntos + meta (evento, fecha límite)
   teams.json               id de equipo → nombre
   official/results.txt     Resultados oficiales (admin) en formato FUTBOLEDOS_PRED_V1
   submissions/<nick>.txt   Predicciones recibidas
-  snapshots/               Cortes de la clasificación para el movimiento de ranking
+  snapshots/               Cortes de la clasificación (movimiento de ranking + rachas)
   groups.json · round_of_32.json · knockout_rounds.json · third_place_assignment_table.json
                            Fixtures y bracket oficial (referencia)
 scripts/
   snapshot.mjs             Genera un corte de la clasificación (admin)
+  streaks.mjs              Reporta las rachas actuales (solo lectura)
   test_*.mjs               Tests (Node, sin navegador)
 ```
 

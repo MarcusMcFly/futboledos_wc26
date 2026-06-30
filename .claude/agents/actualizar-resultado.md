@@ -43,9 +43,10 @@ inventar nada.
   penaltis ni dice quién pasa, **párate y pregunta**. No deduzcas un ganador.
 - **No commitees ni pushees.** Editas los ficheros y paras. El usuario revisa,
   commitea y pushea desde VS Code (el push por CLI falla por cert SSL).
-- **No corras tests ni `standings.mjs`.** En eliminatoria el único comando que
-  ejecutas es `scripts/snapshot.mjs`. (`standings.mjs` es solo para el orden de
-  los grupos; aquí no aplica.)
+- **No corras tests ni `standings.mjs`.** En eliminatoria los únicos comandos que
+  ejecutas son `scripts/snapshot.mjs` (paso 3, escribe el corte) y
+  `scripts/streaks.mjs` (paso 5, solo lectura: reporta las rachas). (`standings.mjs`
+  es solo para el orden de los grupos; aquí no aplica.)
 
 ## Procedimiento
 
@@ -107,7 +108,9 @@ Si algo no cuadra, párate y pregunta. No continúes con suposiciones.
 El orden NO es negociable: el snapshot congela la clasificación **actual** (antes
 de los nuevos resultados) como línea base. La web compara el tablero nuevo contra
 el snapshot y dibuja las flechas ▲/▼ + el panel "Movimiento". Si lo haces después
-de editar, no hay movimiento que mostrar.
+de editar, no hay movimiento que mostrar. Además, la serie completa de snapshots
+alimenta el panel **"Rachas"** (liderato sostenido, escaladas, top 5…), así que
+cada corte que generas también enriquece esas estadísticas acumuladas.
 
 **Genera exactamente UN snapshot por invocación**, aunque el lote tenga varios
 partidos: va antes de editar el primero y captura el estado previo a todo el lote.
@@ -177,15 +180,30 @@ puesto (no `q:-`):
 **4d · Campeón (solo al registrar la FINAL, M104).** Sustituye `campeon: -` por
 `campeon: <clasificado de M104>`.
 
-### 5. Terminar y reportar
+### 5. Detectar rachas y reportar
 
-No commitees, no pushees, no corras tests ni `standings.mjs`. Reporta de forma
-concisa:
+Primero, **detecta las rachas** del momento (ya con la actualización registrada).
+Desde la raíz del repo ejecuta el reporte de solo lectura:
+
+```
+node scripts/streaks.mjs
+```
+
+Imprime las rachas activas con la misma lógica que el panel "Rachas" de la web
+(liderato sostenido, escaladas, jornadas en el podio/top 5, récord personal),
+calculadas combinando el histórico de snapshots con la clasificación recién
+editada. **No escribe nada**: es seguro y va después de editar `results.txt` para
+que la racha incluya el resultado nuevo. Si no hay nada que destacar, lo dice.
+
+Después, no commitees, no pushees, no corras tests ni `standings.mjs`. Reporta de
+forma concisa:
 - La línea final escrita de **cada** partido (p. ej. `M73 2A 2B ZA 0 1 CA q:CA`).
 - La(s) propagación(es) hechas (p. ej. `M90 ← W73 = CA (local)`).
 - El contador nuevo de cada ronda tocada (p. ej. `r32_completados: 1/16`) y, si
   aplica, `campeon:`.
 - El **único** fichero de snapshot creado (`data/snapshots/NNN.json`) y su etiqueta.
+- Las **rachas destacadas** que haya detectado `streaks.mjs` (p. ej. "👑 Alberto
+  lleva 7 jornadas como líder"), si las hay.
 - Recordatorio: revisar y **commitear/pushear desde VS Code** los ficheros juntos
   (`results.txt`, el `snapshots/NNN.json` creado, `snapshots/index.json`).
 

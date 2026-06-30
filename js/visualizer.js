@@ -4,12 +4,12 @@
 //   ?nick=<nick>                 → detalle de un participante (desglose SPEC §12)
 // Todo se calcula en cliente desde las predicciones + el resultado oficial.
 // @ts-check
-import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission, loadLatestSnapshot } from "./data.js";
+import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission, loadAllSnapshots } from "./data.js";
 import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
 import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes } from "./stats.js";
-import { computeMovements, topMovers, newLeader } from "./history.js";
+import { computeMovements, topMovers, newLeader, computeStreaks } from "./history.js";
 
 const $app = /** @type {HTMLElement} */ (document.getElementById("app"));
 let TEAMS = {};
@@ -27,11 +27,12 @@ const ROUND_LABEL = {
 // ── Carga + enrutado ─────────────────────────────────────────────────────────
 async function main() {
   $app.innerHTML = `<div class="loading muted">Cargando…</div>`;
-  let registry, rules, teamsFile, officialText, snapshot;
+  let registry, rules, teamsFile, officialText, snapshots;
   try {
-    [registry, rules, teamsFile, officialText, snapshot] = await Promise.all(
-      [loadRegistry(), loadRules(), loadTeams(), loadOfficial(), loadLatestSnapshot()]);
+    [registry, rules, teamsFile, officialText, snapshots] = await Promise.all(
+      [loadRegistry(), loadRules(), loadTeams(), loadOfficial(), loadAllSnapshots()]);
   } catch (e) { return renderError(e instanceof Error ? e.message : String(e)); }
+  const snapshot = snapshots.length ? snapshots[snapshots.length - 1] : null;
   TEAMS = teamsFile.teams || {};
   const official = parsePrediction(officialText || "");
 
@@ -48,7 +49,8 @@ async function main() {
   const poolsByNick = poolMembership(registry.pools);
   const predictions = subs.map((s) => s.prediction);
   const movements = computeMovements(board, snapshot);
-  const ctx = { registry, rules, official, board, byNick, predByNick, predictions, poolRanking, poolsByNick, snapshot, movements };
+  const streaks = computeStreaks(board, snapshots);
+  const ctx = { registry, rules, official, board, byNick, predByNick, predictions, poolRanking, poolsByNick, snapshot, movements, streaks };
 
   const params = new URLSearchParams(location.search);
   const nick = params.get("nick"), pool = params.get("pool");
@@ -169,6 +171,7 @@ function renderHome(ctx) {
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
     ${ctx.movements.hasSnapshot ? `<h2 class="section">Movimiento <span class="muted">· desde ${esc(ctx.snapshot.label || "el último corte")}</span></h2>${topMoversPanel(ctx)}` : ""}
+    ${ctx.streaks.hasHistory && ctx.streaks.badges.length ? `<h2 class="section">Rachas <span class="muted">· tendencias acumuladas</span></h2>${streaksPanel(ctx)}` : ""}
     <h2 class="section">Competición por pools <span class="muted">· media por participante activo</span></h2>
     ${poolTable(ctx)}
     <h2 class="section">Estadísticas del torneo</h2>
@@ -249,6 +252,19 @@ function topMoversPanel(ctx) {
   if (movers.length) html += `<div class="movers">${movers.map((m) =>
     `<a class="mover" href="?nick=${encodeURIComponent(m.nick)}"><span class="mv up">▲${m.movement}</span> ${esc(m.nick)}</a>`).join("")}</div>`;
   return html;
+}
+
+// Panel de rachas: tendencias sostenidas y positivas a lo largo del histórico de
+// snapshots (no solo el último corte). Cada chip enlaza a la ficha. Máximo 8 para
+// que no se sature; ya vienen ordenadas por relevancia desde computeStreaks.
+function streaksPanel(ctx) {
+  const badges = ctx.streaks.badges.slice(0, 8);
+  if (!badges.length) return `<p class="muted">Aún no hay rachas destacables.</p>`;
+  return `<div class="streaks">${badges.map((b) =>
+    `<a class="streak streak-${b.kind}" href="?nick=${encodeURIComponent(b.nick)}">
+      <span class="streak-ico">${b.icon}</span>
+      <span class="streak-body"><b>${esc(b.nick)}</b><span class="streak-txt">${esc(b.text)}</span></span>
+    </a>`).join("")}</div>`;
 }
 
 function poolChips(ctx, nick) {

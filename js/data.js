@@ -28,14 +28,15 @@ export async function loadOfficial() {
   }
 }
 
-// Último snapshot commiteado (para el movimiento de ranking). null si no hay.
-export async function loadLatestSnapshot() {
+// Todos los snapshots commiteados, en orden cronológico. El último alimenta el
+// movimiento de ranking; la serie completa, las rachas. [] si no hay o falla.
+export async function loadAllSnapshots() {
   try {
     const index = await loadJson("snapshots/index.json");
     const files = (index && index.snapshots) || [];
-    if (!files.length) return null;
-    return await loadJson(`snapshots/${files[files.length - 1]}`);
+    if (!files.length) return [];
+    return await Promise.all(files.map((f) => loadJson(`snapshots/${f}`)));
   } catch {
-    return null;
+    return [];
   }
 }
