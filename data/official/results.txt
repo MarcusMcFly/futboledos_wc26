@@ -99,9 +99,9 @@ M73 2A 2B ZA 0 1 CA q:CA
 M74 1E 3ABCDF DE 1 1 PY q:PY pen:3-4
 M75 1F 2C NL 1 1 MA q:MA pen:2-3
 M76 1C 2F BR 2 1 JP q:BR
-M77 1I 3CDFGH FR - - SE q:-
+M77 1I 3CDFGH FR 3 0 SE q:FR
 M78 2E 2I CI 1 2 NO q:NO
-M79 1A 3CEFHI MX - - EC q:-
+M79 1A 3CEFHI MX 2 0 EC q:MX
 M80 1L 3EHIJK ENG - - CD q:-
 M81 1D 3BEFIJ US - - BA q:-
 M82 1G 3AEHIJ BE - - SN q:-
@@ -111,13 +111,13 @@ M85 1B 3EFGIJ CH - - DZ q:-
 M86 1J 2H AR - - CV q:-
 M87 1K 3DEIJL CO - - GH q:-
 M88 2D 2G AU - - EG q:-
-r32_completados: 5/16
+r32_completados: 7/16
 
 [OCTAVOS]
-M89 W74 W77 PY - - ? q:-
+M89 W74 W77 PY - - FR q:-
 M90 W73 W75 CA - - MA q:-
 M91 W76 W78 BR - - NO q:-
-M92 W79 W80 ? - - ? q:-
+M92 W79 W80 MX - - ? q:-
 M93 W83 W84 ? - - ? q:-
 M94 W81 W82 ? - - ? q:-
 M95 W86 W88 ? - - ? q:-
