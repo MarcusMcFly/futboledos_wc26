@@ -186,6 +186,15 @@ puesto (no `q:-`):
 > registres avanza ese marcador (p. ej. tras M73 pasó a 73/104). No hay una línea
 > de "total" que mantener a mano: la web lo deriva de los datos.
 
+> **El `q:` también alimenta el "Top acertantes por fase"** (los *top players* entre
+> fases). En la pestaña "Partidos · Fase eliminatoria", debajo de la lista de cada
+> ronda (dieciseisavos, octavos, …), la web pinta un ranking de los participantes que
+> más equipos que pasan llevan acertados en esa ronda, contando SOLO los cruces ya
+> resueltos (con `q:` puesto). Se deriva en cliente del clasificado que escribes en
+> el paso 4a: no hay nada que tocar a mano, basta con que `q:` sea correcto. Cada
+> resultado que registras actualiza ese panel de la ronda en curso, y el resumen se
+> repite fase a fase.
+
 **4d · Campeón (solo al registrar la FINAL, M104).** Sustituye `campeon: -` por
 `campeon: <clasificado de M104>`.
 
@@ -215,6 +224,9 @@ forma concisa:
   (p. ej. "Canadá alcanza octavos → suma el bonus de R16 a quien la pronosticó").
 - El contador nuevo de cada ronda tocada (p. ej. `r32_completados: 1/16`) y, si
   aplica, `campeon:`.
+- El **"Top acertantes por fase"** de la ronda afectada: recuérdalo en una línea
+  ("se actualiza el ranking de quién más equipos que pasan lleva acertados en
+  <ronda>"). Es informativo (la web lo deriva del `q:`); no hay que calcularlo a mano.
 - El **único** fichero de snapshot creado (`data/snapshots/NNN.json`) y su etiqueta.
 - Las **rachas destacadas** que haya detectado `streaks.mjs` (p. ej. "👑 Alberto
   lleva 7 jornadas como líder"; la zona de descenso, "🔻 Julio 15 jornadas en

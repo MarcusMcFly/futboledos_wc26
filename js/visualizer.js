@@ -8,7 +8,7 @@ import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission, loadA
 import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
-import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes } from "./stats.js";
+import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes, koRoundQualifierLeaders } from "./stats.js";
 import { computeMovements, topMovers, newLeader, computeStreaks, benchmarkCrossings } from "./history.js";
 
 // Participante "de referencia": muy conocido, sirve de vara de medir. Cuando
@@ -706,7 +706,12 @@ function renderKoMatches(ctx) {
   let lastRound = null;
   for (const mid of ids) {
     const om = ctx.official.knockout[mid];
-    if (om.round !== lastRound) { html += `<h3>${ROUND_LABEL[om.round] || om.round}</h3>`; lastRound = om.round; }
+    if (om.round !== lastRound) {
+      // Al cambiar de ronda, cierra la anterior con su panel de "top players".
+      if (lastRound !== null) html += koRoundLeadersPanel(ctx, lastRound);
+      html += `<h3>${ROUND_LABEL[om.round] || om.round}</h3>`;
+      lastRound = om.round;
+    }
     const dist = koMatchDistribution(ctx.predictions, mid);
     const played = om.hg != null && om.ag != null && om.qualified;
     html += `<a class="match-link" href="?komatch=${mid}">
@@ -714,7 +719,33 @@ function renderKoMatches(ctx) {
       ${koDistBar(dist.qualifiers)}
       <span class="ml-meta muted">${played ? `pasa ${esc(teamName(om.qualified))}` : `${dist.total} pred.`}</span></a>`;
   }
+  if (lastRound !== null) html += koRoundLeadersPanel(ctx, lastRound);
   $app.innerHTML = html;
+}
+
+// "Top players" de una fase de eliminatoria: los participantes que más equipos que
+// pasan llevan acertados en esa ronda (sobre los cruces ya resueltos). Se pinta debajo
+// de la lista de partidos de cada ronda y se repite fase a fase. "" mientras la ronda
+// no tenga ningún cruce decidido. Medalla por puesto (empates comparten medalla).
+const KO_MEDAL = ["🥇", "🥈", "🥉"];
+function koRoundLeadersPanel(ctx, round) {
+  const data = koRoundQualifierLeaders(ctx.predictions, ctx.official, round);
+  if (!data || !data.leaders.length) return "";
+  let lastHits = null, place = 0;
+  const items = data.leaders.slice(0, 8).map((r) => {
+    if (r.hits !== lastHits) { place++; lastHits = r.hits; }
+    const medal = place <= 3 ? KO_MEDAL[place - 1] : "•";
+    return `<a class="mover kolead-row" href="?nick=${encodeURIComponent(r.nick)}">
+      <span class="kolead-m">${medal}</span> ${esc(r.nick)}
+      <b class="kolead-n">${r.hits}/${data.resolved}</b></a>`;
+  }).join("");
+  const cruces = `${data.resolved} ${data.resolved === 1 ? "cruce resuelto" : "cruces resueltos"}`;
+  const perfect = data.perfect
+    ? ` · <span class="kolead-perfect">🎯 ${data.perfect} con pleno (${data.resolved}/${data.resolved})</span>` : "";
+  return `<div class="kolead">
+    <p class="kolead-h">🏅 Top acertantes de ${ROUND_LABEL[round] || round}
+      <span class="muted">· quién pasa · ${cruces}${perfect}</span></p>
+    <div class="movers">${items}</div></div>`;
 }
 
 // ── Vista: detalle de un partido de eliminatoria ─────────────────────────────

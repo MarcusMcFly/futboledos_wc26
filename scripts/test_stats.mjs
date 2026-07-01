@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import {
   groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution,
-  groupComplete, groupStandings, groupCrossStats,
+  groupComplete, groupStandings, groupCrossStats, koRoundQualifierLeaders,
 } from "../js/stats.js";
 import { buildLeaderboard } from "../js/leaderboard.js";
 
@@ -102,6 +102,30 @@ const predsClose = [ord("Q1", ["MX", "KR", "ZA", "CZ"]), ord("Q2", ["MX", "KR", 
 const boardClose = buildLeaderboard(predsClose.map((p) => ({ nick: p.nick, prediction: p })), offA, rules);
 const csClose = groupCrossStats(boardClose, new Map(predsClose.map((p) => [p.nick, p])), offA, "A");
 ok(csClose.surprise === null, "cross: sin sorpresa si el grupo salió como se pronosticó (gap < 1)");
+
+// ── Top players por fase de eliminatoria (quién pasa acertado) ───────────────
+// Dos cruces resueltos (M73 pasa CA, M74 pasa MA) y uno sin resolver (M75 q:-).
+const KO = (round, qualified) => ({ round, hg: qualified ? 1 : null, ag: 0, qualified });
+const offKo = {
+  knockout: {
+    M73: KO("DIECISEISAVOS", "CA"), M74: KO("DIECISEISAVOS", "MA"),
+    M75: KO("DIECISEISAVOS", null),                 // sin resolver → no cuenta
+    M90: KO("OCTAVOS", null),                       // ronda sin ningún resuelto
+  },
+};
+const kp = (nick, ko) => ({ nick, groupMatches: {}, knockout: ko, champion: null });
+const predsKo = [
+  kp("A", { M73: { qualified: "CA" }, M74: { qualified: "MA" }, M75: { qualified: "CA" } }), // 2 aciertos
+  kp("B", { M73: { qualified: "CA" }, M74: { qualified: "ZA" } }),                            // 1 acierto
+  kp("C", { M73: { qualified: "ZA" }, M74: { qualified: "ZA" } }),                            // 0 → excluido
+  kp("D", { M73: { qualified: "CA" }, M74: { qualified: "MA" } }),                            // 2 aciertos
+];
+const lead = koRoundQualifierLeaders(predsKo, offKo, "DIECISEISAVOS");
+eq(lead.resolved, 2, "ko-top: 2 cruces resueltos (ignora M75 sin q:)");
+eq(lead.leaders.map((r) => [r.nick, r.hits]), [["A", 2], ["D", 2], ["B", 1]],
+  "ko-top: ranking por aciertos, empate alfabético, excluye 0");
+eq(lead.perfect, 2, "ko-top: 2 con pleno (2/2)");
+ok(koRoundQualifierLeaders(predsKo, offKo, "OCTAVOS") === null, "ko-top: null si la ronda no tiene cruces resueltos");
 
 function round1(n) { return Math.round(n * 10) / 10; }
 console.log(`\nstats: ${pass} OK, ${fail} fallos`);

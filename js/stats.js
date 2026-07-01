@@ -255,6 +255,32 @@ export function koHeroes(predictions, official, matchId) {
   };
 }
 
+/**
+ * "Top players" de una RONDA de eliminatoria: ranking de participantes por número de
+ * clasificados ("quién pasa") acertados, contando SOLO los partidos de esa ronda ya
+ * resueltos (con `qualified` oficial). Es el resumen por fase que se repite tras cada
+ * ronda. Devuelve null si la ronda no tiene ningún partido resuelto todavía.
+ * `resolved` = nº de cruces de la ronda ya decididos; `perfect` = cuántos acertaron
+ * todos; `leaders` = [{nick, hits}] con hits>0, de más a menos (empate → alfabético).
+ */
+export function koRoundQualifierLeaders(predictions, official, round) {
+  const ids = Object.keys(official.knockout).filter((id) => {
+    const m = official.knockout[id];
+    return m.round === round && m.hg != null && m.ag != null && m.qualified;
+  });
+  if (!ids.length) return null;
+  const leaders = predictions.map((p) => {
+    let hits = 0;
+    for (const id of ids) {
+      const m = p.knockout[id];
+      if (m && m.qualified && m.qualified === official.knockout[id].qualified) hits++;
+    }
+    return { nick: p.nick, hits };
+  }).filter((r) => r.hits > 0)
+    .sort((a, b) => b.hits - a.hits || a.nick.localeCompare(b.nick));
+  return { round, resolved: ids.length, perfect: leaders.filter((r) => r.hits === ids.length).length, leaders };
+}
+
 /** Campeón más votado: distribución de campeones pronosticados. */
 export function championDistribution(predictions) {
   const c = new Map();
