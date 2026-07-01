@@ -495,7 +495,7 @@ function progressionBreakdown(ctx, scored) {
       <tbody>${rows}</tbody>
       <tfoot><tr class="rank-total"><td colspan="2">Total bonus de progresión</td><td class="pts">${total}</td></tr></tfoot>
     </table>
-    <p class="legend muted">Cada equipo acumula: dieciseisavos +${r.round_of_32} · octavos +${r.round_of_16} · cuartos +${r.quarter_final} · semis +${r.semi_final} · finalista +${r.runner_up} · campeón +${r.champion}. Los puntos suben a medida que tus equipos avanzan.</p>`;
+    <p class="legend muted">Cada equipo acumula: dieciseisavos +${r.round_of_32} · octavos +${r.round_of_16} · cuartos +${r.quarter_final} · semis +${r.semi_final} · finalista +${r.runner_up} · campeón +${r.champion}. Los puntos suben a medida que tus equipos avanzan.<br>Cuenta que tengas el equipo <strong>vivo en esa ronda por cualquier vía</strong>, aunque llegara por un cruce distinto al que pronosticaste (por eso puede no cuadrar con los aciertos de "quién pasa" de cada eliminatoria).</p>`;
 }
 
 function breakdownBars(sc) {
