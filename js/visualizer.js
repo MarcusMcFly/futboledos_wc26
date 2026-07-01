@@ -10,6 +10,7 @@ import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
 import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes, koRoundQualifierLeaders } from "./stats.js";
 import { computeMovements, topMovers, newLeader, computeStreaks, benchmarkCrossings } from "./history.js";
+import { projectUser } from "./projection.js";
 
 // Participante "de referencia": muy conocido, sirve de vara de medir. Cuando
 // alguien lo adelanta (o cae por detrás) en una actualización, se destaca.
@@ -392,7 +393,66 @@ function renderUser(ctx, nick) {
     <h2 class="section">Eliminatorias</h2>
     ${koBreakdown(ctx, s, pred)}
     <h2 class="section">Bonus de progresión <span class="muted">· ${sc.progression_bonus_points} pts</span></h2>
-    ${progressionBreakdown(ctx, s)}`;
+    ${progressionBreakdown(ctx, s)}
+    <h2 class="section">Tu techo · ¿hasta dónde puedes llegar?</h2>
+    ${maxProjection(ctx, nick)}`;
+}
+
+// Proyección de máxima puntuación posible: si de aquí al final se cumpliera TODO lo
+// que el participante ha pronosticado (sus equipos pasan con sus marcadores y su
+// campeón), ¿cuántos puntos sumaría, dónde quedaría, con quién competiría y a quién
+// ya no puede superar? Incluye tres escenarios (bueno/medio/malo = 100/65/30 % de lo
+// que aún puede sumar) y, como todos pronostican los mismos partidos, la
+// interdependencia: en tu escenario ideal, quién sube contigo. Todo desde projection.js.
+function maxProjection(ctx, nick) {
+  const p = projectUser(nick, { board: ctx.board, byNick: ctx.byNick, predByNick: ctx.predByNick, official: ctx.official, rules: ctx.rules });
+  if (!p) return "";
+  if (p.remaining <= 0)
+    return `<p class="muted">Ya no quedan puntos por disputar para ti: tu marcador de <strong>${p.current}</strong> es definitivo (todos tus pronósticos pendientes están resueltos).</p>`;
+
+  const link = (n) => `<a href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`;
+  // Lista de nombres con marcador actual, capada para no saturar (resto → "+N más").
+  const CAP = 8;
+  const nameList = (arr) => {
+    const shown = arr.slice(0, CAP).map((o) => `${link(o.nick)} <span class="muted">(${o.current})</span>`).join(" · ");
+    return arr.length > CAP ? `${shown} <span class="muted">+${arr.length - CAP} más</span>` : shown;
+  };
+
+  // Tarjetas de escenario. El puesto es el MEJOR posible con esa puntuación: como
+  // los demás solo pueden sumar, tu puesto real sería ese o peor ("como muy bien #N").
+  const cards = p.scenarios.map((sc) => `
+    <div class="card proj-card proj-${sc.key}">
+      <div class="proj-ico">${sc.icon}</div>
+      <div class="card-n">${sc.score}</div>
+      <div class="card-l">${sc.label} · ${sc.pct}% <span class="muted">(+${sc.gain})</span><br>
+        <span class="muted">como muy bien #${sc.rank}</span></div>
+    </div>`).join("");
+
+  // Bloques de rivales.
+  const blocks = [];
+  blocks.push(p.impossible.length
+    ? `<p class="proj-line proj-imposs">🚫 <strong>Ya no puedes superar a:</strong> ${nameList(p.impossible)} <span class="muted">— tienen más de lo que tú puedes llegar a sumar (tu techo: ${p.ceiling}).</span></p>`
+    : `<p class="proj-line proj-ok">✅ <strong>Nadie está fuera de tu alcance:</strong> en tu mejor escenario podrías dar caza a todo el mundo.</p>`);
+  if (p.catchable.length)
+    blocks.push(`<p class="proj-line">🎯 <strong>A tu alcance por arriba:</strong> ${nameList(p.catchable)} <span class="muted">— van por delante pero su marcador actual cabe dentro de tu techo.</span></p>`);
+  if (p.threat.length)
+    blocks.push(`<p class="proj-line">⚔️ <strong>Aún te pueden pasar:</strong> ${nameList(p.threat)} <span class="muted">— van por detrás pero su techo llega a tu marcador de hoy.</span></p>`);
+  blocks.push(p.secured.length
+    ? `<p class="proj-line proj-secured">🛡️ <strong>Ya tienes ganado a:</strong> ${p.secured.length} participante${p.secured.length === 1 ? "" : "s"} <span class="muted">— ni en su mejor escenario te alcanzan.</span></p>`
+    : "");
+
+  // Interdependencia: quién sube contigo en tu mundo ideal.
+  const risers = p.risers.length
+    ? `<p class="proj-line proj-risers">🤝 <strong>Si se cumple tu quiniela, también suben:</strong> ${p.risers.map((o) =>
+        `${link(o.nick)} <span class="muted">(${o.current}→${o.dream}, +${o.gain})</span>`).join(" · ")} <span class="muted">— coincidieron contigo, así que tu acierto es también el suyo.</span></p>`
+    : "";
+
+  return `
+    <p>Si a partir de ahora se cumpliera <strong>todo</strong> lo que has pronosticado —tus equipos pasan las eliminatorias con tus marcadores y tu campeón levanta la copa— llegarías a un máximo de <strong>${p.ceiling} pts</strong> (+${p.remaining} sobre tus ${p.current} de ahora). Pero como todos jugáis los <em>mismos</em> partidos, quienes coincidieron contigo también acertarían: en ese escenario ideal <strong>realista</strong> quedarías <strong>#${p.rankAtCeiling}</strong> <span class="muted">(hoy vas #${p.currentRank})</span>.</p>
+    <div class="cards proj-cards">${cards}</div>
+    <p class="legend muted">Escenarios = 100 % / 65 % / 30 % de los ${p.remaining} puntos que aún puedes sumar. El puesto es el <strong>mejor posible</strong> con esa puntuación (si nadie más sumara); como los demás solo pueden subir, tu puesto real sería ese o peor.</p>
+    ${blocks.join("")}
+    ${risers}`;
 }
 
 // Hasta qué ronda llega cada rango de alcance (1=R32 … 6=campeón) para el bonus.

@@ -240,6 +240,22 @@ td.lb-mov { width: 2.6rem; }
 .streak-drop { border-color: var(--danger); }
 .streak-drop:hover { border-color: var(--danger); }
 
+/* ─────────── Proyección de techo / escenarios (ficha de usuario) ─────────── */
+.proj-cards { margin: 0.6rem 0 0.8rem; }
+.proj-card { position: relative; text-align: center; min-width: 9rem; border-width: 1px; }
+.proj-card .proj-ico { font-size: 1.1rem; line-height: 1; }
+.proj-card .card-l { margin-top: 0.15rem; }
+.proj-bueno { border-color: var(--accent); }
+.proj-medio { border-color: #d29922; }
+.proj-malo { border-color: var(--danger); }
+.proj-line { font-size: 0.9rem; margin: 0.45rem 0; padding: 0.5rem 0.75rem;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+.proj-imposs { border-color: var(--danger); }
+.proj-ok, .proj-secured { border-color: var(--accent); }
+.proj-risers { border-color: #2f81f7; }
+.proj-line a { color: var(--text); font-weight: 600; text-decoration: none; }
+.proj-line a:hover { text-decoration: underline; }
+
 /* ─────────── Top acertantes por fase KO ─────────── */
 .kolead { margin: 0.5rem 0 1.3rem; padding: 0.6rem 0.8rem;
   background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
