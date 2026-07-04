@@ -48,7 +48,7 @@ const st = computeStreaks(liveBoard, snaps);
 ok(st.hasHistory === true, "rachas: hay histórico");
 eq(st.badges.map((b) => [b.nick, b.kind]), [["A", "leader"], ["C", "climb"]],
   "rachas: A líder y C escalando (un logro por persona, ordenado por relevancia)");
-eq(st.badges[0].text, "3 jornadas como líder", "rachas: texto del liderato de A");
+eq(st.badges[0].text, "3 actualizaciones como líder", "rachas: texto del liderato de A");
 eq(st.badges[1].text, "3 actualizaciones subiendo", "rachas: texto de la escalada de C");
 ok(!st.badges.some((b) => b.nick === "B"), "rachas: B no tiene racha positiva");
 

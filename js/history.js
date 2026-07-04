@@ -173,16 +173,16 @@ export function computeStreaks(board, snapshots) {
     const cands = [];
     const leader = trailingStates(states, nick, (r) => r === 1);
     if (leader >= 2) cands.push({ nick, icon: "👑", kind: "leader",
-      text: `${leader} jornadas como líder`, weight: 1000 + leader });
+      text: `${leader} actualizaciones como líder`, weight: 1000 + leader });
     const climb = trailingClimb(states, nick);
     if (climb >= 2) cands.push({ nick, icon: "🔥", kind: "climb",
       text: `${climb} actualizaciones subiendo`, weight: 700 + climb });
     const top3 = trailingStates(states, nick, (r) => r <= 3);
     if (top3 >= 3) cands.push({ nick, icon: "🥉", kind: "top3",
-      text: `${top3} jornadas en el podio`, weight: 500 + top3 });
+      text: `${top3} actualizaciones en el podio`, weight: 500 + top3 });
     const top5 = trailingStates(states, nick, (r) => r <= 5);
     if (top5 >= 4) cands.push({ nick, icon: "⭐", kind: "top5",
-      text: `${top5} jornadas en el top 5`, weight: 300 + top5 });
+      text: `${top5} actualizaciones en el top 5`, weight: 300 + top5 });
     if (isNewPersonalBest(states, nick)) cands.push({ nick, icon: "📈", kind: "best",
       text: `mejor puesto hasta la fecha (#${s.rank})`, weight: 200 });
     if (cands.length) {

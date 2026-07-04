@@ -42,7 +42,7 @@ if (badges.length) {
 }
 if (relegation.length) {
   console.log("Zona de descenso (3 últimos puestos):");
-  for (const r of relegation) console.log(`  🔻 ${r.nick}: ${r.streak} jornadas en descenso`);
+  for (const r of relegation) console.log(`  🔻 ${r.nick}: ${r.streak} actualizaciones en descenso`);
 }
 if (hasCross) {
   console.log(`La línea de ${BENCHMARK_NICK} (última actualización):`);

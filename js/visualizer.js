@@ -330,7 +330,7 @@ function streaksPanel(ctx) {
       <div class="streaks">${releg.slice(0, 6).map((rz) =>
         `<a class="streak streak-drop" href="?nick=${encodeURIComponent(rz.nick)}">
           <span class="streak-ico">🔻</span>
-          <span class="streak-body"><b>${esc(rz.nick)}</b><span class="streak-txt">${rz.streak} jornadas en descenso</span></span>
+          <span class="streak-body"><b>${esc(rz.nick)}</b><span class="streak-txt">${rz.streak} actualizaciones en descenso</span></span>
         </a>`).join("")}</div>`;
   return html || `<p class="muted">Aún no hay rachas destacables.</p>`;
 }

@@ -111,30 +111,30 @@ por peso) para que el protagonismo no se concentre siempre en el líder:
 ```
 Rachas · tendencias acumuladas
 ──────────────────────────────
- 👑  Alberto_Soria   10 jornadas como líder
- ⭐  Benjamin        20 jornadas en el top 5
- 🥉  Marcus           8 jornadas en el podio
- 🥉  Blazquez_96      7 jornadas en el podio
+ 👑  Alberto_Soria   10 actualizaciones como líder
+ ⭐  Benjamin        20 actualizaciones en el top 5
+ 🥉  Marcus           8 actualizaciones en el podio
+ 🥉  Blazquez_96      7 actualizaciones en el podio
 
 ⚠️  Zona de descenso · 3 últimos puestos
- 🔻  Julio           18 jornadas en descenso
- 🔻  Verde            8 jornadas en descenso
- 🔻  Jacobo           2 jornadas en descenso
+ 🔻  Julio           18 actualizaciones en descenso
+ 🔻  Verde            8 actualizaciones en descenso
+ 🔻  Jacobo           2 actualizaciones en descenso
 ```
 
 Cómo se leen: 👑 **líder** sostenido (rank 1 en ≥2 cortes), 🔥 **escalada** (varias
 subidas seguidas; un empate la corta), 🥉 **podio** (top 3, ≥3 cortes), ⭐ **top 5**
 (≥4 cortes) y 📈 **récord personal** (su mejor puesto histórico). La **zona de
-descenso** es la racha negativa simétrica: varias jornadas en los 3 últimos puestos.
+descenso** es la racha negativa simétrica: varias actualizaciones en los 3 últimos puestos.
 Todo sale de `computeStreaks(tablero, snapshots)` en `js/history.js`; el mismo
-cálculo lo escupe por consola `node scripts/streaks.mjs` cuando el admin registra
+cálculo lo imprime por consola `node scripts/streaks.mjs` cuando el admin registra
 resultados.
 
 ### 3) Fase de grupos: un grupo que se cierra
 
 Cuando un grupo completa sus 6 partidos, se consolida su clasificación y se cruza
-con lo que pronosticó la peña (`groupCrossStats` en `js/stats.js`). Así quedó el
-**Grupo A**:
+con lo que pronosticaron los participantes (`groupCrossStats` en `js/stats.js`). Así
+quedó el **Grupo A**:
 
 > 🏁 **Grupo A cerrado · clasificación definitiva**
 
