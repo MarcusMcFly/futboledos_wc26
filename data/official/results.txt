@@ -115,17 +115,17 @@ r32_completados: 16/16
 
 [OCTAVOS]
 M89 W74 W77 PY - - FR q:-
-M90 W73 W75 CA - - MA q:-
+M90 W73 W75 CA 0 3 MA q:MA
 M91 W76 W78 BR - - NO q:-
 M92 W79 W80 MX - - ENG q:-
 M93 W83 W84 PT - - ES q:-
 M94 W81 W82 US - - BE q:-
 M95 W86 W88 AR - - EG q:-
 M96 W85 W87 CH - - CO q:-
-completados: 0/8
+completados: 1/8
 
 [CUARTOS]
-M97 W89 W90 ? - - ? q:-
+M97 W89 W90 ? - - MA q:-
 M98 W93 W94 ? - - ? q:-
 M99 W91 W92 ? - - ? q:-
 M100 W95 W96 ? - - ? q:-
