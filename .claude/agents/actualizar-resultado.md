@@ -143,6 +143,20 @@ al final. Ejemplos:
 - Decisivo: `M73 2A 2B ZA - - CA q:-` → `M73 2A 2B ZA 0 1 CA q:CA`
 - Con penaltis: `M83 2K 2L PT - - HR q:-` → `M83 2K 2L PT 3 3 HR q:HR pen:3-4`
 
+> **El marcador y los penaltis que escribas se ven ahora en la web.** No hay
+> ningún dato extra que mantener: `<gl> <gv>` y `pen:<pl>-<pv>` son la única
+> fuente de estas superficies, que la web deriva en cliente:
+> - **Pestaña "Partidos · Fase eliminatoria"**: cada cruce jugado muestra el
+>   resultado y, si la hubo, la tanda, además de quién pasa (p. ej.
+>   `0–1 · pasa Canadá`, o `3–3 (pen 3–4) · pasa Croacia`). Antes solo ponía
+>   "pasa X".
+> - **Ficha de cada participante (`?nick=`)**: en el desglose de eliminatorias,
+>   la línea "oficial" replica ahora el **cruce oficial real** con sus equipos
+>   (p. ej. `oficial: Sudáfrica 0–1 Canadá`), no solo el marcador suelto; los
+>   equipos salen de la propagación (paso 4b) y el marcador/penaltis del paso 4a.
+> Por eso un `pen:` mal escrito o en orden invertido (local-visitante) ahora se
+> nota a simple vista: revísalo.
+
 **4b · Propaga al cruce siguiente (OBLIGATORIO en cada partido).** Es lo que hace
 que, en cuanto un equipo se clasifica, su **nombre aparezca ya en el cruce de la
 ronda siguiente** (p. ej. al registrar M73 con Sudáfrica 0-1 Canadá, Canadá debe

@@ -621,7 +621,11 @@ function koBreakdown(ctx, scored, pred) {
 
 function matchLine(homeN, awayN, pm, om, res, qualified) {
   const predScore = pm && pm.hg != null ? `${pm.hg}–${pm.ag}` : "—";
-  const offScore = om && om.hg != null ? `${om.hg}–${om.ag}` : "pendiente";
+  // Réplica del cruce oficial real (equipos + marcador + penaltis), que puede
+  // diferir de la fixture predicha que se muestra a la izquierda.
+  const offScore = om && om.hg != null
+    ? `${esc(teamName(om.home))} ${koScoreText(om)} ${esc(teamName(om.away))}`
+    : "pendiente";
   let cls = "m-pending", badge = "·";
   if (res.status === "no_prediction") { cls = "m-none"; badge = "sin pred."; }
   else if (res.status === "pending") { cls = "m-pending"; badge = "pte"; }
@@ -769,6 +773,13 @@ function koSide(team, slot) {
 function koFixtureLabel(om) {
   return `${koSide(om.home, om.home_slot)} <span class="muted">vs</span> ${koSide(om.away, om.away_slot)}`;
 }
+// Marcador oficial de un cruce ya jugado: "0–1" y, si se decidió en la tanda,
+// "0–1 (pen 3–4)". "" si el cruce todavía no se ha jugado.
+function koScoreText(om) {
+  if (!om || om.hg == null || om.ag == null) return "";
+  const pen = om.pen ? ` (pen ${om.pen.home}–${om.pen.away})` : "";
+  return `${om.hg}–${om.ag}${pen}`;
+}
 
 // Chips enlazadas a la ficha de cada participante.
 const chipList = (nicks) => nicks.map((n) =>
@@ -809,7 +820,7 @@ function renderKoMatches(ctx) {
     html += `<a class="match-link" href="?komatch=${mid}">
       <span class="ml-fix">${koFixtureLabel(om)}</span>
       ${koDistBar(dist.qualifiers)}
-      <span class="ml-meta muted">${played ? `pasa ${esc(teamName(om.qualified))}` : `${dist.total} pred.`}</span></a>`;
+      <span class="ml-meta muted">${played ? `${koScoreText(om)} · pasa ${esc(teamName(om.qualified))}` : `${dist.total} pred.`}</span></a>`;
   }
   if (lastRound !== null) html += koRoundLeadersPanel(ctx, lastRound);
   $app.innerHTML = html;
@@ -851,7 +862,7 @@ function renderKoMatch(ctx, id) {
 
   let html = `<p><a class="back" href="?view=ko-matches">← Partidos fase eliminatoria</a></p>
     <div class="view-head"><h1>${koFixtureLabel(om)}</h1>
-      <span class="muted">${ROUND_LABEL[om.round] || om.round} · ${esc(om.home_slot)} vs ${esc(om.away_slot)}${played ? ` · oficial ${om.hg}–${om.ag}` : " · por jugar"}</span></div>
+      <span class="muted">${ROUND_LABEL[om.round] || om.round} · ${esc(om.home_slot)} vs ${esc(om.away_slot)}${played ? ` · oficial ${koScoreText(om)}` : " · por jugar"}</span></div>
     <h2 class="section">¿Quién pasa? <span class="muted">(${dist.total} pred.)</span></h2>`;
 
   if (dist.qualifiers.length) {
@@ -877,7 +888,7 @@ function renderKoMatch(ctx, id) {
           <div class="kp-who">${chipList(s.nicks)}</div></li>`).join("")}</ul>`;
 
   if (played && heroes) {
-    html += `<h2 class="section">Resultado oficial: ${om.hg}–${om.ag} <span class="muted">· pasa ${esc(teamName(om.qualified))}</span></h2>
+    html += `<h2 class="section">Resultado oficial: ${koScoreText(om)} <span class="muted">· pasa ${esc(teamName(om.qualified))}</span></h2>
       <ul class="kv">
         <li><span>Acertaron quién pasa</span><b>${heroes.qualHits} / ${heroes.total}</b></li>
         <li><span>Acertaron el cruce (ambos equipos)</span><b>${heroes.fixtureHits} / ${heroes.total}</b></li>
