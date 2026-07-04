@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-04T05:10:30.742Z",
+  "label": "Antes de dieciseisavos M86-M88",
+  "completed_group_matches": 72,
+  "completed_ko_matches": 13,
+  "rankings": [
+    {
+      "nick": "Alberto_Soria",
+      "rank": 1,
+      "points": 574
+    },
+    {
+      "nick": "Marcus",
+      "rank": 2,
+      "points": 553
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 3,
+      "points": 548
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 4,
+      "points": 541
+    },
+    {
+      "nick": "Txauri",
+      "rank": 5,
+      "points": 529
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 5,
+      "points": 529
+    },
+    {
+      "nick": "Morses",
+      "rank": 7,
+      "points": 517
+    },
+    {
+      "nick": "DCJ",
+      "rank": 8,
+      "points": 511
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 9,
+      "points": 490
+    },
+    {
+      "nick": "Ales",
+      "rank": 10,
+      "points": 489
+    },
+    {
+      "nick": "Kike",
+      "rank": 11,
+      "points": 488
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 12,
+      "points": 486
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 13,
+      "points": 485
+    },
+    {
+      "nick": "Vic",
+      "rank": 14,
+      "points": 479
+    },
+    {
+      "nick": "JBC",
+      "rank": 15,
+      "points": 478
+    },
+    {
+      "nick": "CMC",
+      "rank": 16,
+      "points": 475
+    },
+    {
+      "nick": "VBJ",
+      "rank": 17,
+      "points": 462
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 18,
+      "points": 457
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 19,
+      "points": 433
+    },
+    {
+      "nick": "Pollico",
+      "rank": 19,
+      "points": 433
+    },
+    {
+      "nick": "Mata",
+      "rank": 21,
+      "points": 431
+    },
+    {
+      "nick": "Borja",
+      "rank": 22,
+      "points": 425
+    },
+    {
+      "nick": "Julio",
+      "rank": 23,
+      "points": 410
+    },
+    {
+      "nick": "Verde",
+      "rank": 24,
+      "points": 404
+    }
+  ]
+}

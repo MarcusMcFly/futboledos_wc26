@@ -108,10 +108,10 @@ M82 1G 3AEHIJ BE 3 2 SN q:BE
 M83 2K 2L PT 2 1 HR q:PT
 M84 1H 2J ES 3 0 AT q:ES
 M85 1B 3EFGIJ CH 2 0 DZ q:CH
-M86 1J 2H AR - - CV q:-
-M87 1K 3DEIJL CO - - GH q:-
-M88 2D 2G AU - - EG q:-
-r32_completados: 13/16
+M86 1J 2H AR 3 2 CV q:AR
+M87 1K 3DEIJL CO 1 0 GH q:CO
+M88 2D 2G AU 1 1 EG q:EG pen:2-4
+r32_completados: 16/16
 
 [OCTAVOS]
 M89 W74 W77 PY - - FR q:-
@@ -120,8 +120,8 @@ M91 W76 W78 BR - - NO q:-
 M92 W79 W80 MX - - ENG q:-
 M93 W83 W84 PT - - ES q:-
 M94 W81 W82 US - - BE q:-
-M95 W86 W88 ? - - ? q:-
-M96 W85 W87 CH - - ? q:-
+M95 W86 W88 AR - - EG q:-
+M96 W85 W87 CH - - CO q:-
 completados: 0/8
 
 [CUARTOS]

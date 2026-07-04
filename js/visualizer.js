@@ -129,6 +129,38 @@ function completedGroupsBanner(official) {
   return `<div class="banner ok-banner">🏁 <strong>¡Fase de grupos completada!</strong> Los 12 grupos están cerrados y sus rankings consolidados.${thirdsHtml}</div>`;
 }
 
+// Nº de cruces de cada ronda de eliminatoria y titular de "ronda completada". Sirven
+// para que, en cuanto una ronda queda entera (todos sus cruces con clasificado), el
+// banner verde del home releve al de "fase de grupos completada" y anuncie esa ronda.
+const KO_ROUND_TOTAL = { DIECISEISAVOS: 16, OCTAVOS: 8, CUARTOS: 4, SEMIS: 2, TERCER_PUESTO: 1, FINAL: 1 };
+const KO_ROUND_ORDER = ["FINAL", "TERCER_PUESTO", "SEMIS", "CUARTOS", "OCTAVOS", "DIECISEISAVOS"];
+const KO_ROUND_DONE = {
+  DIECISEISAVOS: "¡Dieciseisavos completados!", OCTAVOS: "¡Octavos completados!",
+  CUARTOS: "¡Cuartos completados!", SEMIS: "¡Semifinales completadas!",
+  TERCER_PUESTO: "¡Tercer puesto disputado!", FINAL: "¡Final disputada!",
+};
+
+// Banner de la ronda de eliminatoria más avanzada que ya esté ENTERA (todos sus
+// cruces resueltos). Releva al de "fase de grupos completada" y, además del titular,
+// menciona el/los top-1 en aciertos de "quién pasa" entre los cruces resueltos.
+function completedRoundBanner(ctx) {
+  const done = Object.values(ctx.official.knockout).filter((m) => m.hg != null && m.ag != null && m.qualified);
+  if (!done.length) return "";
+  const round = KO_ROUND_ORDER.find((r) => done.filter((m) => m.round === r).length === KO_ROUND_TOTAL[r]);
+  if (!round) return "";
+  const n = KO_ROUND_TOTAL[round];
+  const crucesTxt = n === 1 ? "El cruce está resuelto" : `Los ${n} cruces están resueltos`;
+  const lead = koRoundQualifierLeaders(ctx.predictions, ctx.official, round);
+  let topHtml = "";
+  if (lead && lead.leaders.length) {
+    const best = lead.leaders[0].hits;
+    const names = lead.leaders.filter((r) => r.hits === best).map((r) => esc(r.nick));
+    const etiqueta = names.length === 1 ? "Top acertante de quién pasa" : "Top acertantes de quién pasa";
+    topHtml = `<br>🏅 <strong>${etiqueta}:</strong> ${names.join(" · ")} <span class="muted">(${best}/${lead.resolved} cruces)</span>`;
+  }
+  return `<div class="banner ok-banner">🏁 <strong>${KO_ROUND_DONE[round]}</strong> ${crucesTxt}.${topHtml}</div>`;
+}
+
 // ── Vista: clasificación general ─────────────────────────────────────────────
 // Fecha + hora de la fecha límite, fijada a la zona horaria del evento para que
 // no cambie según el navegador (la hora coincide con el inicio del 1er partido).
@@ -173,7 +205,7 @@ function renderHome(ctx) {
     ${deadlineBanner(ctx.rules)}
     ${simulationBanner(ctx.rules)}
     ${statusBanner(ctx.official)}
-    ${completedGroupsBanner(ctx.official)}
+    ${completedRoundBanner(ctx) || completedGroupsBanner(ctx.official)}
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
     ${ctx.movements.hasSnapshot ? `<h2 class="section">Movimiento <span class="muted">· desde ${esc(ctx.snapshot.label || "el último corte")}</span></h2>${topMoversPanel(ctx)}` : ""}
