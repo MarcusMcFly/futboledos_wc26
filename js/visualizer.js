@@ -8,7 +8,7 @@ import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission, loadA
 import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
-import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes, koRoundQualifierLeaders } from "./stats.js";
+import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes, koRoundQualifierLeaders, koRoundStats } from "./stats.js";
 import { computeMovements, topMovers, newLeader, computeStreaks, benchmarkCrossings } from "./history.js";
 import { projectUser } from "./projection.js";
 
@@ -810,8 +810,8 @@ function renderKoMatches(ctx) {
   for (const mid of ids) {
     const om = ctx.official.knockout[mid];
     if (om.round !== lastRound) {
-      // Al cambiar de ronda, cierra la anterior con su panel de "top players".
-      if (lastRound !== null) html += koRoundLeadersPanel(ctx, lastRound);
+      // Al cambiar de ronda, cierra la anterior con su "top players" + estadísticas.
+      if (lastRound !== null) html += koRoundFooter(ctx, lastRound);
       html += `<h3>${ROUND_LABEL[om.round] || om.round}</h3>`;
       lastRound = om.round;
     }
@@ -822,8 +822,14 @@ function renderKoMatches(ctx) {
       ${koDistBar(dist.qualifiers)}
       <span class="ml-meta muted">${played ? `${koScoreText(om)} · pasa ${esc(teamName(om.qualified))}` : `${dist.total} pred.`}</span></a>`;
   }
-  if (lastRound !== null) html += koRoundLeadersPanel(ctx, lastRound);
+  if (lastRound !== null) html += koRoundFooter(ctx, lastRound);
   $app.innerHTML = html;
+}
+
+// Pie de una ronda en la lista de eliminatoria: el "top acertantes" y, debajo, las
+// estadísticas destacadas (sorpresa, cruces y marcadores exactos).
+function koRoundFooter(ctx, round) {
+  return koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round);
 }
 
 // "Top players" de una fase de eliminatoria: los participantes que más equipos que
@@ -849,6 +855,44 @@ function koRoundLeadersPanel(ctx, round) {
     <p class="kolead-h">🏅 Top acertantes de ${ROUND_LABEL[round] || round}
       <span class="muted">· quién pasa · ${cruces}${perfect}</span></p>
     <div class="movers">${items}</div></div>`;
+}
+
+// Estadísticas destacadas de una ronda, debajo del "Top acertantes": la sorpresa
+// (a qué eliminado respaldaba más gente), y los plenos de cruces y marcadores
+// exactos. "" mientras la ronda no tenga ningún cruce resuelto o nada que destacar.
+function koRoundStatsPanel(ctx, round) {
+  const s = koRoundStats(ctx.predictions, ctx.official, round);
+  if (!s) return "";
+  const blocks = [];
+
+  // Sorpresas: cruces donde la multitud más respaldó al que acabó cayendo.
+  const surprises = s.surprises.filter((x) => x.backedPct >= 50).slice(0, 3);
+  if (surprises.length) {
+    const rows = surprises.map((x) =>
+      `<a class="kostat-row" href="?komatch=${x.matchId}">
+        <span class="kostat-face">😱</span>
+        <span class="kostat-txt"><strong>${esc(teamName(x.eliminated))}</strong> eliminado
+          <span class="muted">— lo daban clasificado el ${x.backedPct}% · pasó ${esc(teamName(x.qualified))}</span></span></a>`).join("");
+    blocks.push(`<div class="kostat-block"><p class="kostat-h">😱 La sorpresa de la ronda</p>${rows}</div>`);
+  }
+
+  // Cruces exactos (ambos equipos) y marcadores exactos: podios de participantes.
+  const podium = (rows, verb) => rows.slice(0, 5).map((r) =>
+    `<a class="mover" href="?nick=${encodeURIComponent(r.nick)}">${esc(r.nick)} <b>${r.hits}</b></a>`).join("") ||
+    `<span class="muted">Nadie ${verb} todavía.</span>`;
+  if (s.exactFixtures.length)
+    blocks.push(`<div class="kostat-block"><p class="kostat-h">🤝 Más cruces exactos
+      <span class="muted">(ambos equipos, de ${s.resolved})</span></p>
+      <div class="movers">${podium(s.exactFixtures, "acertó un cruce")}</div></div>`);
+  if (s.exactScores.length)
+    blocks.push(`<div class="kostat-block"><p class="kostat-h">🎯 Más marcadores exactos
+      <span class="muted">(de ${s.resolved})</span></p>
+      <div class="movers">${podium(s.exactScores, "clavó un marcador")}</div></div>`);
+
+  if (!blocks.length) return "";
+  return `<div class="kostats">
+    <p class="kostats-h">📊 Estadísticas de ${ROUND_LABEL[round] || round}</p>
+    ${blocks.join("")}</div>`;
 }
 
 // ── Vista: detalle de un partido de eliminatoria ─────────────────────────────

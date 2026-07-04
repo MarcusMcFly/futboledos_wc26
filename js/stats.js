@@ -281,6 +281,70 @@ export function koRoundQualifierLeaders(predictions, official, round) {
   return { round, resolved: ids.length, perfect: leaders.filter((r) => r.hits === ids.length).length, leaders };
 }
 
+/**
+ * Estadísticas destacadas de una RONDA de eliminatoria ya (parcialmente) resuelta,
+ * para pintar debajo del "Top acertantes" de la ronda. null si no hay ningún cruce
+ * decidido. Solo mira los cruces de la ronda con `qualified` oficial.
+ *
+ * - `surprises`: por cada cruce, el equipo que ACABÓ eliminado y el % de
+ *   participantes que lo daban clasificado (el "batacazo": cuanto más respaldo tenía
+ *   el que cayó, mayor la sorpresa). Ordenado de mayor a menor respaldo al eliminado.
+ * - `exactFixtures`: ranking de participantes por nº de cruces con AMBOS equipos
+ *   acertados (sobre los resueltos), de más a menos (empate → alfabético).
+ * - `exactScores`: ídem por nº de marcadores exactos (mismo cruce + mismo resultado
+ *   de tiempo reglamentario; los penaltis no cuentan para el exacto).
+ * - `qualCounts`: nº de clasificados ("quién pasa") acertados por cada participante,
+ *   incluidos los ceros, para ver el reparto de equipos-que-pasan por usuario.
+ */
+export function koRoundStats(predictions, official, round) {
+  const ids = Object.keys(official.knockout).filter((id) => {
+    const m = official.knockout[id];
+    return m.round === round && m.hg != null && m.ag != null && m.qualified;
+  }).sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+  if (!ids.length) return null;
+
+  // Sorpresas: por cada cruce, cuántos daban clasificado al que acabó eliminado.
+  const surprises = [];
+  for (const id of ids) {
+    const om = official.knockout[id];
+    const eliminated = om.qualified === om.home ? om.away : om.home;
+    let backed = 0, total = 0;
+    for (const p of predictions) {
+      const m = p.knockout[id];
+      if (!m || !m.qualified) continue;
+      total++;
+      if (m.qualified === eliminated) backed++;
+    }
+    if (total > 0)
+      surprises.push({ matchId: id, eliminated, qualified: om.qualified, backed, total, backedPct: pctOf(backed, total) });
+  }
+  surprises.sort((a, b) => b.backedPct - a.backedPct);
+
+  // Aciertos por participante: cruces exactos, marcadores exactos y clasificados.
+  const exactFixtures = [], exactScores = [], qualCounts = [];
+  for (const p of predictions) {
+    let fx = 0, sc = 0, ql = 0;
+    for (const id of ids) {
+      const om = official.knockout[id], m = p.knockout[id];
+      if (!m) continue;
+      if (m.qualified && m.qualified === om.qualified) ql++;
+      if (m.home === om.home && m.away === om.away) {
+        fx++;
+        if (m.hg === om.hg && m.ag === om.ag) sc++;
+      }
+    }
+    qualCounts.push({ nick: p.nick, hits: ql });
+    if (fx > 0) exactFixtures.push({ nick: p.nick, hits: fx });
+    if (sc > 0) exactScores.push({ nick: p.nick, hits: sc });
+  }
+  const byHits = (a, b) => b.hits - a.hits || a.nick.localeCompare(b.nick);
+  exactFixtures.sort(byHits);
+  exactScores.sort(byHits);
+  qualCounts.sort(byHits);
+
+  return { round, resolved: ids.length, surprises, exactFixtures, exactScores, qualCounts };
+}
+
 /** Campeón más votado: distribución de campeones pronosticados. */
 export function championDistribution(predictions) {
   const c = new Map();
