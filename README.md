@@ -215,8 +215,12 @@ Dieciseisavos · ✅ 11/16 quién pasa
 
 - **🤝 exacto** (dorado sólido) — acertaste cruce **y** marcador: la jugada del +6.
 - **🤝 cruce** (dorado suave) — los dos equipos del cruce, aunque falles el marcador.
-- **→ equipo ✅** (verde) — acertaste **quién pasa**; el `11/16` de la cabecera son,
-  precisamente, todos esos resaltados de la ronda contados de un golpe de vista.
+- **→ equipo ✅** (verde) — ese equipo **pasa de verdad**, lo hayas cruzado como lo
+  hayas cruzado. El `11/16` de la cabecera cuenta cuántos de tus clasificados de la ronda
+  acabaron pasando, **vayan por el cruce que sea** (no hace falta que aciertes el
+  emparejamiento). Es un contador informativo e independiente de los puntos: un equipo
+  puede pasar y sumar al `x/16` aunque ese cruce concreto no te dé puntos por ir por otra
+  llave. Los puntos del cuadro siguen premiando el acierto por posición.
 
 Y el mismo **«Top de puntos de la fase»** se replica aquí con **tu fila resaltada**,
 para ver en qué puesto quedaste en cada eliminatoria sin salir de tu página.

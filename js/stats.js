@@ -257,28 +257,34 @@ export function koHeroes(predictions, official, matchId) {
 
 /**
  * "Top players" de una RONDA de eliminatoria: ranking de participantes por número de
- * clasificados ("quién pasa") acertados, contando SOLO los partidos de esa ronda ya
- * resueltos (con `qualified` oficial). Es el resumen por fase que se repite tras cada
- * ronda. Devuelve null si la ronda no tiene ningún partido resuelto todavía.
- * `resolved` = nº de cruces de la ronda ya decididos; `perfect` = cuántos acertaron
+ * equipos-que-pasan acertados. Cuenta cuántos de los clasificados oficiales de la ronda
+ * (cruces ya resueltos) figuran entre los que el participante da como clasificados en esa
+ * ronda, VAYAN POR EL CRUCE QUE SEA (intersección de conjuntos, no por posición de slot).
+ * Es el resumen por fase que se repite tras cada ronda. Devuelve null si la ronda no tiene
+ * ningún clasificado oficial todavía.
+ * `resolved` = nº de clasificados oficiales de la ronda; `perfect` = cuántos los acertaron
  * todos; `leaders` = [{nick, hits}] con hits>0, de más a menos (empate → alfabético).
  */
 export function koRoundQualifierLeaders(predictions, official, round) {
-  const ids = Object.keys(official.knockout).filter((id) => {
+  const roundIds = Object.keys(official.knockout).filter((id) => official.knockout[id].round === round);
+  // Equipos que REALMENTE pasan en esta ronda (cruces oficiales ya resueltos).
+  const offQ = new Set();
+  for (const id of roundIds) {
     const m = official.knockout[id];
-    return m.round === round && m.hg != null && m.ag != null && m.qualified;
-  });
-  if (!ids.length) return null;
+    if (m.hg != null && m.ag != null && m.qualified) offQ.add(m.qualified);
+  }
+  if (!offQ.size) return null;
   const leaders = predictions.map((p) => {
+    // Clasificados que el participante da en esta ronda (cualquier slot). Contamos
+    // cuántos pasan de verdad, vayan por el cruce que sea (intersección de conjuntos).
+    const userQ = new Set();
+    for (const id of roundIds) { const m = p.knockout[id]; if (m && m.qualified) userQ.add(m.qualified); }
     let hits = 0;
-    for (const id of ids) {
-      const m = p.knockout[id];
-      if (m && m.qualified && m.qualified === official.knockout[id].qualified) hits++;
-    }
+    for (const t of userQ) if (offQ.has(t)) hits++;
     return { nick: p.nick, hits };
   }).filter((r) => r.hits > 0)
     .sort((a, b) => b.hits - a.hits || a.nick.localeCompare(b.nick));
-  return { round, resolved: ids.length, perfect: leaders.filter((r) => r.hits === ids.length).length, leaders };
+  return { round, resolved: offQ.size, perfect: leaders.filter((r) => r.hits === offQ.size).length, leaders };
 }
 
 /**
@@ -321,18 +327,25 @@ export function koRoundStats(predictions, official, round) {
   surprises.sort((a, b) => b.backedPct - a.backedPct);
 
   // Aciertos por participante: cruces exactos, marcadores exactos y clasificados.
+  // Cruces/marcadores exactos son por slot (el cruce ES el emparejamiento). El reparto
+  // de clasificados es set-based: equipos que pasan de verdad, vayan por el cruce que sea.
+  const roundIds = Object.keys(official.knockout).filter((id) => official.knockout[id].round === round);
+  const offQ = new Set(ids.map((id) => official.knockout[id].qualified));
   const exactFixtures = [], exactScores = [], qualCounts = [];
   for (const p of predictions) {
-    let fx = 0, sc = 0, ql = 0;
+    let fx = 0, sc = 0;
     for (const id of ids) {
       const om = official.knockout[id], m = p.knockout[id];
       if (!m) continue;
-      if (m.qualified && m.qualified === om.qualified) ql++;
       if (m.home === om.home && m.away === om.away) {
         fx++;
         if (m.hg === om.hg && m.ag === om.ag) sc++;
       }
     }
+    const userQ = new Set();
+    for (const id of roundIds) { const m = p.knockout[id]; if (m && m.qualified) userQ.add(m.qualified); }
+    let ql = 0;
+    for (const t of userQ) if (offQ.has(t)) ql++;
     qualCounts.push({ nick: p.nick, hits: ql });
     if (fx > 0) exactFixtures.push({ nick: p.nick, hits: fx });
     if (sc > 0) exactScores.push({ nick: p.nick, hits: sc });

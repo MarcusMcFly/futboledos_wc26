@@ -127,6 +127,16 @@ eq(lead.leaders.map((r) => [r.nick, r.hits]), [["A", 2], ["D", 2], ["B", 1]],
 eq(lead.perfect, 2, "ko-top: 2 con pleno (2/2)");
 ok(koRoundQualifierLeaders(predsKo, offKo, "OCTAVOS") === null, "ko-top: null si la ronda no tiene cruces resueltos");
 
+// Set-based: cuenta los equipos que pasan de verdad aunque el participante los ponga
+// en otro cruce (otro slot). E cruza CA↔MA de slot: por posición serían 0 aciertos,
+// pero ambos pasan → 2 (vayan por el cruce que sea).
+const off2 = { knockout: { M73: KO("DIECISEISAVOS", "CA"), M74: KO("DIECISEISAVOS", "MA") } };
+const lead2 = koRoundQualifierLeaders(
+  [kp("E", { M73: { qualified: "MA" }, M74: { qualified: "CA" } })], off2, "DIECISEISAVOS");
+eq(lead2.leaders.map((r) => [r.nick, r.hits]), [["E", 2]],
+  "ko-top set-based: cuenta equipos que pasan aunque estén en otro slot");
+eq(lead2.perfect, 1, "ko-top set-based: pleno aunque los cruces no coincidan por posición");
+
 function round1(n) { return Math.round(n * 10) / 10; }
 console.log(`\nstats: ${pass} OK, ${fail} fallos`);
 process.exit(fail ? 1 : 0);

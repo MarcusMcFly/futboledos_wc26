@@ -419,7 +419,7 @@ function renderUser(ctx, nick) {
       <li><span>Ganadores de grupo</span><b>${d.correct_group_winners}/12</b></li>
       <li><span>Rankings de grupo perfectos <span class="muted">(orden exacto)</span></span><b>${perfectRankGroups}/12</b></li>
       <li><span>Mejores terceros</span><b>${d.correct_best_thirds}/8</b></li>
-      <li><span>Clasificados de eliminatoria</span><b>${d.correct_qualified_knockout_teams}/32</b></li>
+      <li><span>Clasificados por cruce <span class="muted">(desempate)</span></span><b>${d.correct_qualified_knockout_teams}/32</b></li>
     </ul>
     <p class="champ">${champRow}</p>
     <h2 class="section">Fase de grupos · partido a partido</h2>
@@ -620,15 +620,20 @@ function koBreakdown(ctx, scored, pred) {
   }
   let html = "";
   for (const grp of byRound) {
-    let qHits = 0, qResolved = 0;
+    // Equipos que REALMENTE pasan en esta ronda (clasificados oficiales resueltos).
+    // "Quién pasa" es set-based: cuenta tus equipos que pasan, vayan por el cruce que sea.
+    const offQ = new Set();
+    for (const mid of grp.mids) { const q = off.knockout[mid].qualified; if (q) offQ.add(q); }
+    let qHits = 0;
+    const qResolved = offQ.size;
     const lines = grp.mids.map((mid) => {
       const om = off.knockout[mid];
       const pm = pred.knockout[mid];
       const res = scored.breakdown.koDetails[mid] || { points: 0, status: "pending" };
-      if (om.qualified) qResolved++;
-      if (res.correctQualified) qHits++;
+      const qHit = !!(pm && pm.qualified && offQ.has(pm.qualified));
+      if (qHit) qHits++;
       // Muestra el fixture y marcador PREDICHOS (pueden diferir del oficial).
-      return matchLine(teamName(pm && pm.home), teamName(pm && pm.away), pm, om, res, pm && pm.qualified);
+      return matchLine(teamName(pm && pm.home), teamName(pm && pm.away), pm, om, res, pm && pm.qualified, qHit);
     }).join("");
     const qTag = qResolved
       ? ` <span class="ko-qcount">· ✅ <b>${qHits}/${qResolved}</b> quién pasa</span>` : "";
@@ -637,7 +642,7 @@ function koBreakdown(ctx, scored, pred) {
   return html;
 }
 
-function matchLine(homeN, awayN, pm, om, res, qualified) {
+function matchLine(homeN, awayN, pm, om, res, qualified, qHit) {
   const predScore = pm && pm.hg != null ? `${pm.hg}–${pm.ag}` : "—";
   // Réplica del cruce oficial real (equipos + marcador + penaltis), que puede
   // diferir de la fixture predicha que se muestra a la izquierda.
@@ -656,9 +661,10 @@ function matchLine(homeN, awayN, pm, om, res, qualified) {
     badge = "+" + res.points;
   }
   else { cls = "m-zero"; badge = "0"; }
-  // Resalta el "quién pasa" acertado (correctQualified) para verlo de un vistazo.
+  // Resalta el "quién pasa" acertado para verlo de un vistazo. Set-based: tu equipo pasa
+  // de verdad, vaya por este cruce o por otro (independiente de los puntos del slot).
   const q = qualified
-    ? ` <span class="m-q${res.correctQualified ? " m-q-ok" : " muted"}">→ ${esc(teamName(qualified))}${res.correctQualified ? " ✅" : ""}</span>`
+    ? ` <span class="m-q${qHit ? " m-q-ok" : " muted"}">→ ${esc(teamName(qualified))}${qHit ? " ✅" : ""}</span>`
     : "";
   return `<div class="m ${cls}">
     <span class="m-fix">${esc(homeN)} <b>${predScore}</b> ${esc(awayN)}${q}${tag}</span>
