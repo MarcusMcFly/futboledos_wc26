@@ -168,6 +168,19 @@ export function scoreProgression(pred, off, rules) {
   return { points: reachPoints + extraPoints, reachPoints, extraPoints, thirdCorrect, fourthCorrect, teams };
 }
 
+// Incremento del bonus de progresión que un equipo con alcance acreditado `credited`
+// (mín. entre lo pronosticado y lo conseguido) aporta a la FASE `round`: el escalón que
+// GENERAN los partidos de esa ronda, es decir, avanzar de ella a la siguiente
+// (dieciseisavos → octavos = round_of_16, octavos → cuartos = quarter_final, …, semis →
+// final = runner_up, final → campeón = champion − runner_up). Así cada fase suma solo lo
+// que produce jugarla y el total (sin el round_of_32, que es de grupos) reparte sin
+// solapes. 0 si el equipo no supera esa ronda. `round` = sección del parser.
+export function progressionRoundIncrement(credited, round, r) {
+  const lo = REACH_RANK[round];
+  if (!lo) return 0;
+  return cumulativeReachPoints(Math.min(credited, lo + 1), r) - cumulativeReachPoints(Math.min(credited, lo), r);
+}
+
 // ── ¿Grupo oficialmente completo? (sus 6 partidos con resultado) ─────────────
 function offGroupComplete(off, g) {
   for (let i = 1; i <= 6; i++) {

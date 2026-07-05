@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { parsePrediction } from "../js/parse_prediction.js";
 import {
   scoreGroupMatch, scoreGroupRanking, scoreBestThirds, scoreKnockoutMatch,
-  scoreProgression, scoreParticipant,
+  scoreProgression, scoreParticipant, progressionRoundIncrement,
 } from "../js/scoring.js";
 import { buildLeaderboard } from "../js/leaderboard.js";
 import { buildPoolRanking } from "../js/pools.js";
@@ -103,6 +103,33 @@ for (const s of board) {
     String(s.details.exact_scores).padStart(7) +
     String(s.details.correct_group_winners).padStart(9));
 }
+
+// ── progressionRoundIncrement: atribución del bonus de progresión por fase ────
+// Interpretación II: cada fase acredita el escalón que GENERAN sus partidos, o sea
+// AVANZAR de esa ronda a la siguiente (no "estar" en ella).
+const pb = rules.progression_bonus;
+const ROUNDS = ["DIECISEISAVOS", "OCTAVOS", "CUARTOS", "SEMIS", "FINAL"];
+const sumSlices = (credited) => ROUNDS.reduce((s, rd) => s + progressionRoundIncrement(credited, rd, pb), 0);
+// Avanzar DE la ronda: dieciseisavos→octavos=R16, octavos→cuartos=QF, cuartos→semis=SF.
+eq(progressionRoundIncrement(2, "DIECISEISAVOS", pb), pb.round_of_16, "dieciseisavos → round_of_16 si avanza a octavos");
+eq(progressionRoundIncrement(1, "DIECISEISAVOS", pb), 0, "dieciseisavos → 0 si se queda en R32 (no avanza)");
+eq(progressionRoundIncrement(2, "OCTAVOS", pb), 0, "octavos → 0 si llega a octavos pero no pasa a cuartos");
+eq(progressionRoundIncrement(3, "OCTAVOS", pb), pb.quarter_final, "octavos → quarter_final si avanza a cuartos");
+eq(progressionRoundIncrement(4, "CUARTOS", pb), pb.semi_final, "cuartos → semi_final si avanza a semis");
+eq(progressionRoundIncrement(5, "SEMIS", pb), pb.runner_up, "semis → runner_up si avanza a la final (finalista)");
+// La final: el finalista que la pierde no suma nada nuevo; el campeón sube de finalista
+// a campeón (champion − runner_up).
+eq(progressionRoundIncrement(5, "FINAL", pb), 0, "final: finalista que pierde → 0 (no mejora)");
+eq(progressionRoundIncrement(6, "FINAL", pb), pb.champion - pb.runner_up, "final: campeón → champion − runner_up");
+// Propiedad clave: las porciones de fase suman el bonus acumulado total MENOS el
+// round_of_32 (reparto sin solapes; el R32 lo genera la fase de grupos, no la KO).
+const cumul = (rank) => (rank >= 1 ? pb.round_of_32 : 0) + (rank >= 2 ? pb.round_of_16 : 0)
+  + (rank >= 3 ? pb.quarter_final : 0) + (rank >= 4 ? pb.semi_final : 0)
+  + (rank >= 6 ? pb.champion : rank === 5 ? pb.runner_up : 0);
+eq(sumSlices(6), cumul(6) - pb.round_of_32, "porciones KO = bonus de campeón − R32");
+eq(sumSlices(5), cumul(5) - pb.round_of_32, "porciones KO = bonus de finalista − R32");
+eq(sumSlices(3), cumul(3) - pb.round_of_32, "porciones KO = bonus de cuartofinalista − R32");
+ok(progressionRoundIncrement(6, "TERCER_PUESTO", pb) === 0, "tercer puesto no aporta escalón de progresión");
 
 // Pool ranking.
 const reg = JSON.parse(readFileSync(join(root, "data/registry.json"), "utf8"));

@@ -11,6 +11,7 @@ import { buildPoolRanking } from "./pools.js";
 import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes, koRoundQualifierLeaders, koRoundStats } from "./stats.js";
 import { computeMovements, topMovers, newLeader, computeStreaks, benchmarkCrossings } from "./history.js";
 import { projectUser } from "./projection.js";
+import { progressionRoundIncrement } from "./scoring.js";
 
 // Participante "de referencia": muy conocido, sirve de vara de medir. Cuando
 // alguien lo adelanta (o cae por detrás) en una actualización, se destaca.
@@ -826,10 +827,60 @@ function renderKoMatches(ctx) {
   $app.innerHTML = html;
 }
 
-// Pie de una ronda en la lista de eliminatoria: el "top acertantes" y, debajo, las
-// estadísticas destacadas (sorpresa, cruces y marcadores exactos).
+// Pie de una ronda en la lista de eliminatoria: el "top de puntos" de la fase, el
+// "top acertantes" de quién pasa y, debajo, las estadísticas destacadas.
 function koRoundFooter(ctx, round) {
-  return koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round);
+  return koRoundPointsPanel(ctx, round) + koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round);
+}
+
+// Puntos que cada participante sacó DE ESTA FASE, combinando cuadro + pase:
+//   · cuadro  = puntos de los cruces ya resueltos de la ronda (equipos + marcador +
+//               quién pasa), tal cual los da el motor en breakdown.koDetails.
+//   · prog    = incremento del bonus de progresión que generan estos partidos, es
+//               decir, sus equipos que superan la ronda y avanzan a la siguiente
+//               (vía progressionRoundIncrement).
+// Solo cuenta cruces ya jugados, así que la tabla se actualiza partido a partido.
+// `null` si la ronda aún no tiene ningún cruce resuelto.
+function koRoundPointLeaders(ctx, round) {
+  const off = ctx.official.knockout;
+  const resolvedMids = Object.keys(off).filter((mid) => {
+    const m = off[mid];
+    return m.round === round && m.hg != null && m.ag != null && m.qualified;
+  });
+  if (!resolvedMids.length) return null;
+  const r = ctx.rules.progression_bonus;
+  const rows = ctx.board.map((s) => {
+    let cuadro = 0;
+    for (const mid of resolvedMids) cuadro += (s.breakdown.koDetails[mid] || {}).points || 0;
+    let prog = 0;
+    for (const t of s.breakdown.progression.teams) prog += progressionRoundIncrement(t.credited, round, r);
+    if (round === "FINAL") prog += s.breakdown.progression.extraPoints || 0;   // 3.º/4.º puesto
+    return { nick: s.nick, cuadro, prog, points: cuadro + prog };
+  }).filter((x) => x.points > 0)
+    .sort((a, b) => b.points - a.points || b.cuadro - a.cuadro || a.nick.localeCompare(b.nick));
+  return { round, leaders: rows, resolved: resolvedMids.length };
+}
+
+// "Top de puntos" de una fase de eliminatoria: quién sacó más puntos de la ronda
+// (cuadro + progresión). Se pinta debajo de la lista de partidos de la fase y crece
+// partido a partido. "" mientras la ronda no tenga ningún cruce resuelto.
+function koRoundPointsPanel(ctx, round) {
+  const data = koRoundPointLeaders(ctx, round);
+  if (!data || !data.leaders.length) return "";
+  let lastPts = null, place = 0;
+  const items = data.leaders.slice(0, 8).map((r) => {
+    if (r.points !== lastPts) { place++; lastPts = r.points; }
+    const medal = place <= 3 ? KO_MEDAL[place - 1] : "•";
+    const detail = r.prog > 0 ? `cuadro ${r.cuadro} · prog +${r.prog}` : `cuadro ${r.cuadro}`;
+    return `<a class="mover kolead-row" href="?nick=${encodeURIComponent(r.nick)}">
+      <span class="kolead-m">${medal}</span> ${esc(r.nick)}
+      <b class="kolead-n">${r.points}</b> <span class="kolead-d muted">${detail}</span></a>`;
+  }).join("");
+  const cruces = `${data.resolved} ${data.resolved === 1 ? "cruce" : "cruces"}`;
+  return `<div class="kolead">
+    <p class="kolead-h">🏆 Top de puntos de ${ROUND_LABEL[round] || round}
+      <span class="muted">· cuadro + progresión · ${cruces}</span></p>
+    <div class="movers">${items}</div></div>`;
 }
 
 // "Top players" de una fase de eliminatoria: los participantes que más equipos que

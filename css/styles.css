@@ -264,6 +264,7 @@ td.lb-mov { width: 2.6rem; }
 .kolead-row { gap: 0.45rem; font-size: 0.86rem; }
 .kolead-m { line-height: 1; }
 .kolead-n { color: var(--accent); font-weight: 600; }
+.kolead-d { font-size: 0.78rem; }
 .kolead-perfect { color: var(--accent); }
 
 /* Estadísticas de ronda (bajo el "Top acertantes") */
