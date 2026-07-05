@@ -182,7 +182,44 @@ Acertaron el marcador exacto ......  5 / 24
 Fíjate en el embudo: casi todos vieron pasar a Francia (23/24), la mitad acertó el
 **cruce** exacto (los dos equipos) y solo 5 clavaron el **3–0**. Cada nivel puntúa
 distinto, y ese último grupo es el que se lleva el +6. Debajo de cada ronda, la web
-añade un **«Top acertantes por fase»** con quién lleva más clasificados acertados.
+añade dos paneles que crecen **cruce a cruce**: el **«Top acertantes por fase»**
+(quién lleva más clasificados acertados) y un **«Top de puntos de la fase»**, que
+suma lo que cada uno sacó del **cuadro** (equipos + marcador + quién pasa) más el
+**bonus de progresión que generan esos mismos partidos** (sus equipos que superan la
+ronda y avanzan a la siguiente):
+
+```
+🏆 Top de puntos de Octavos · cuadro + progresión · 2 cruces
+  🥇 Blazquez_96   27   (cuadro 15 · prog +12)
+  🥈 Morses        27   (cuadro 15 · prog +12)
+  🥉 Asturfutbol   24   (cuadro 12 · prog +12)
+```
+
+Cada fase reparte **su propio escalón** de progresión sin solaparse con las demás, de
+modo que las porciones de todas las rondas suman exactamente el bonus total de cada
+equipo. Así, quien mejor pobló su cuadro escala aunque aún se estén jugando los cruces.
+
+### 5) Tu ficha: la eliminatoria, cruce a cruce
+
+Cada nombre enlaza a su **ficha**, y ahí la fase eliminatoria se lee de un vistazo. La
+cabecera de cada ronda cuenta tus aciertos de **quién pasa** y cada línea marca, por
+color e icono, *cuánto* acertaste del cruce (ejemplo ilustrativo con marcadores de
+muestra):
+
+```
+Dieciseisavos · ✅ 11/16 quién pasa
+  Francia   3–0  Paraguay   → Francia ✅    🤝 exacto   +13
+  Croacia   2–1  Japón      → Croacia ✅    🤝 cruce     +7
+  Portugal  2–1  Noruega    → Portugal                    0
+```
+
+- **🤝 exacto** (dorado sólido) — acertaste cruce **y** marcador: la jugada del +6.
+- **🤝 cruce** (dorado suave) — los dos equipos del cruce, aunque falles el marcador.
+- **→ equipo ✅** (verde) — acertaste **quién pasa**; el `11/16` de la cabecera son,
+  precisamente, todos esos resaltados de la ronda contados de un golpe de vista.
+
+Y el mismo **«Top de puntos de la fase»** se replica aquí con **tu fila resaltada**,
+para ver en qué puesto quedaste en cada eliminatoria sin salir de tu página.
 
 **Enlaces para curiosear la web real:**
 [clasificación](https://marcusmcfly.github.io/futboledos_wc26/index.html?view=all) ·
