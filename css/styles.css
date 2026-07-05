@@ -165,10 +165,16 @@ ul.kv li span { color: var(--muted); }
 .m-pts { flex: 0 0 3.2rem; text-align: right; font-weight: 700; }
 .m.m-exact { border-left-color: var(--accent); }
 .m.m-exact .m-pts { color: var(--accent); }
+.m.m-fixture { border-left-color: #d29922; }
+.m.m-fixture .m-pts { color: #d29922; }
 .m.m-points { border-left-color: #2f81f7; }
 .m.m-points .m-pts { color: #2f81f7; }
 .m.m-zero .m-pts, .m.m-none .m-pts, .m.m-pending .m-pts { color: var(--muted); }
 .m.m-none { opacity: 0.6; }
+.m-tag { margin-left: 0.45rem; font-size: 0.7rem; font-weight: 600; padding: 0.05rem 0.4rem;
+  border-radius: 999px; vertical-align: middle; white-space: nowrap; }
+.m-tag-exact { background: rgba(46,160,67,0.18); color: var(--accent); }
+.m-tag-fix { background: rgba(210,153,34,0.18); color: #d29922; }
 
 /* ─────────── Estadísticas (Parte 2, Fase 4) ─────────── */
 .more { color: var(--accent); text-decoration: none; font-weight: 600; }
@@ -265,6 +271,8 @@ td.lb-mov { width: 2.6rem; }
 .kolead-m { line-height: 1; }
 .kolead-n { color: var(--accent); font-weight: 600; }
 .kolead-d { font-size: 0.78rem; }
+.kolead-me { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); font-weight: 600; }
+.kolead-gap { align-self: center; padding: 0 0.15rem; }
 .kolead-perfect { color: var(--accent); }
 
 /* Estadísticas de ronda (bajo el "Top acertantes") */

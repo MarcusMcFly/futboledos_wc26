@@ -399,6 +399,7 @@ function renderUser(ctx, nick) {
     return r && r.completeOrder;
   }).length;
   const chips = poolChips(ctx, nick) || `<span class="muted">sin pool</span>`;
+  const koPhaseSection = koUserPhaseBreakdown(ctx, nick);
   const champRow = ctx.official.champion
     ? `Campeón: <strong>${esc(teamName(pred.champion))}</strong> ${d.correct_champion ? "✅" : "❌ (oficial: " + esc(teamName(ctx.official.champion)) + ")"}`
     : `Campeón pronosticado: <strong>${esc(teamName(pred.champion))}</strong> <span class="muted">(pendiente)</span>`;
@@ -427,6 +428,9 @@ function renderUser(ctx, nick) {
     ${koBreakdown(ctx, s, pred)}
     <h2 class="section">Bonus de progresión <span class="muted">· ${sc.progression_bonus_points} pts</span></h2>
     ${progressionBreakdown(ctx, s)}
+    ${koPhaseSection ? `<h2 class="section">Puntos por fase de eliminatoria</h2>
+    <p class="muted">Lo mismo que se ve en cada fase de la vista de eliminatorias, con tu fila resaltada.</p>
+    ${koPhaseSection}` : ""}
     <h2 class="section">Tu techo · ¿hasta dónde puedes llegar?</h2>
     ${maxProjection(ctx, nick)}`;
 }
@@ -627,14 +631,21 @@ function matchLine(homeN, awayN, pm, om, res, qualified) {
   const offScore = om && om.hg != null
     ? `${esc(teamName(om.home))} ${koScoreText(om)} ${esc(teamName(om.away))}`
     : "pendiente";
-  let cls = "m-pending", badge = "·";
+  // Marca visual del acierto del cruce: exacto (ambos equipos + marcador), cruce
+  // acertado (ambos equipos, marcador no), o parcial (algún punto sin acertar el cruce).
+  let cls = "m-pending", badge = "·", tag = "";
   if (res.status === "no_prediction") { cls = "m-none"; badge = "sin pred."; }
   else if (res.status === "pending") { cls = "m-pending"; badge = "pte"; }
-  else if (res.points > 0) { cls = res.exact ? "m-exact" : "m-points"; badge = "+" + res.points; }
+  else if (res.points > 0) {
+    if (res.exact) { cls = "m-exact"; tag = `<span class="m-tag m-tag-exact">🎯 exacto</span>`; }
+    else if (res.sameFixture) { cls = "m-fixture"; tag = `<span class="m-tag m-tag-fix">🤝 cruce</span>`; }
+    else { cls = "m-points"; }
+    badge = "+" + res.points;
+  }
   else { cls = "m-zero"; badge = "0"; }
   const q = qualified ? ` <span class="muted">→ ${esc(teamName(qualified))}</span>` : "";
   return `<div class="m ${cls}">
-    <span class="m-fix">${esc(homeN)} <b>${predScore}</b> ${esc(awayN)}${q}</span>
+    <span class="m-fix">${esc(homeN)} <b>${predScore}</b> ${esc(awayN)}${q}${tag}</span>
     <span class="m-off muted">oficial: ${offScore}</span>
     <span class="m-pts">${badge}</span></div>`;
 }
@@ -858,29 +869,46 @@ function koRoundPointLeaders(ctx, round) {
     return { nick: s.nick, cuadro, prog, points: cuadro + prog };
   }).filter((x) => x.points > 0)
     .sort((a, b) => b.points - a.points || b.cuadro - a.cuadro || a.nick.localeCompare(b.nick));
+  let lastPts = null, place = 0;
+  rows.forEach((r) => { if (r.points !== lastPts) { place++; lastPts = r.points; } r.place = place; });
   return { round, leaders: rows, resolved: resolvedMids.length };
 }
 
 // "Top de puntos" de una fase de eliminatoria: quién sacó más puntos de la ronda
-// (cuadro + progresión). Se pinta debajo de la lista de partidos de la fase y crece
-// partido a partido. "" mientras la ronda no tenga ningún cruce resuelto.
-function koRoundPointsPanel(ctx, round) {
+// (cuadro + progresión). Se pinta igual debajo de la lista de partidos de la fase y en
+// la ficha de cada usuario. `highlightNick` resalta su fila y, si queda fuera del top 8,
+// añade su fila al final con su puesto real. "" mientras la ronda no tenga cruce resuelto.
+function koRoundPointsPanel(ctx, round, highlightNick = null) {
   const data = koRoundPointLeaders(ctx, round);
   if (!data || !data.leaders.length) return "";
-  let lastPts = null, place = 0;
-  const items = data.leaders.slice(0, 8).map((r) => {
-    if (r.points !== lastPts) { place++; lastPts = r.points; }
-    const medal = place <= 3 ? KO_MEDAL[place - 1] : "•";
+  const koRow = (r) => {
+    const medal = r.place <= 3 ? KO_MEDAL[r.place - 1] : (r.place <= 8 ? "•" : "#" + r.place);
     const detail = r.prog > 0 ? `cuadro ${r.cuadro} · prog +${r.prog}` : `cuadro ${r.cuadro}`;
-    return `<a class="mover kolead-row" href="?nick=${encodeURIComponent(r.nick)}">
+    const me = r.nick === highlightNick ? " kolead-me" : "";
+    return `<a class="mover kolead-row${me}" href="?nick=${encodeURIComponent(r.nick)}">
       <span class="kolead-m">${medal}</span> ${esc(r.nick)}
       <b class="kolead-n">${r.points}</b> <span class="kolead-d muted">${detail}</span></a>`;
-  }).join("");
+  };
+  const meIdx = highlightNick ? data.leaders.findIndex((r) => r.nick === highlightNick) : -1;
+  const items = data.leaders.slice(0, 8).map(koRow).join("")
+    + (meIdx >= 8 ? `<span class="kolead-gap muted">…</span>` + koRow(data.leaders[meIdx]) : "");
   const cruces = `${data.resolved} ${data.resolved === 1 ? "cruce" : "cruces"}`;
   return `<div class="kolead">
     <p class="kolead-h">🏆 Top de puntos de ${ROUND_LABEL[round] || round}
       <span class="muted">· cuadro + progresión · ${cruces}</span></p>
     <div class="movers">${items}</div></div>`;
+}
+
+// Réplica del "Top de puntos" fase a fase en la ficha de un usuario, con su fila
+// resaltada: para que cada participante vea lo mismo que en la vista de eliminatorias,
+// contextualizado a él. "" si aún no hay ninguna fase con partidos jugados.
+function koUserPhaseBreakdown(ctx, nick) {
+  const rounds = [];
+  for (const mid of Object.keys(ctx.official.knockout).sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)))) {
+    const rd = ctx.official.knockout[mid].round;
+    if (!rounds.includes(rd)) rounds.push(rd);
+  }
+  return rounds.map((rd) => koRoundPointsPanel(ctx, rd, nick)).filter(Boolean).join("");
 }
 
 // "Top players" de una fase de eliminatoria: los participantes que más equipos que
