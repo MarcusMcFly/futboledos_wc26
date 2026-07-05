@@ -114,22 +114,28 @@ export function projectUser(nick, { board, byNick, predByNick, official, rules }
     sc.rank = i > 0 && dreamScored[i - 1].score.total === sc.score.total ? dreamScored[i - 1].rank : i + 1;
   });
   const dreamByNick = new Map(dreamScored.map((sc) => [sc.nick, sc]));
-  const rankAtCeiling = dreamByNick.get(nick).rank;
+  const myDream = dreamByNick.get(nick);
+  const rankAtCeiling = myDream.rank;
 
-  // Clasificación de rivales por rangos [actual, techo] (los puntos solo suben, así
-  // que el mínimo de cada uno es su total actual y el máximo su techo):
-  //   · imposible de superar : su ACTUAL ya supera tu TECHO → jamás lo alcanzas.
-  //   · a tu alcance (arriba) : va por delante pero su actual ≤ tu techo.
-  //   · te pueden pasar (abajo): va por detrás/igual pero su techo ≥ tu actual.
+  // Clasificación de rivales teniendo en cuenta la INTERDEPENDENCIA: la pregunta
+  // "¿a quién puedo superar?" se decide en TU mundo ideal, no contra los marcadores
+  // congelados de hoy. Si tu quiniela se cumple, quienes coincidieron contigo también
+  // suben, así que "cazar" a alguien exige quedar por delante de él en ESE escenario.
+  //   · imposible de superar : aun cumpliéndose tu quiniela queda por encima de ti
+  //                            (su rank en tu mundo ideal < el tuyo) → no le adelantas.
+  //   · a tu alcance (arriba) : va por delante HOY, pero en tu mundo ideal quedas por
+  //                            encima de él → alcanzable.
+  //   · te pueden pasar (abajo): va por detrás/igual y su techo llega a tu actual.
   //   · ganado (abajo)        : su techo < tu actual → no te alcanza jamás.
   const impossible = [], catchable = [], threat = [], secured = [];
   for (const o of board) {
     if (o.nick === nick) continue;
     const oc = o.score.total, ce = ceilings.get(o.nick);
-    if (oc > ceiling) impossible.push({ nick: o.nick, current: oc, ceiling: ce });
-    else if (oc > current) catchable.push({ nick: o.nick, current: oc, ceiling: ce });
-    else if (ce >= current) threat.push({ nick: o.nick, current: oc, ceiling: ce });
-    else secured.push({ nick: o.nick, current: oc, ceiling: ce });
+    const entry = { nick: o.nick, current: oc, ceiling: ce };
+    if (dreamByNick.get(o.nick).rank < myDream.rank) impossible.push(entry);
+    else if (oc > current) catchable.push(entry);
+    else if (ce >= current) threat.push(entry);
+    else secured.push(entry);
   }
   impossible.sort((a, b) => a.current - b.current);   // los más cercanos primero
   catchable.sort((a, b) => b.current - a.current);    // los de justo por encima primero

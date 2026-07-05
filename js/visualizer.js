@@ -463,10 +463,10 @@ function maxProjection(ctx, nick) {
   // Bloques de rivales.
   const blocks = [];
   blocks.push(p.impossible.length
-    ? `<p class="proj-line proj-imposs">🚫 <strong>Ya no puedes superar a:</strong> ${nameList(p.impossible)} <span class="muted">— tienen más de lo que tú puedes llegar a sumar (tu techo: ${p.ceiling}).</span></p>`
-    : `<p class="proj-line proj-ok">✅ <strong>Nadie está fuera de tu alcance:</strong> en tu mejor escenario podrías dar caza a todo el mundo.</p>`);
+    ? `<p class="proj-line proj-imposs">🚫 <strong>Ya no puedes superar a:</strong> ${nameList(p.impossible)} <span class="muted">— aunque se cumpla toda tu quiniela quedarían por encima de ti (comparten tus aciertos y suben contigo). Tu mejor puesto posible es #${p.rankAtCeiling}.</span></p>`
+    : `<p class="proj-line proj-ok">✅ <strong>Nadie está fuera de tu alcance:</strong> si se cumpliera toda tu quiniela quedarías <strong>primero</strong>.</p>`);
   if (p.catchable.length)
-    blocks.push(`<p class="proj-line">🎯 <strong>A tu alcance por arriba:</strong> ${nameList(p.catchable)} <span class="muted">— van por delante pero su marcador actual cabe dentro de tu techo.</span></p>`);
+    blocks.push(`<p class="proj-line">🎯 <strong>A tu alcance por arriba:</strong> ${nameList(p.catchable)} <span class="muted">— van por delante hoy, pero si se cumple tu quiniela quedarías por encima de ellos.</span></p>`);
   if (p.threat.length)
     blocks.push(`<p class="proj-line">⚔️ <strong>Aún te pueden pasar:</strong> ${nameList(p.threat)} <span class="muted">— van por detrás pero su techo llega a tu marcador de hoy.</span></p>`);
   blocks.push(p.secured.length
