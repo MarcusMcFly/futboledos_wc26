@@ -611,15 +611,28 @@ function koBreakdown(ctx, scored, pred) {
   const off = ctx.official;
   const ids = Object.keys(off.knockout).sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
   if (!ids.length) return `<p class="muted">El bracket oficial aún no está disponible.</p>`;
-  let lastRound = null, html = "";
+  // Agrupa por ronda para anotar en la cabecera cuántos "quién pasa" se acertaron.
+  const byRound = [];
   for (const mid of ids) {
-    const om = off.knockout[mid];
-    if (om.round !== lastRound) { html += `<h3>${ROUND_LABEL[om.round] || om.round}</h3>`; lastRound = om.round; }
-    const pm = pred.knockout[mid];
-    const res = scored.breakdown.koDetails[mid] || { points: 0, status: "pending" };
-    // Muestra el fixture y marcador PREDICHOS (pueden diferir del oficial).
-    const homeN = teamName(pm && pm.home), awayN = teamName(pm && pm.away);
-    html += matchLine(homeN, awayN, pm, om, res, pm && pm.qualified);
+    const rd = off.knockout[mid].round;
+    if (!byRound.length || byRound[byRound.length - 1].round !== rd) byRound.push({ round: rd, mids: [] });
+    byRound[byRound.length - 1].mids.push(mid);
+  }
+  let html = "";
+  for (const grp of byRound) {
+    let qHits = 0, qResolved = 0;
+    const lines = grp.mids.map((mid) => {
+      const om = off.knockout[mid];
+      const pm = pred.knockout[mid];
+      const res = scored.breakdown.koDetails[mid] || { points: 0, status: "pending" };
+      if (om.qualified) qResolved++;
+      if (res.correctQualified) qHits++;
+      // Muestra el fixture y marcador PREDICHOS (pueden diferir del oficial).
+      return matchLine(teamName(pm && pm.home), teamName(pm && pm.away), pm, om, res, pm && pm.qualified);
+    }).join("");
+    const qTag = qResolved
+      ? ` <span class="ko-qcount">· ✅ <b>${qHits}/${qResolved}</b> quién pasa</span>` : "";
+    html += `<h3>${ROUND_LABEL[grp.round] || grp.round}${qTag}</h3>${lines}`;
   }
   return html;
 }
@@ -643,7 +656,10 @@ function matchLine(homeN, awayN, pm, om, res, qualified) {
     badge = "+" + res.points;
   }
   else { cls = "m-zero"; badge = "0"; }
-  const q = qualified ? ` <span class="muted">→ ${esc(teamName(qualified))}</span>` : "";
+  // Resalta el "quién pasa" acertado (correctQualified) para verlo de un vistazo.
+  const q = qualified
+    ? ` <span class="m-q${res.correctQualified ? " m-q-ok" : " muted"}">→ ${esc(teamName(qualified))}${res.correctQualified ? " ✅" : ""}</span>`
+    : "";
   return `<div class="m ${cls}">
     <span class="m-fix">${esc(homeN)} <b>${predScore}</b> ${esc(awayN)}${q}${tag}</span>
     <span class="m-off muted">oficial: ${offScore}</span>

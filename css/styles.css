@@ -175,6 +175,9 @@ ul.kv li span { color: var(--muted); }
   border-radius: 999px; vertical-align: middle; white-space: nowrap; }
 .m-tag-exact { background: rgba(46,160,67,0.18); color: var(--accent); }
 .m-tag-fix { background: rgba(210,153,34,0.18); color: #d29922; }
+.m-q-ok { color: var(--accent); font-weight: 600; }
+.ko-qcount { font-size: 0.8rem; font-weight: 400; color: var(--accent); }
+.ko-qcount b { color: var(--accent); }
 
 /* ─────────── Estadísticas (Parte 2, Fase 4) ─────────── */
 .more { color: var(--accent); text-decoration: none; font-weight: 600; }
