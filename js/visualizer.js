@@ -650,7 +650,7 @@ function matchLine(homeN, awayN, pm, om, res, qualified) {
   if (res.status === "no_prediction") { cls = "m-none"; badge = "sin pred."; }
   else if (res.status === "pending") { cls = "m-pending"; badge = "pte"; }
   else if (res.points > 0) {
-    if (res.exact) { cls = "m-exact"; tag = `<span class="m-tag m-tag-exact">🎯 exacto</span>`; }
+    if (res.exact) { cls = "m-exact"; tag = `<span class="m-tag m-tag-exact">🤝 exacto</span>`; }
     else if (res.sameFixture) { cls = "m-fixture"; tag = `<span class="m-tag m-tag-fix">🤝 cruce</span>`; }
     else { cls = "m-points"; }
     badge = "+" + res.points;
