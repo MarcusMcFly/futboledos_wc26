@@ -90,7 +90,7 @@ Antes del resultado                    Después (snapshot → tablero vivo)
 ```
 Movimiento · desde el último corte
   ▲2  Txauri
-  👀  La línea de JesusGG: 🟢 Txauri adelantó a JesusGG
+  👀  La línea de JesusGG: 🟡 Txauri adelantó a JesusGG
 ```
 
 Un único +6 catapulta a Txauri de **#5 a #3**. La columna **Exa** (marcadores

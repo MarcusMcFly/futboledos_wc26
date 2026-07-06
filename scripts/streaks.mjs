@@ -52,6 +52,6 @@ if (relegation.length) {
 }
 if (hasCross) {
   console.log(`La línea de ${BENCHMARK_NICK} (última actualización):`);
-  if (cross.passed.length) console.log(`  🟢 adelantaron a ${BENCHMARK_NICK}: ${cross.passed.join(", ")}`);
-  if (cross.droppedBehind.length) console.log(`  🔴 cayeron por detrás de ${BENCHMARK_NICK}: ${cross.droppedBehind.join(", ")}`);
+  if (cross.passed.length) console.log(`  🟡 adelantaron a ${BENCHMARK_NICK}: ${cross.passed.join(", ")}`);
+  if (cross.droppedBehind.length) console.log(`  🔨 ${BENCHMARK_NICK} adelantó a: ${cross.droppedBehind.join(", ")}`);
 }

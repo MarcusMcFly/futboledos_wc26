@@ -305,9 +305,9 @@ function benchmarkLine(cross) {
   const bench = link(benchmark);
   const parts = [];
   if (passed.length)
-    parts.push(`<span class="bm-up">🟢 ${passed.map(link).join(", ")} ${passed.length === 1 ? "adelantó" : "adelantaron"} a ${bench}</span>`);
+    parts.push(`<span class="bm-up">🟡 ${passed.map(link).join(", ")} ${passed.length === 1 ? "adelantó" : "adelantaron"} a ${bench}</span>`);
   if (droppedBehind.length)
-    parts.push(`<span class="bm-down">🔴 ${bench} adelantó a ${droppedBehind.map(link).join(", ")}</span>`);
+    parts.push(`<span class="bm-down">🔨 ${bench} adelantó a ${droppedBehind.map(link).join(", ")}</span>`);
   return `<p class="badge-line bm-line">👀 <strong>La línea de ${esc(benchmark)}:</strong> ${parts.join(" · ")}</p>`;
 }
 

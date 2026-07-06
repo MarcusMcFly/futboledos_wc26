@@ -233,7 +233,7 @@ td.lb-mov { width: 2.6rem; }
   color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 999px; font-size: 0.88rem; }
 .mover:hover { border-color: var(--accent); }
 .bm-line { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; align-items: baseline; }
-.bm-up { color: var(--accent); }
+.bm-up { color: var(--warn); }
 .bm-down { color: var(--danger); }
 
 /* ─────────── Rachas (streaks) ─────────── */

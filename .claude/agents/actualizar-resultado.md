@@ -246,7 +246,7 @@ forma concisa:
 - El **único** fichero de snapshot creado (`data/snapshots/NNN.json`) y su etiqueta.
 - Las **rachas destacadas** que haya detectado `streaks.mjs` (p. ej. "👑 Alberto
   lleva 7 jornadas como líder"; una banda, "🟠 Pollico 16 jornadas en pre-descenso"
-  o "🫧 Fuentes 4 jornadas en la burbuja"; o la línea de JesusGG, "🟢 JBC adelantó a JesusGG"),
+  o "🫧 Fuentes 4 jornadas en la burbuja"; o la línea de JesusGG, "🟡 JBC adelantó a JesusGG"),
   si las hay.
 - Recordatorio: revisar y **commitear/pushear desde VS Code** los ficheros juntos
   (`results.txt`, el `snapshots/NNN.json` creado, `snapshots/index.json`).
