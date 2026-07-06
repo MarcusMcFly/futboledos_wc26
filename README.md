@@ -116,6 +116,16 @@ Rachas · tendencias acumuladas
  🥉  Marcus           8 actualizaciones en el podio
  🥉  Blazquez_96      7 actualizaciones en el podio
 
+🫧  En la burbuja · puesto 5
+ 🫧  Fuentes           4 actualizaciones en la burbuja
+✨  Zona efervescente · puestos 5–8
+ ✨  Morses           10 actualizaciones en efervescencia
+🔼  Zona de mitad-alta · puestos 9–12
+ 🔼  Kike              8 actualizaciones en mitad-alta
+🔽  Zona de mitad-baja · puestos 13–16
+ 🔽  JBC               8 actualizaciones en mitad-baja
+🟠  Zona de pre-descenso · puestos 17–21
+ 🟠  Pollico          16 actualizaciones en pre-descenso
 ⚠️  Zona de descenso · 3 últimos puestos
  🔻  Julio           18 actualizaciones en descenso
  🔻  Verde            8 actualizaciones en descenso
@@ -124,8 +134,12 @@ Rachas · tendencias acumuladas
 
 Cómo se leen: 👑 **líder** sostenido (rank 1 en ≥2 cortes), 🔥 **escalada** (varias
 subidas seguidas; un empate la corta), 🥉 **podio** (top 3, ≥3 cortes), ⭐ **top 5**
-(≥4 cortes) y 📈 **récord personal** (su mejor puesto histórico). La **zona de
-descenso** es la racha negativa simétrica: varias actualizaciones en los 3 últimos puestos.
+(≥4 cortes) y 📈 **récord personal** (su mejor puesto histórico). Por debajo del top-4,
+la tabla se mapea en **bandas por puesto**: la 🫧 **burbuja** (puesto 5, el filo del
+top-4, ≥2 seguidas ocupándolo), la ✨ **zona efervescente** (5–8), la 🔼 **mitad-alta** (9–12), la 🔽 **mitad-baja**
+(13–16), la 🟠 **pre-descenso** (17–21) y la ⚠️ **zona de descenso** (3 últimos puestos).
+Cada quien cae en UNA sola banda según su puesto actual (y queda fuera de los destacados
+positivos); cada banda cuenta cuántas actualizaciones seguidas lleva ahí (≥2).
 Todo sale de `computeStreaks(tablero, snapshots)` en `js/history.js`; el mismo
 cálculo lo imprime por consola `node scripts/streaks.mjs` cuando el admin registra
 resultados.

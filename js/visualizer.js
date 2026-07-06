@@ -210,7 +210,7 @@ function renderHome(ctx) {
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
     ${ctx.movements.hasSnapshot ? `<h2 class="section">Movimiento <span class="muted">· desde ${esc(ctx.snapshot.label || "el último corte")}</span></h2>${topMoversPanel(ctx)}` : ""}
-    ${ctx.streaks.hasHistory && (ctx.streaks.badges.length || ctx.streaks.relegation.length) ? `<h2 class="section">Rachas <span class="muted">· tendencias acumuladas</span></h2>${streaksPanel(ctx)}` : ""}
+    ${ctx.streaks.hasHistory && (ctx.streaks.badges.length || ctx.streaks.relegation.length || ctx.streaks.zones.length || ctx.streaks.bubble) ? `<h2 class="section">Rachas <span class="muted">· tendencias acumuladas</span></h2>${streaksPanel(ctx)}` : ""}
     <h2 class="section">Competición por pools <span class="muted">· media por participante activo</span></h2>
     ${poolTable(ctx)}
     <h2 class="section">Estadísticas del torneo</h2>
@@ -314,25 +314,41 @@ function benchmarkLine(cross) {
 // Panel de rachas: tendencias sostenidas y positivas a lo largo del histórico de
 // snapshots (no solo el último corte). Cada chip enlaza a la ficha. Máximo 8 para
 // que no se sature; ya vienen ordenadas por relevancia desde computeStreaks.
+function streakChip(kind, icon, nick, text) {
+  return `<a class="streak streak-${kind}" href="?nick=${encodeURIComponent(nick)}">
+      <span class="streak-ico">${icon}</span>
+      <span class="streak-body"><b>${esc(nick)}</b><span class="streak-txt">${esc(text)}</span></span>
+    </a>`;
+}
+
+function zoneGroup(cls, headIco, title, note, chips) {
+  return `<p class="streak-zone-h z-${cls}">${headIco} ${esc(title)} <span class="muted">· ${esc(note)}</span></p>
+    <div class="streaks">${chips}</div>`;
+}
+
 function streaksPanel(ctx) {
   const badges = ctx.streaks.badges.slice(0, 8);
   const releg = ctx.streaks.relegation || [];
+  const zones = ctx.streaks.zones || [];
+  const bubble = ctx.streaks.bubble || null;
   let html = "";
   if (badges.length)
     html += `<div class="streaks">${badges.map((b) =>
-      `<a class="streak streak-${b.kind}" href="?nick=${encodeURIComponent(b.nick)}">
-        <span class="streak-ico">${b.icon}</span>
-        <span class="streak-body"><b>${esc(b.nick)}</b><span class="streak-txt">${esc(b.text)}</span></span>
-      </a>`).join("")}</div>`;
-  // Zona de descenso: racha (negativa) en los 3 últimos puestos, en su propio
-  // grupo con estilo de peligro para no confundirla con los destacados positivos.
+      streakChip(b.kind, b.icon, b.nick, b.text)).join("")}</div>`;
+  // Mapa de la tabla, de arriba abajo: burbuja (puesto 5) → bandas → descenso.
+  // Cada quien cae en una sola banda; el color avisa de lo cerca del descenso.
+  if (bubble)
+    html += zoneGroup("burbuja", "🫧", "En la burbuja", "puesto 5",
+      streakChip("burbuja", "🫧", bubble.nick, `${bubble.streak} actualizaciones en la burbuja`));
+  for (const z of zones)
+    html += zoneGroup(z.key, z.icon, z.label, z.note, z.members.slice(0, 6).map((m) =>
+      streakChip(z.key, z.icon, m.nick, `${m.streak} actualizaciones en ${z.word}`)).join(""));
+  // Zona de descenso: racha (negativa) en los 3 últimos puestos, con estilo de
+  // peligro para no confundirla con los destacados positivos.
   if (releg.length)
-    html += `<p class="streak-zone-h">⚠️ Zona de descenso <span class="muted">· 3 últimos puestos</span></p>
-      <div class="streaks">${releg.slice(0, 6).map((rz) =>
-        `<a class="streak streak-drop" href="?nick=${encodeURIComponent(rz.nick)}">
-          <span class="streak-ico">🔻</span>
-          <span class="streak-body"><b>${esc(rz.nick)}</b><span class="streak-txt">${rz.streak} actualizaciones en descenso</span></span>
-        </a>`).join("")}</div>`;
+    html += zoneGroup("descenso", "⚠️", "Zona de descenso", "3 últimos puestos",
+      releg.slice(0, 6).map((rz) =>
+        streakChip("drop", "🔻", rz.nick, `${rz.streak} actualizaciones en descenso`)).join(""));
   return html || `<p class="muted">Aún no hay rachas destacables.</p>`;
 }
 

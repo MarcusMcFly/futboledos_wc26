@@ -23,7 +23,7 @@ const index = existsSync(indexPath) ? JSON.parse(read("data/snapshots/index.json
 const snapshots = (index.snapshots || []).map((f) => JSON.parse(read(`data/snapshots/${f}`)));
 
 const { board } = loadCurrentBoard();
-const { badges, relegation, hasHistory } = computeStreaks(board, snapshots);
+const { badges, relegation, zones, bubble, hasHistory } = computeStreaks(board, snapshots);
 const lastSnapshot = snapshots.length ? snapshots[snapshots.length - 1] : null;
 const cross = benchmarkCrossings(board, lastSnapshot, BENCHMARK_NICK);
 const hasCross = cross.present && (cross.passed.length || cross.droppedBehind.length);
@@ -32,13 +32,19 @@ if (!hasHistory) {
   console.log("Sin histórico suficiente para rachas (hace falta al menos un corte previo).");
   process.exit(0);
 }
-if (!badges.length && !relegation.length && !hasCross) {
+const hasZones = (zones && zones.length) || bubble;
+if (!badges.length && !relegation.length && !hasZones && !hasCross) {
   console.log("No hay rachas destacables ahora mismo.");
   process.exit(0);
 }
 if (badges.length) {
   console.log("Rachas actuales:");
   for (const b of badges) console.log(`  ${b.icon} ${b.nick}: ${b.text}`);
+}
+if (bubble) console.log(`En la burbuja (puesto 5):\n  🫧 ${bubble.nick}: ${bubble.streak} actualizaciones en la burbuja`);
+for (const z of zones || []) {
+  console.log(`${z.label} (${z.note}):`);
+  for (const m of z.members) console.log(`  ${z.icon} ${m.nick}: ${m.streak} actualizaciones en ${z.word}`);
 }
 if (relegation.length) {
   console.log("Zona de descenso (3 últimos puestos):");

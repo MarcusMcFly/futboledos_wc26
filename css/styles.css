@@ -245,7 +245,19 @@ td.lb-mov { width: 2.6rem; }
 .streak-body { display: flex; flex-direction: column; line-height: 1.2; }
 .streak-txt { font-size: 0.76rem; color: var(--muted); }
 .streak-leader { border-color: var(--accent); }
-.streak-zone-h { margin: 0.85rem 0 0.1rem; font-size: 0.85rem; font-weight: 600; color: var(--danger); }
+.streak-zone-h { margin: 0.85rem 0 0.1rem; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+/* Cabecera de cada banda de la tabla: el color va de «bien» (verde) a «peligro» (rojo). */
+.streak-zone-h.z-burbuja { color: #79c0ff; }
+.streak-zone-h.z-efervescente { color: var(--accent); }
+.streak-zone-h.z-mitad-alta { color: #58a6ff; }
+.streak-zone-h.z-mitad-baja { color: var(--muted); }
+.streak-zone-h.z-pre-descenso { color: var(--warn); }
+.streak-zone-h.z-descenso { color: var(--danger); }
+.streak-burbuja { border-color: #79c0ff; }
+.streak-burbuja:hover { border-color: #79c0ff; }
+.streak-efervescente { border-color: var(--accent); }
+.streak-mitad-alta { border-color: #30507a; }
+.streak-pre-descenso { border-color: var(--warn); }
 .streak-drop { border-color: var(--danger); }
 .streak-drop:hover { border-color: var(--danger); }
 
