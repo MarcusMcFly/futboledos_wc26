@@ -299,6 +299,18 @@ td.lb-mov { width: 2.6rem; }
 .kolead-gap { align-self: center; padding: 0 0.15rem; }
 .kolead-perfect { color: var(--accent); }
 
+/* Pre-estadísticas de una ronda sin jugar (equipos más/menos seguidos) */
+.prestats { margin: 0.5rem 0 1.3rem; padding: 0.6rem 0.8rem;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+.prestats-h { margin: 0 0 0.5rem; font-size: 0.9rem; font-weight: 600; }
+.ps-list { display: flex; flex-direction: column; gap: 0.28rem; }
+.ps-row { display: grid; grid-template-columns: 8.5rem 1fr auto; align-items: center; gap: 0.6rem; font-size: 0.86rem; }
+.ps-team { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-bar { height: 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.ps-bar > span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.ps-n { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ps-extremes { margin: 0.55rem 0 0; font-size: 0.84rem; }
+
 /* Estadísticas de ronda (bajo el "Top acertantes") */
 .kostats { margin: -0.9rem 0 1.4rem; padding: 0.7rem 0.9rem;
   background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }

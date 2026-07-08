@@ -8,7 +8,7 @@ import { loadRegistry, loadRules, loadTeams, loadOfficial, loadSubmission, loadA
 import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
-import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes, koRoundQualifierLeaders, koRoundStats } from "./stats.js";
+import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes, koRoundQualifierLeaders, koRoundStats, koRoundFollowers } from "./stats.js";
 import { computeMovements, topMovers, newLeader, computeStreaks, benchmarkCrossings } from "./history.js";
 import { projectUser } from "./projection.js";
 import { progressionRoundIncrement } from "./scoring.js";
@@ -927,10 +927,39 @@ function renderKoMatches(ctx) {
   $app.innerHTML = html;
 }
 
-// Pie de una ronda en la lista de eliminatoria: el "top de puntos" de la fase, el
-// "top acertantes" de quién pasa y, debajo, las estadísticas destacadas.
+// Pie de una ronda en la lista de eliminatoria: si la ronda aún no se ha jugado pero ya
+// tiene equipos (p. ej. cuartos), las PRE-estadísticas de equipos más/menos seguidos; y,
+// cuando hay resultados, el "top de puntos", el "top acertantes" y las estadísticas.
 function koRoundFooter(ctx, round) {
-  return koRoundPointsPanel(ctx, round) + koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round);
+  return koPreStatsPanel(ctx, round) + koRoundPointsPanel(ctx, round) + koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round);
+}
+
+// PRE-estadísticas de una ronda todavía sin jugar (equipos ya definidos): a cuántos
+// participantes "sigue" cada equipo (cuántos lo tienen vivo en su cuadro a esta altura),
+// con el más y el menos seguido destacados. "" si la ronda no aplica (ya jugada o sin
+// equipos aún). Solo se ve, por ahora, en cuartos.
+function koPreStatsPanel(ctx, round) {
+  const data = koRoundFollowers(ctx.predictions, ctx.official, round);
+  if (!data || !data.teams.length) return "";
+  const max = data.teams[0].count, min = data.teams[data.teams.length - 1].count;
+  const most = data.teams.filter((t) => t.count === max).map((t) => teamName(t.id));
+  const least = data.teams.filter((t) => t.count === min).map((t) => teamName(t.id));
+  const rows = data.teams.map((t) => {
+    const barW = max ? Math.round((t.count / max) * 100) : 0;
+    return `<div class="ps-row" title="${esc(t.nicks.join(", ")) || "nadie"}">
+      <span class="ps-team">${esc(teamName(t.id))}</span>
+      <span class="ps-bar"><span style="width:${barW}%"></span></span>
+      <span class="ps-n">${t.count}<span class="muted">/${data.total}</span> <span class="muted">· ${t.pct}%</span></span>
+    </div>`;
+  }).join("");
+  const s = (arr) => (arr.length > 1 ? "s" : "");
+  return `<div class="prestats">
+    <p class="prestats-h">🔮 Pre-estadísticas de ${ROUND_LABEL[round] || round}
+      <span class="muted">· a cuántos de los ${data.total} participantes “sigue” cada equipo (lo metieron en ${(ROUND_LABEL[round] || round).toLowerCase()} en su quiniela)</span></p>
+    <div class="ps-list">${rows}</div>
+    <p class="ps-extremes">🔥 Más seguido${s(most)}: <strong>${most.map(esc).join(" · ")}</strong> <span class="muted">(${max}/${data.total})</span>
+      · 🥶 Menos seguido${s(least)}: <strong>${least.map(esc).join(" · ")}</strong> <span class="muted">(${min}/${data.total})</span></p>
+  </div>`;
 }
 
 // Puntos que cada participante sacó DE ESTA FASE, combinando cuadro + pase:

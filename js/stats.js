@@ -288,6 +288,42 @@ export function koRoundQualifierLeaders(predictions, official, round) {
 }
 
 /**
+ * PRE-estadística de una RONDA cuyos equipos ya están definidos pero que todavía no se ha
+ * jugado (p. ej. cuartos con los 8 clasificados de octavos ya propagados). Para cada uno de
+ * los equipos que disputan la ronda cuenta a cuántos participantes "sigue": cuántos lo
+ * pronosticaron con vida a esa altura, es decir, lo tienen entre los equipos que en SU cuadro
+ * llegan a esa ronda (o más allá). Se deriva de los cruces de la ronda en cada predicción
+ * (sus equipos home/away), así que no depende de posiciones de slot.
+ *
+ * Devuelve null si la ronda no tiene todos sus equipos definidos, o si ya hay algún cruce
+ * resuelto (entonces ya no es "pre"). `teams` = [{ id, count, pct, nicks }] de más a menos
+ * seguido (empate → por id).
+ */
+export function koRoundFollowers(predictions, official, round) {
+  const mids = Object.keys(official.knockout).filter((id) => official.knockout[id].round === round);
+  if (!mids.length) return null;
+  const roster = [];
+  for (const id of mids) {
+    const m = official.knockout[id];
+    if (m.home == null || m.away == null) return null;              // aún no propagados todos
+    if (m.hg != null && m.ag != null && m.qualified) return null;   // ya jugado → no es "pre"
+    roster.push(m.home, m.away);
+  }
+  const total = predictions.length;
+  // Equipos que cada participante da en esta ronda (los de sus propios cruces de la ronda).
+  const userTeams = predictions.map((p) => {
+    const set = new Set();
+    for (const id of mids) { const m = p.knockout[id]; if (m) { if (m.home) set.add(m.home); if (m.away) set.add(m.away); } }
+    return { nick: p.nick, set };
+  });
+  const teams = roster.map((t) => {
+    const nicks = userTeams.filter((u) => u.set.has(t)).map((u) => u.nick).sort((a, b) => a.localeCompare(b));
+    return { id: t, count: nicks.length, pct: total ? Math.round((nicks.length / total) * 100) : 0, nicks };
+  }).sort((a, b) => b.count - a.count || String(a.id).localeCompare(String(b.id)));
+  return { round, total, teams };
+}
+
+/**
  * Estadísticas destacadas de una RONDA de eliminatoria ya (parcialmente) resuelta,
  * para pintar debajo del "Top acertantes" de la ronda. null si no hay ningún cruce
  * decidido. Solo mira los cruces de la ronda con `qualified` oficial.
