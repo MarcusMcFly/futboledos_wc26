@@ -945,17 +945,24 @@ function koPreStatsPanel(ctx, round) {
   const most = data.teams.filter((t) => t.count === max).map((t) => teamName(t.id));
   const least = data.teams.filter((t) => t.count === min).map((t) => teamName(t.id));
   const rows = data.teams.map((t) => {
-    const barW = max ? Math.round((t.count / max) * 100) : 0;
-    return `<div class="ps-row" title="${esc(t.nicks.join(", ")) || "nadie"}">
+    // Segmentos relativos al equipo MÁS seguido, para comparar barras entre equipos.
+    const advW = max ? (t.advance.length / max) * 100 : 0;
+    const elimW = max ? (t.eliminate.length / max) * 100 : 0;
+    const tip = `Pasa (${t.advance.length}): ${t.advance.join(", ") || "—"}  ·  Cae (${t.eliminate.length}): ${t.eliminate.join(", ") || "—"}`;
+    return `<div class="ps-row" title="${esc(tip)}">
       <span class="ps-team">${esc(teamName(t.id))}</span>
-      <span class="ps-bar"><span style="width:${barW}%"></span></span>
-      <span class="ps-n">${t.count}<span class="muted">/${data.total}</span> <span class="muted">· ${t.pct}%</span></span>
+      <span class="ps-bar"><span class="ps-adv" style="width:${advW}%"></span><span class="ps-elim" style="width:${elimW}%"></span></span>
+      <span class="ps-n">
+        <span>${t.count}<span class="muted">/${data.total}</span></span>
+        <span class="ps-split"><span class="ps-adv-t">${t.advance.length}▲</span> <span class="ps-elim-t">${t.eliminate.length}▼</span></span>
+      </span>
     </div>`;
   }).join("");
   const s = (arr) => (arr.length > 1 ? "s" : "");
   return `<div class="prestats">
     <p class="prestats-h">🔮 Pre-estadísticas de ${ROUND_LABEL[round] || round}
       <span class="muted">· a cuántos de los ${data.total} participantes “sigue” cada equipo (lo metieron en ${(ROUND_LABEL[round] || round).toLowerCase()} en su quiniela)</span></p>
+    <p class="ps-legend muted"><span class="ps-adv-t">▲ verde</span>: apuestan que <strong>pasa</strong> su cruce · <span class="ps-elim-t">▼ rojo</span>: que <strong>cae</strong>.</p>
     <div class="ps-list">${rows}</div>
     <p class="ps-extremes">🔥 Más seguido${s(most)}: <strong>${most.map(esc).join(" · ")}</strong> <span class="muted">(${max}/${data.total})</span>
       · 🥶 Menos seguido${s(least)}: <strong>${least.map(esc).join(" · ")}</strong> <span class="muted">(${min}/${data.total})</span></p>

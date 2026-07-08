@@ -295,9 +295,13 @@ export function koRoundQualifierLeaders(predictions, official, round) {
  * llegan a esa ronda (o más allá). Se deriva de los cruces de la ronda en cada predicción
  * (sus equipos home/away), así que no depende de posiciones de slot.
  *
+ * Además, entre los que lo siguen, separa a los que apuestan que el equipo PASA su cruce de
+ * esta ronda (en su cuadro lo dan como clasificado) de los que apuestan que CAE (lo tienen en
+ * la ronda pero eliminado).
+ *
  * Devuelve null si la ronda no tiene todos sus equipos definidos, o si ya hay algún cruce
- * resuelto (entonces ya no es "pre"). `teams` = [{ id, count, pct, nicks }] de más a menos
- * seguido (empate → por id).
+ * resuelto (entonces ya no es "pre"). `teams` = [{ id, count, pct, advance:[nick], eliminate:[nick],
+ * nicks }] de más a menos seguido (empate → por id).
  */
 export function koRoundFollowers(predictions, official, round) {
   const mids = Object.keys(official.knockout).filter((id) => official.knockout[id].round === round);
@@ -310,15 +314,25 @@ export function koRoundFollowers(predictions, official, round) {
     roster.push(m.home, m.away);
   }
   const total = predictions.length;
-  // Equipos que cada participante da en esta ronda (los de sus propios cruces de la ronda).
+  // Por cada participante: los equipos que da en esta ronda y si los da clasificados (pasa)
+  // o eliminados (cae) en su propio cuadro.
   const userTeams = predictions.map((p) => {
-    const set = new Set();
-    for (const id of mids) { const m = p.knockout[id]; if (m) { if (m.home) set.add(m.home); if (m.away) set.add(m.away); } }
-    return { nick: p.nick, set };
+    const adv = new Map();   // teamId → ¿lo pronostica clasificado en su cruce de la ronda?
+    for (const id of mids) {
+      const m = p.knockout[id];
+      if (!m) continue;
+      if (m.home) adv.set(m.home, m.qualified === m.home);
+      if (m.away) adv.set(m.away, m.qualified === m.away);
+    }
+    return { nick: p.nick, adv };
   });
   const teams = roster.map((t) => {
-    const nicks = userTeams.filter((u) => u.set.has(t)).map((u) => u.nick).sort((a, b) => a.localeCompare(b));
-    return { id: t, count: nicks.length, pct: total ? Math.round((nicks.length / total) * 100) : 0, nicks };
+    const advance = [], eliminate = [];
+    for (const u of userTeams) { if (u.adv.has(t)) (u.adv.get(t) ? advance : eliminate).push(u.nick); }
+    advance.sort((a, b) => a.localeCompare(b));
+    eliminate.sort((a, b) => a.localeCompare(b));
+    const count = advance.length + eliminate.length;
+    return { id: t, count, pct: total ? Math.round((count / total) * 100) : 0, advance, eliminate, nicks: [...advance, ...eliminate] };
   }).sort((a, b) => b.count - a.count || String(a.id).localeCompare(String(b.id)));
   return { round, total, teams };
 }
