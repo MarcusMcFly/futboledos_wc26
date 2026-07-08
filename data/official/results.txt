@@ -120,15 +120,15 @@ M91 W76 W78 BR 1 2 NO q:NO
 M92 W79 W80 MX 2 3 ENG q:ENG
 M93 W83 W84 PT 0 1 ES q:ES
 M94 W81 W82 US 1 4 BE q:BE
-M95 W86 W88 AR - - EG q:-
-M96 W85 W87 CH - - CO q:-
-completados: 6/8
+M95 W86 W88 AR 3 2 EG q:AR
+M96 W85 W87 CH 0 0 CO q:CH pen:4-3
+completados: 8/8
 
 [CUARTOS]
 M97 W89 W90 FR - - MA q:-
 M98 W93 W94 ES - - BE q:-
 M99 W91 W92 NO - - ENG q:-
-M100 W95 W96 ? - - ? q:-
+M100 W95 W96 AR - - CH q:-
 completados: 0/4
 
 [SEMIS]
