@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fix de predicción · Semifinales · Futboledos WC26</title>
+    <style>
+      :root {
+        --bg: #0f1419; --panel: #1a2029; --border: #2a323d; --text: #e6edf3;
+        --muted: #8b949e; --accent: #2ea043; --danger: #f85149; --warn: #d29922;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); }
+      .site-header { display: flex; align-items: center; gap: 1.5rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+      .site-header .brand { font-weight: 700; font-size: 1.2rem; text-decoration: none; color: var(--text); }
+      .site-header nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+      .site-header a { color: var(--muted); text-decoration: none; }
+      .site-header a:hover, .site-header a.active { color: var(--text); }
+      .container { max-width: 720px; margin: 0 auto; padding: 1.2rem; }
+      h1 { font-size: 1.35rem; margin: 0.2rem 0 0.6rem; }
+      .muted { color: var(--muted); }
+      a { color: var(--accent); }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+      .note { font-size: 0.86rem; color: var(--muted); border-left: 3px solid var(--border); padding-left: 0.75rem; margin: 0.6rem 0 1.2rem; }
+      .banner { border-radius: 8px; padding: 0.7rem 0.9rem; margin: 0.8rem 0; font-size: 0.9rem; }
+      .banner.warn { background: rgba(210,153,34,0.12); border: 1px solid var(--warn); }
+      .banner.ok { background: rgba(46,160,67,0.10); border: 1px solid var(--accent); }
+      .banner.danger { background: rgba(248,81,73,0.12); border: 1px solid var(--danger); }
+
+      .picker { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 1rem; }
+      .picker label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.35rem; }
+      .picker select { width: 100%; padding: 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-size: 1rem; }
+
+      .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1rem 1.1rem; margin-bottom: 1.1rem; }
+      .card > h2 { margin: 0 0 0.2rem; font-size: 1.1rem; }
+      .section-title { margin: 0.9rem 0 0.45rem; font-size: 0.74rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+
+      .proposal { border: 1px dashed var(--accent); background: rgba(46,160,67,0.06); border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 1rem; font-size: 0.9rem; }
+      .proposal h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+      .proposal .row { margin: 0.15rem 0; }
+      .proposal .adv { color: var(--accent); font-weight: 600; }
+      .medals { font-weight: 600; margin-top: 0.5rem; }
+
+      .ko-matches { display: flex; flex-direction: column; gap: 0.2rem; }
+      .ko { border-bottom: 1px solid var(--border); padding: 0.5rem 0; }
+      .ko-round { font-size: 0.74rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+      .ko-row { display: grid; grid-template-columns: 1fr 1.4rem 2.5rem 0.5rem 2.5rem 1.4rem 1fr; align-items: center; gap: 0.3rem; }
+      .ko-row .home { text-align: right; }
+      .ko-row .away { text-align: left; }
+      .ko-row .team { font-size: 0.92rem; }
+      .ko-row .sep { text-align: center; color: var(--muted); }
+      .ko-x { text-align: center; font-weight: 700; color: var(--accent); min-height: 1rem; }
+      .ko-slots { font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 0.2rem; }
+      .ko-row.ko-pending { display: block; text-align: center; padding: 0.4rem 0; font-size: 0.88rem; }
+      .score-input { width: 2.5rem; min-height: 2.4rem; text-align: center; font-size: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; color: var(--text); }
+      .score-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+      .score-input.invalid { border-color: var(--danger); }
+      .score-input::-webkit-outer-spin-button, .score-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .ko-pens { margin-top: 0.4rem; padding: 0.4rem 0.55rem; border: 1px solid var(--warn); background: rgba(210,153,34,0.10); border-radius: 8px; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+      .ko-pens-label { font-size: 0.82rem; color: var(--warn); font-weight: 600; }
+      .ko-pens .score-input { width: 2.4rem; min-height: 2.1rem; }
+      .ko-pens-err { color: var(--danger); font-size: 0.78rem; flex-basis: 100%; }
+      .lock { font-size: 0.8rem; opacity: 0.85; }
+      .forced-err { color: var(--danger); font-size: 0.78rem; margin-top: 0.35rem; text-align: center; }
+
+      .champ-box { text-align: center; margin-top: 0.6rem; }
+      .champ-box .name { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+
+      .dataset textarea { width: 100%; min-height: 150px; resize: vertical; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 0.8rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.84rem; line-height: 1.5; white-space: pre; }
+      .actions { display: flex; gap: 0.6rem; align-items: center; margin-top: 0.6rem; flex-wrap: wrap; }
+      button { background: var(--accent); color: #fff; border: 0; border-radius: 7px; padding: 0.6rem 1rem; cursor: pointer; font-weight: 600; font-size: 0.92rem; }
+      button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+      button.ghost:hover { color: var(--text); border-color: var(--muted); }
+      .copied { color: var(--accent); font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="./index.html" class="brand">⚽ Futboledos</a>
+      <nav>
+        <a href="./index.html">Clasificación</a>
+        <a href="./index.html?view=matches">Partidos Fase de Grupos</a>
+        <a href="./index.html?view=ko-matches">Partidos Fase Eliminatoria</a>
+        <a href="./index.html?view=scoring">Cómo se puntúa</a>
+        <a href="./predicciones.html">Hacer predicción</a>
+        <a href="./fix.html" class="active">Fix de predicción</a>
+      </nav>
+    </header>
+    <main class="container">
+      <h1>🔧 Fix de predicción · Semifinales</h1>
+      <p class="note">
+        El cuadro original cruzaba mal las semifinales: emparejaba <strong>ganador de M97 vs M99</strong> y
+        <strong>M98 vs M100</strong>, cuando lo correcto es <strong>M97 vs M98</strong> y <strong>M99 vs M100</strong>.
+        Elígete abajo y corrige tus 4 partidos (semifinales → final → 3.º puesto). Tus semifinalistas
+        (ganadores de cuartos) no cambian, y <strong>tu campeón y tu 4.º se mantienen sí o sí</strong>: el
+        equipo con el 🔒 pasa obligatoriamente y no puede caer. Solo ajustas los marcadores (y, si tu
+        campeón y tu 4.º cayeron en la misma semifinal, quién es tu subcampeón). Copia el bloque y envíamelo.
+      </p>
+
+      <div id="global-banner"></div>
+
+      <div class="picker">
+        <label for="nick-select">¿Quién eres?</label>
+        <select id="nick-select"><option value="">— Elige tu nick —</option></select>
+      </div>
+
+      <div id="fix-root"></div>
+    </main>
+
+    <script type="module">
+      import { parsePrediction } from "./js/parse_prediction.js";
+
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const STORAGE_KEY = "fix_semis_state_v1";
+
+      let TEAMS = {};
+      const nameOf = (id) => (id && TEAMS[id] && TEAMS[id].name) || id || "?";
+
+      // Estado local por nick (persistido en el navegador).
+      const loadStore = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } };
+      const saveStore = (store) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch {} };
+
+      // Cruces corregidos: semis reemparejadas + final + 3.º puesto.
+      const BRACKET = [
+        { id: "M101", round: "Semifinal 1", homeCode: "W97", awayCode: "W98" },
+        { id: "M102", round: "Semifinal 2", homeCode: "W99", awayCode: "W100" },
+        { id: "M104", round: "Final", homeCode: "W101", awayCode: "W102" },
+        { id: "M103", round: "3.er puesto", homeCode: "L101", awayCode: "L102" },
+      ];
+
+      // Validación de tanda de penaltis (misma tabla que predicciones.html / spec 04).
+      const PEN_INITIAL = new Set([
+        "1-0", "2-0", "2-1", "3-0", "3-1", "3-2", "4-1", "4-2", "4-3", "5-3", "5-4",
+        "0-1", "0-2", "1-2", "0-3", "1-3", "2-3", "1-4", "2-4", "3-4", "3-5", "4-5",
+      ]);
+      const validShootout = (a, b) =>
+        Number.isInteger(a) && Number.isInteger(b) && a >= 0 && b >= 0 && a <= 99 && b <= 99 &&
+        a !== b && (PEN_INITIAL.has(`${a}-${b}`) || Math.abs(a - b) === 1);
+
+      function parseGoal(raw) {
+        const s = String(raw).trim();
+        if (s === "") return { value: null, invalid: false };
+        if (!/^\d+$/.test(s)) return { value: null, invalid: true };
+        const n = Number(s);
+        if (n < 0 || n > 99) return { value: null, invalid: true };
+        return { value: n, invalid: false };
+      }
+
+      // ── Estado de la sesión activa ──────────────────────────────────────
+      let cur = null; // { nick, q97..q100, proposal, fix }
+
+      // Semifinalistas y equipos derivados según los marcadores actuales de fix.
+      function semiOutcome(id) {
+        const mm = BRACKET.find((b) => b.id === id);
+        const home = teamOf(mm.homeCode), away = teamOf(mm.awayCode);
+        const p = cur.fix[id];
+        if (!p || (p.qualified !== home && p.qualified !== away)) return { win: null, los: null };
+        return { win: p.qualified, los: p.qualified === home ? away : home };
+      }
+      function teamOf(code) {
+        const base = { W97: cur.q97, W98: cur.q98, W99: cur.q99, W100: cur.q100 };
+        if (base[code]) return base[code];
+        if (code === "W101" || code === "L101") { const o = semiOutcome("M101"); return code[0] === "W" ? o.win : o.los; }
+        if (code === "W102" || code === "L102") { const o = semiOutcome("M102"); return code[0] === "W" ? o.win : o.los; }
+        return null;
+      }
+      const matchTeams = (mm) => ({ home: teamOf(mm.homeCode), away: teamOf(mm.awayCode) });
+
+      // Ganador OBLIGATORIO de un cruce, para mantener campeón y 4.º pase lo que pase.
+      // - El campeón (C) gana su semifinal y la final.
+      // - El 4.º (D) pierde su semifinal y el 3.er puesto → su rival avanza forzado.
+      // - En el 3.er puesto, avanza forzado el perdedor de semis que NO es D.
+      // Devuelve el team_id forzado, o null si el cruce es libre (la semi de los otros
+      // dos equipos cuando campeón y 4.º cayeron en la misma semifinal).
+      function forcedQual(id) {
+        const C = cur.proposal.champ, D = cur.proposal.fourth;
+        if (id === "M104") return C;
+        if (id === "M101" || id === "M102") {
+          const mm = BRACKET.find((b) => b.id === id);
+          const home = teamOf(mm.homeCode), away = teamOf(mm.awayCode);
+          if (home === C || away === C) return C;              // el campeón gana su semi
+          if (home === D) return away;                          // el 4.º pierde su semi
+          if (away === D) return home;
+          return null;                                          // semi libre (subcampeón vs 3.º)
+        }
+        if (id === "M103") {
+          const l1 = semiOutcome("M101").los, l2 = semiOutcome("M102").los;
+          if (l1 == null || l2 == null) return null;
+          return l1 === D ? l2 : l1;                            // gana el perdedor de semis que no es el 4.º
+        }
+        return null;
+      }
+
+      // Recalcula el clasificado de un cruce tras cambiar goles (o penaltis en empate).
+      // En los cruces con ganador forzado, ese equipo pasa siempre; si el marcador no le
+      // hace ganar, el cruce queda inválido (invalidForced) hasta que se corrija.
+      function recompute(id) {
+        const mm = BRACKET.find((b) => b.id === id);
+        const { home, away } = matchTeams(mm);
+        const p = cur.fix[id];
+        p.invalidForced = false;
+        if (!home || !away) { p.qualified = null; return; }
+        const fq = forcedQual(id);
+        if (typeof p.home === "number" && typeof p.away === "number") {
+          const decisiveWin = p.home > p.away ? home : p.away > p.home ? away : null;
+          if (fq) {
+            if (decisiveWin) {
+              if (decisiveWin === fq) { p.qualified = fq; p.penHome = null; p.penAway = null; }
+              else { p.qualified = null; p.invalidForced = true; }   // el forzado no puede perder
+            } else if (validShootout(p.penHome, p.penAway)) {
+              const penWin = p.penHome > p.penAway ? home : away;
+              if (penWin === fq) p.qualified = fq;
+              else { p.qualified = null; p.invalidForced = true; }   // penaltis no pueden ir contra el forzado
+            } else p.qualified = null;                               // empate, faltan penaltis
+          } else {
+            if (decisiveWin) { p.qualified = decisiveWin; p.penHome = null; p.penAway = null; }
+            else p.qualified = validShootout(p.penHome, p.penAway) ? (p.penHome > p.penAway ? home : away) : null;
+          }
+        } else { p.qualified = null; p.penHome = null; p.penAway = null; }
+      }
+      // Cascada: si cambia una semi, invalida final/3.º si su clasificado ya no es válido.
+      function recomputeAll() {
+        recompute("M101"); recompute("M102"); recompute("M104"); recompute("M103");
+      }
+
+      const blank = () => ({ home: null, away: null, qualified: null, penHome: null, penAway: null });
+
+      // Rellena fix con la propuesta automática (avanza el mejor clasificado original), 1-0.
+      function fillFromProposal() {
+        const pr = cur.proposal;
+        const set10 = (id, homeTeam, winner) => {
+          cur.fix[id] = blank();
+          cur.fix[id].home = winner === homeTeam ? 1 : 0;
+          cur.fix[id].away = winner === homeTeam ? 0 : 1;
+        };
+        set10("M101", cur.q97, pr.sf1w);
+        set10("M102", cur.q99, pr.sf2w);
+        recompute("M101"); recompute("M102");
+        set10("M104", teamOf("W101"), pr.champ);
+        set10("M103", teamOf("L101"), pr.third);
+        recomputeAll();
+      }
+
+      // ── Render de un cruce editable ─────────────────────────────────────
+      function koRowHtml(mm) {
+        const { home, away } = matchTeams(mm);
+        if (!home || !away) {
+          return `<div class="ko"><div class="ko-round">${esc(mm.round)}</div>
+            <div class="ko-row ko-pending"><span class="muted">Pendiente · resuelve antes las semifinales</span></div></div>`;
+        }
+        const p = cur.fix[mm.id] || blank();
+        const hv = typeof p.home === "number" ? p.home : "";
+        const av = typeof p.away === "number" ? p.away : "";
+        const isDraw = typeof p.home === "number" && typeof p.away === "number" && p.home === p.away;
+        const xHome = p.qualified === home ? "✓" : "";
+        const xAway = p.qualified === away ? "✓" : "";
+        const fq = forcedQual(mm.id);
+        const lock = ` <span class="lock" title="Pasa obligatoriamente: tu campeón y tu 4.º se mantienen fijos">🔒</span>`;
+        const lockHome = fq === home ? lock : "";
+        const lockAway = fq === away ? lock : "";
+        const forcedErr = p.invalidForced
+          ? `<div class="forced-err">⚠️ <strong>${esc(nameOf(fq))}</strong> pasa obligatoriamente: pon un marcador en el que gane (o empate y gane la tanda de penaltis).</div>`
+          : "";
+        let pens = "";
+        if (isDraw) {
+          const ph = typeof p.penHome === "number" ? p.penHome : "";
+          const pa = typeof p.penAway === "number" ? p.penAway : "";
+          const bad = typeof p.penHome === "number" && typeof p.penAway === "number" && !validShootout(p.penHome, p.penAway);
+          pens = `<div class="ko-pens">
+            <span class="ko-pens-label">Empate · penaltis:</span>
+            <input class="score-input${bad ? " invalid" : ""}" id="${mm.id}_ph" type="number" inputmode="numeric" min="0" max="99" value="${ph}" data-ko="${mm.id}" data-side="penHome" aria-label="Penaltis ${esc(nameOf(home))}">
+            <span>-</span>
+            <input class="score-input${bad ? " invalid" : ""}" id="${mm.id}_pa" type="number" inputmode="numeric" min="0" max="99" value="${pa}" data-ko="${mm.id}" data-side="penAway" aria-label="Penaltis ${esc(nameOf(away))}">
+            ${bad ? `<span class="ko-pens-err">Marcador de penaltis imposible (la tanda habría terminado antes).</span>` : ""}
+          </div>`;
+        }
+        return `<div class="ko">
+          <div class="ko-round">${esc(mm.round)}</div>
+          <div class="ko-row">
+            <span class="team home">${esc(nameOf(home))}${lockHome}</span>
+            <span class="ko-x">${xHome}</span>
+            <input class="score-input" id="${mm.id}_kh" type="number" inputmode="numeric" min="0" max="99" value="${hv}" data-ko="${mm.id}" data-side="home" aria-label="Goles ${esc(nameOf(home))}">
+            <span class="sep">×</span>
+            <input class="score-input" id="${mm.id}_ka" type="number" inputmode="numeric" min="0" max="99" value="${av}" data-ko="${mm.id}" data-side="away" aria-label="Goles ${esc(nameOf(away))}">
+            <span class="ko-x">${xAway}</span>
+            <span class="team away">${lockAway}${esc(nameOf(away))}</span>
+          </div>
+          ${pens}
+          ${forcedErr}
+        </div>`;
+      }
+
+      // Línea de export en el formato de results.txt / submissions.
+      function koLine(mm) {
+        const { home, away } = matchTeams(mm);
+        const p = cur.fix[mm.id] || blank();
+        const hg = typeof p.home === "number" ? p.home : "-";
+        const ag = typeof p.away === "number" ? p.away : "-";
+        const q = p.qualified === home || p.qualified === away ? p.qualified : "-";
+        const pen = hg !== "-" && hg === ag && typeof p.penHome === "number" && typeof p.penAway === "number"
+          ? ` pen:${p.penHome}-${p.penAway}` : "";
+        return `${mm.id} ${mm.homeCode} ${mm.awayCode} ${home || "?"} ${hg} ${ag} ${away || "?"} q:${q}${pen}`;
+      }
+
+      function buildExport() {
+        const fin = cur.fix.M104;
+        const finT = matchTeams(BRACKET.find((b) => b.id === "M104"));
+        const champ = fin && (fin.qualified === finT.home || fin.qualified === finT.away) ? fin.qualified : "-";
+        // Orden de secciones como en results.txt: SEMIS, TERCER_PUESTO, FINAL.
+        return [
+          `FIX_SEMIS_V1  nick: ${cur.nick}`,
+          koLine(BRACKET[0]), // M101
+          koLine(BRACKET[1]), // M102
+          koLine(BRACKET[3]), // M103 (3.er puesto)
+          koLine(BRACKET[2]), // M104 (final)
+          `campeon: ${champ}`,
+        ].join("\n");
+      }
+
+      function championHtml() {
+        const finT = matchTeams(BRACKET.find((b) => b.id === "M104"));
+        const fin = cur.fix.M104;
+        const thT = matchTeams(BRACKET.find((b) => b.id === "M103"));
+        const th = cur.fix.M103;
+        const champ = fin && (fin.qualified === finT.home || fin.qualified === finT.away) ? fin.qualified : null;
+        const runner = champ ? (champ === finT.home ? finT.away : finT.home) : null;
+        const third = th && (th.qualified === thT.home || th.qualified === thT.away) ? th.qualified : null;
+        const fourth = third ? (third === thT.home ? thT.away : thT.home) : null;
+        if (!champ) return `<p class="muted champ-box">Completa la final para ver tu campeón.</p>`;
+        return `<div class="champ-box">
+          <div>🏆 Campeón</div><div class="name">${esc(nameOf(champ))}</div>
+          <p class="medals">🥇 ${esc(nameOf(champ))} · 🥈 ${esc(nameOf(runner))}${third ? ` · 🥉 ${esc(nameOf(third))} · 4.º ${esc(nameOf(fourth))}` : ""}</p>
+        </div>`;
+      }
+
+      function proposalHtml() {
+        const pr = cur.proposal;
+        const line = (label, a, b, w) =>
+          `<div class="row">${esc(label)}: ${esc(nameOf(a))} vs ${esc(nameOf(b))} → <span class="adv">${esc(nameOf(w))}</span></div>`;
+        return `<div class="proposal">
+          <h3>💡 Tu propuesta automática</h3>
+          <p class="muted" style="margin:0 0 0.4rem;font-size:0.82rem">Punto de partida: tu campeón y tu 4.º se mantienen fijos (🔒) y en cada cruce avanza el que quedó más arriba en tu clasificación original. Puedes cambiar los marcadores; el campeón y el 4.º no.</p>
+          ${line("Semifinal 1", cur.q97, cur.q98, pr.sf1w)}
+          ${line("Semifinal 2", cur.q99, cur.q100, pr.sf2w)}
+          ${line("Final", pr.champ, pr.finL, pr.champ)}
+          ${line("3.er puesto", pr.third, pr.fourth, pr.third)}
+          <div class="medals">🥇 ${esc(nameOf(pr.champ))} · 🥈 ${esc(nameOf(pr.finL))} · 🥉 ${esc(nameOf(pr.third))} · 4.º ${esc(nameOf(pr.fourth))}</div>
+        </div>`;
+      }
+
+      function renderFix() {
+        const root = document.getElementById("fix-root");
+        root.innerHTML = `
+          ${proposalHtml()}
+          <div class="card">
+            <h2>Corrige tus 4 partidos</h2>
+            <p class="muted" style="font-size:0.82rem;margin:0.1rem 0 0.6rem">Semifinales con el emparejamiento correcto. Al decidir cada semifinal se rellenan sola la final y el 3.º puesto.</p>
+            <div class="ko-matches">${BRACKET.map(koRowHtml).join("")}</div>
+            ${championHtml()}
+          </div>
+          <div class="card dataset">
+            <h2>📋 Tu fix (cópialo y envíamelo)</h2>
+            <textarea id="export-box" readonly spellcheck="false"></textarea>
+            <div class="actions">
+              <button id="copy-btn">Copiar al portapapeles</button>
+              <button class="ghost" id="reset-btn">Volver a la propuesta</button>
+              <span class="copied" id="copied-msg" hidden>¡Copiado!</span>
+            </div>
+          </div>`;
+        document.getElementById("export-box").value = buildExport();
+        wire();
+      }
+
+      function wire() {
+        document.querySelectorAll("#fix-root .score-input").forEach((input) => {
+          input.addEventListener("input", () => {
+            const id = input.dataset.ko, side = input.dataset.side;
+            const { value, invalid } = parseGoal(input.value);
+            input.classList.toggle("invalid", invalid);
+            if (invalid) return;
+            cur.fix[id][side] = value;
+            recomputeAll();
+            persist();
+            renderFix();
+            const suffix = { home: "kh", away: "ka", penHome: "ph", penAway: "pa" }[side];
+            const again = document.getElementById(`${id}_${suffix}`);
+            if (again) { again.focus(); const v = again.value; again.value = ""; again.value = v; }
+          });
+        });
+        document.getElementById("copy-btn").addEventListener("click", async () => {
+          const ta = document.getElementById("export-box");
+          try { await navigator.clipboard.writeText(ta.value); }
+          catch { ta.removeAttribute("readonly"); ta.select(); document.execCommand("copy"); ta.setAttribute("readonly", ""); }
+          const msg = document.getElementById("copied-msg");
+          msg.hidden = false; setTimeout(() => (msg.hidden = true), 1500);
+        });
+        document.getElementById("reset-btn").addEventListener("click", () => {
+          fillFromProposal(); persist(); renderFix();
+        });
+      }
+
+      function persist() {
+        const store = loadStore();
+        store[cur.nick] = cur.fix;
+        saveStore(store);
+      }
+
+      // ── Carga de una quiniela y arranque de la sesión ───────────────────
+      function computeProposal(pred) {
+        const ko = pred.knockout || {};
+        const g = (id) => ko[id] && ko[id].qualified;
+        const q97 = g("M97"), q98 = g("M98"), q99 = g("M99"), q100 = g("M100");
+        const champ = pred.champion, m103 = ko.M103, m104 = ko.M104;
+        if (!q97 || !q98 || !q99 || !q100 || !champ || !m103 || !m104 || m104.qualified == null) return null;
+        const runnerUp = m104.qualified === m104.home ? m104.away : m104.home;
+        const third = m103.qualified;
+        const fourth = m103.qualified === m103.home ? m103.away : m103.home;
+        const rank = new Map([[champ, 1], [runnerUp, 2], [third, 3], [fourth, 4]]);
+        for (const t of [q97, q98, q99, q100]) if (!rank.has(t)) return null;
+        const best = (a, b) => (rank.get(a) <= rank.get(b) ? a : b);
+        const worst = (a, b) => (rank.get(a) <= rank.get(b) ? b : a);
+        const sf1w = best(q97, q98), sf1l = worst(q97, q98);
+        const sf2w = best(q99, q100), sf2l = worst(q99, q100);
+        return {
+          q97, q98, q99, q100,
+          sf1w, sf2w,
+          champ, finL: worst(sf1w, sf2w),
+          third: best(sf1l, sf2l), fourth: worst(sf1l, sf2l),
+        };
+      }
+
+      // ¿Ya tiene la quiniela el emparejamiento corregido? (M101 vs W98 en vez de W99).
+      const isAlreadyFixed = (pred) => pred.knockout && pred.knockout.M101 && pred.knockout.M101.away_slot === "W98";
+
+      function startSession(nick, pred) {
+        const root = document.getElementById("fix-root");
+        if (isAlreadyFixed(pred)) {
+          const ko = pred.knockout;
+          const l = (id) => `${nameOf(ko[id].home)} ${ko[id].hg}-${ko[id].ag} ${nameOf(ko[id].away)} → ${nameOf(ko[id].qualified)}`;
+          root.innerHTML = `<div class="banner ok">✅ <strong>Tu predicción ya está corregida.</strong> No tienes que hacer nada.
+            <div class="muted" style="margin-top:0.4rem;font-size:0.85rem">SF1: ${esc(l("M101"))} · SF2: ${esc(l("M102"))} · Campeón: ${esc(nameOf(pred.champion))}</div></div>`;
+          cur = null; return;
+        }
+        const proposal = computeProposal(pred);
+        if (!proposal) {
+          root.innerHTML = `<div class="banner danger">No he podido reconstruir tu cuadro (predicción incompleta). Avísame y lo miramos a mano.</div>`;
+          cur = null; return;
+        }
+        cur = { nick, q97: proposal.q97, q98: proposal.q98, q99: proposal.q99, q100: proposal.q100, proposal, fix: null };
+        const saved = loadStore()[nick];
+        if (saved && saved.M101) { cur.fix = saved; recomputeAll(); }
+        else { cur.fix = { M101: blank(), M102: blank(), M103: blank(), M104: blank() }; fillFromProposal(); }
+        renderFix();
+      }
+
+      // ── Arranque: registro + quinielas ──────────────────────────────────
+      async function boot() {
+        try {
+          const [reg, teams] = await Promise.all([
+            fetch("./data/registry.json", { cache: "no-store" }).then((r) => r.json()),
+            fetch("./data/teams.json", { cache: "no-store" }).then((r) => r.json()),
+          ]);
+          TEAMS = teams.teams || {};
+          const participants = reg.participants || [];
+          // Carga todas las quinielas para marcar cuáles ya están corregidas.
+          const parsed = await Promise.all(participants.map(async (p) => {
+            try {
+              const txt = await fetch(`./data/submissions/${p.file}`, { cache: "no-store" }).then((r) => r.text());
+              return { nick: p.nick, pred: parsePrediction(txt) };
+            } catch { return { nick: p.nick, pred: null }; }
+          }));
+          const byNick = new Map(parsed.map((x) => [x.nick, x.pred]));
+          const pending = parsed.filter((x) => x.pred && !isAlreadyFixed(x.pred));
+
+          const banner = document.getElementById("global-banner");
+          if (pending.length === 0) {
+            banner.innerHTML = `<div class="banner ok">✅ <strong>Todas las predicciones ya están corregidas.</strong> Esta pestaña ya no hace falta.</div>`;
+          } else {
+            banner.innerHTML = `<div class="banner warn">Quedan <strong>${pending.length}</strong> predicciones por corregir de ${parsed.length}.</div>`;
+          }
+
+          const sel = document.getElementById("nick-select");
+          for (const { nick, pred } of parsed.sort((a, b) => a.nick.localeCompare(b.nick))) {
+            const done = pred && isAlreadyFixed(pred);
+            const opt = document.createElement("option");
+            opt.value = nick;
+            opt.textContent = `${nick}${done ? "  ✅ corregida" : ""}`;
+            sel.appendChild(opt);
+          }
+          sel.addEventListener("change", () => {
+            const nick = sel.value;
+            const root = document.getElementById("fix-root");
+            if (!nick) { root.innerHTML = ""; cur = null; return; }
+            const pred = byNick.get(nick);
+            if (!pred) { root.innerHTML = `<div class="banner danger">No he podido cargar tu quiniela.</div>`; return; }
+            startSession(nick, pred);
+          });
+        } catch (e) {
+          document.getElementById("global-banner").innerHTML =
+            `<div class="banner danger">No se pudieron cargar los datos: ${esc(e.message || e)}</div>`;
+        }
+      }
+
+      boot();
+    </script>
+  </body>
+</html>
