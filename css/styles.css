@@ -179,6 +179,15 @@ ul.kv li span { color: var(--muted); }
 .ko-qcount { font-size: 0.8rem; font-weight: 400; color: var(--accent); }
 .ko-qcount b { color: var(--accent); }
 
+/* Panel "Semifinales corregidas" (propuesta informativa en la ficha de usuario) */
+.ko-corrected { border: 1px dashed var(--accent); border-radius: 10px; padding: 0.7rem 0.9rem;
+  margin: 0.5rem 0 0.8rem; background: rgba(46,160,67,0.06); }
+.ko-corrected h4 { margin: 0 0 0.3rem; font-size: 0.9rem; }
+.ko-corrected p { margin: 0.3rem 0; font-size: 0.82rem; }
+.m.m-corr { border-left-color: var(--accent); background: var(--bg); }
+.m-corr-label { flex: 0 0 6.5rem; font-size: 0.75rem; text-align: right; }
+.ko-corr-medals { font-weight: 600; font-size: 0.88rem !important; }
+
 /* ─────────── Estadísticas (Parte 2, Fase 4) ─────────── */
 .more { color: var(--accent); text-decoration: none; font-weight: 600; }
 .champ-fav { max-width: 30rem; margin: 0.5rem 0 1rem; }

@@ -654,8 +654,57 @@ function koBreakdown(ctx, scored, pred) {
     const qTag = qResolved
       ? ` <span class="ko-qcount">· ✅ <b>${qHits}/${qResolved}</b> quién pasa</span>` : "";
     html += `<h3>${ROUND_LABEL[grp.round] || grp.round}${qTag}</h3>${lines}`;
+    // Bug histórico del cuadro: las semis se emparejaron cruzadas (W97-W99 / W98-W100)
+    // en vez de W97-W98 / W99-W100. Bajo las semis "tal cual" mostramos la propuesta
+    // corregida, sin tocar puntuación (solo informativo).
+    if (grp.round === "SEMIS") html += correctedSemisPanel(pred);
   }
   return html;
+}
+
+// Panel informativo "Semifinales corregidas": reconstruye cómo quedarían las semis →
+// final → 3.º/4.º de un usuario con el emparejamiento CORRECTO (W97-W98 / W99-W100),
+// partiendo de los 4 semifinalistas que ya eligió (ganadores de M97-M100) y manteniendo
+// su campeón y su 4.º. En cada cruce corregido avanza el equipo que quedó más arriba en
+// SU clasificación final original (campeón > subcampeón > 3.º > 4.º); esa misma regla
+// reproduce sus propios resultados en los cruces que ya existían, así que no inventa
+// nada. Es solo visual: no altera datos ni la puntuación. "" si el cuadro está incompleto.
+function correctedSemisPanel(pred) {
+  const ko = pred.knockout || {};
+  const q = (id) => ko[id] && ko[id].qualified;
+  const q97 = q("M97"), q98 = q("M98"), q99 = q("M99"), q100 = q("M100");
+  const champ = pred.champion, m103 = ko.M103, m104 = ko.M104;
+  if (!q97 || !q98 || !q99 || !q100 || !champ || !m103 || !m104 || m104.qualified == null) return "";
+  // Clasificación original: 1 campeón · 2 subcampeón (perdedor de la final) ·
+  // 3 tercero (ganador del 3.º puesto) · 4 cuarto (perdedor del 3.º puesto).
+  const runnerUp = m104.qualified === m104.home ? m104.away : m104.home;
+  const third = m103.qualified;
+  const fourth = m103.qualified === m103.home ? m103.away : m103.home;
+  const rank = new Map([[champ, 1], [runnerUp, 2], [third, 3], [fourth, 4]]);
+  for (const t of [q97, q98, q99, q100]) if (!rank.has(t)) return "";  // cuadro inconsistente → no mostramos
+  const best = (a, b) => (rank.get(a) <= rank.get(b) ? a : b);   // avanza el mejor clasificado
+  const worst = (a, b) => (rank.get(a) <= rank.get(b) ? b : a);
+  const sf1w = best(q97, q98), sf1l = worst(q97, q98);
+  const sf2w = best(q99, q100), sf2l = worst(q99, q100);
+  const finL = worst(sf1w, sf2w);   // finalista que pierde = subcampeón corregido (finW === campeón)
+  const thW = best(sf1l, sf2l);     // 3.º corregido (el otro perdedor = 4.º, === cuarto original)
+  const cruce = (label, a, b, w) => `<div class="m m-corr">
+      <span class="m-fix">${esc(teamName(a))} <span class="muted">vs</span> ${esc(teamName(b))} <span class="m-q m-q-ok">→ ${esc(teamName(w))}</span></span>
+      <span class="m-corr-label muted">${label}</span></div>`;
+  const changed = finL !== runnerUp;   // ¿el reemparejamiento cambia subcampeón/3.º?
+  const note = changed
+    ? `Con el emparejamiento correcto, tu <strong>subcampeón</strong> y tu <strong>3.º</strong> cambian respecto a tu cuadro original (tu campeón y tu 4.º se mantienen).`
+    : `Con el emparejamiento correcto tus cuatro posiciones no cambian; solo cambian los rivales de cada semifinal.`;
+  return `<div class="ko-corrected">
+    <h4>🔧 Semifinales corregidas <span class="muted">· propuesta</span></h4>
+    <p class="muted">El cuadro original cruzaba mal las semis (W97-W99 / W98-W100). Así quedarían con el emparejamiento correcto (W97-W98 / W99-W100), manteniendo tu campeón y tu 4.º; en cada cruce avanza el equipo que quedó más arriba en tu clasificación.</p>
+    ${cruce("Semifinal 1", q97, q98, sf1w)}
+    ${cruce("Semifinal 2", q99, q100, sf2w)}
+    ${cruce("Final", champ, finL, champ)}
+    ${cruce("3.er puesto", thW, fourth, thW)}
+    <p class="ko-corr-medals">🥇 ${esc(teamName(champ))} · 🥈 ${esc(teamName(finL))} · 🥉 ${esc(teamName(thW))} · 4.º ${esc(teamName(fourth))}</p>
+    <p class="muted ko-corr-note">${note}</p>
+  </div>`;
 }
 
 function matchLine(homeN, awayN, pm, om, res, qualified, qHit) {
