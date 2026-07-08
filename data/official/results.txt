@@ -132,8 +132,8 @@ M100 W95 W96 AR - - CH q:-
 completados: 0/4
 
 [SEMIS]
-M101 W97 W99 ? - - ? q:-
-M102 W98 W100 ? - - ? q:-
+M101 W97 W98 ? - - ? q:-
+M102 W99 W100 ? - - ? q:-
 completados: 0/2
 
 [TERCER_PUESTO]

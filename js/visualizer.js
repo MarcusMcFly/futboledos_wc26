@@ -671,6 +671,8 @@ function koBreakdown(ctx, scored, pred) {
 // nada. Es solo visual: no altera datos ni la puntuación. "" si el cuadro está incompleto.
 function correctedSemisPanel(pred) {
   const ko = pred.knockout || {};
+  // Ya corregida (emparejamiento W97-W98): el cuadro real ya es el bueno, no hace falta el panel.
+  if (ko.M101 && ko.M101.away_slot === "W98") return "";
   const q = (id) => ko[id] && ko[id].qualified;
   const q97 = q("M97"), q98 = q("M98"), q99 = q("M99"), q100 = q("M100");
   const champ = pred.champion, m103 = ko.M103, m104 = ko.M104;
