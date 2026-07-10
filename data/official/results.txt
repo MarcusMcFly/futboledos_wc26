@@ -125,14 +125,14 @@ M96 W85 W87 CH 0 0 CO q:CH pen:4-3
 completados: 8/8
 
 [CUARTOS]
-M97 W89 W90 FR - - MA q:-
+M97 W89 W90 FR 2 0 MA q:FR
 M98 W93 W94 ES - - BE q:-
 M99 W91 W92 NO - - ENG q:-
 M100 W95 W96 AR - - CH q:-
-completados: 0/4
+completados: 1/4
 
 [SEMIS]
-M101 W97 W98 ? - - ? q:-
+M101 W97 W98 FR - - ? q:-
 M102 W99 W100 ? - - ? q:-
 completados: 0/2
 
