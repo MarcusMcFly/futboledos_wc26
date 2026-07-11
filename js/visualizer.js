@@ -9,6 +9,7 @@ import { parsePrediction } from "./parse_prediction.js";
 import { buildLeaderboard } from "./leaderboard.js";
 import { buildPoolRanking } from "./pools.js";
 import { groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution, groupStandings, groupCrossStats, koMatchDistribution, koHeroes, koRoundQualifierLeaders, koRoundStats, koRoundFollowers } from "./stats.js";
+import { buildFunStats } from "./funstats.js";
 import { computeMovements, topMovers, newLeader, computeStreaks, benchmarkCrossings } from "./history.js";
 import { projectUser } from "./projection.js";
 import { progressionRoundIncrement } from "./scoring.js";
@@ -933,7 +934,122 @@ function renderKoMatches(ctx) {
       <span class="ml-meta muted">${played ? `${koScoreText(om)} · pasa ${esc(teamName(om.qualified))}` : `${dist.total} pred.`}</span></a>`;
   }
   if (lastRound !== null) html += koRoundFooter(ctx, lastRound);
+  html += funStatsModule(ctx);
   $app.innerHTML = html;
+}
+
+// ── Módulo "Estadísticas de gala": curiosidades para el pique, al final de la vista de
+// eliminatoria. Todo se deriva de las quinielas (y, donde aporta, del oficial); no puntúa.
+function funStatsModule(ctx) {
+  const fs = buildFunStats(ctx.predictions, ctx.official, "ES");
+  if (!fs.n) return "";
+  const link = (n) => `<a href="?nick=${encodeURIComponent(n)}">${esc(n)}</a>`;
+  const names = (arr) => (arr && arr.length ? arr.map(link).join(" · ") : "—");
+  const star = teamName(fs.star.id);
+
+  // Tarjeta de premio: icono + título + ganador(es) + coletilla.
+  const award = (ico, title, winnerHtml, sub) => `<div class="fs-award">
+    <div class="fs-ico">${ico}</div>
+    <div class="fs-aw-body"><div class="fs-aw-t">${title}</div>
+      <div class="fs-aw-w">${winnerHtml}</div>
+      <div class="fs-aw-s muted">${sub}</div></div></div>`;
+
+  const g = fs.goals, ch = fs.character, st = fs.star;
+  const blow = g.biggest
+    ? `${esc(teamName(g.biggest.home))} <b>${g.biggest.hg}-${g.biggest.ag}</b> ${esc(teamName(g.biggest.away))}` : "—";
+  const twins = ch.twins ? `${link(ch.twins.a)} &amp; ${link(ch.twins.b)}` : "—";
+
+  const awards = [
+    award("🔥", "Rey del gol", names(g.goleador.nicks), `${g.goleador.value} goles pintados en total`),
+    award("🧱", "Míster Catenaccio", names(g.tacano.nicks), `solo ${g.tacano.value} goles en todo su cuadro`),
+    award("🤝", "Rey del empate", names(g.empates.nicks), `${g.empates.value} empates pronosticados`),
+    award("💥", "La goleada más bestia", blow, `la firma ${names(g.biggestBy)}`),
+    award("🎯", "El pistolero", fs.sharp ? names([fs.sharp.best.nick]) : "—", fs.sharp ? `${fs.sharp.best.exact} marcadores exactos de ${fs.sharp.played} jugados` : "aún no hay partidos jugados"),
+    award("😈", "El rebelde", names(ch.rebelde.nicks), `${ch.rebelde.value}% de rareza media en sus signos`),
+    award("🐑", "El borrego", names(ch.borrego.nicks), `${ch.borrego.value}% — el más de manual`),
+    award("👯", "Almas gemelas", twins, ch.twins ? `coinciden en el ${ch.twins.sim}% de los grupos (${ch.twins.agree}/${ch.twins.common})` : "—"),
+    award("🐺", "Lobo solitario", ch.loner ? names([ch.loner.nick]) : "—", ch.loner ? `su quiniela más parecida solo llega al ${ch.loner.bestSim}% (con ${esc(ch.loner.closest)})` : "—"),
+    award("❤️", `El más ${star.toLowerCase() === "españa" ? "españolista" : "forofo"}`, names(st.fans.nicks), `le pone ${st.fans.value} goles a favor a ${esc(star)}`),
+    award("🔪", `El que más castiga a ${esc(star)}`, names(st.verdugos.nicks), `le encaja ${st.verdugos.value} goles`),
+    award("⚰️", `El que menos fe le tiene a ${esc(star)}`, names(st.earliest.nicks), `la manda a casa en ${st.earliest.label.toLowerCase()}`),
+  ].join("");
+
+  // Barra proporcional simple (verde a favor).
+  const bar = (val, max, cls) => `<span class="fs-bar"><span class="${cls}" style="width:${max ? (val / max) * 100 : 0}%"></span></span>`;
+
+  // España: reparto por ronda (a cuántas quinielas llega a cada altura).
+  const reachRows = st.reach.filter((r) => r.count).map((r) => {
+    const tip = r.nicks.join(", ");
+    return `<div class="fs-reach-row" title="${esc(tip)}"><span class="fs-reach-l">${esc(r.label)}</span>
+      ${bar(r.count, fs.n, "fs-adv")}<span class="fs-reach-n">${r.count}<span class="muted">/${fs.n}</span></span></div>`;
+  }).join("");
+
+  // Equipos: máquinas de goles y coladeros (agregado de las 24).
+  const maxGf = fs.teams.goleadores[0] ? fs.teams.goleadores[0].gf : 0;
+  const maxGa = fs.teams.coladeros[0] ? fs.teams.coladeros[0].ga : 0;
+  const teamCol = (arr, key, cls, max) => arr.map((t) =>
+    `<div class="fs-treow"><span class="fs-tname">${esc(teamName(t.id))}</span>${bar(t[key], max, cls)}<span class="fs-tn">${t[key]}</span></div>`).join("");
+
+  // Finalistas más repetidos.
+  const finRows = fs.finalists.slice(0, 8).map((t) =>
+    `<div class="fs-treow"><span class="fs-tname">${esc(teamName(t.id))}</span>${bar(t.count, fs.n, "fs-adv")}<span class="fs-tn">${t.count}<span class="muted">/${fs.n}</span></span></div>`).join("");
+
+  // Marcador estrella.
+  const scoreChips = g.commonScore.map((s, i) =>
+    `<span class="fs-chip${i === 0 ? " fs-chip-top" : ""}">${s.score} <span class="muted">${s.pct}%</span></span>`).join("");
+
+  // Tabla goleadora por participante (total + media + empates + su goleada).
+  const goalTable = g.profiles.map((p, i) => `<tr>
+    <td class="lb-pos">${i + 1}</td><td>${link(p.nick)}</td>
+    <td class="pts">${p.total}</td><td>${p.avg}</td><td>${p.draws}</td>
+    <td class="muted">${p.biggest ? `${esc(teamName(p.biggest.home))} ${p.biggest.hg}-${p.biggest.ag} ${esc(teamName(p.biggest.away))}` : "—"}</td></tr>`).join("");
+
+  // Ranking de rareza (contrarian) top y bottom.
+  const rebelList = ch.contrarian.slice(0, 5).map((x) => `${link(x.nick)} <b>${x.rarity}%</b>`).join(" · ");
+  const borregoList = ch.contrarian.slice(-5).reverse().map((x) => `${link(x.nick)} <b>${x.rarity}%</b>`).join(" · ");
+
+  return `<section class="funstats">
+    <h2 class="section">🎉 Estadísticas de gala <span class="muted">· curiosidades de las ${fs.n} quinielas</span></h2>
+    <p class="muted">Puro pique: nada de esto puntúa. Todo sale de lo que cada uno pronosticó (media global de <strong>${g.avgGoals}</strong> goles por partido).</p>
+
+    <div class="fs-awards">${awards}</div>
+
+    <div class="fs-grid">
+      <div class="fs-block">
+        <h3 class="fs-h">🇪🇸 El termómetro de ${esc(star)} <span class="muted">· ¿hasta dónde la llevan?</span></h3>
+        <div class="fs-reach">${reachRows}</div>
+        <p class="muted fs-note">❤️ Más goles a favor: <strong>${names(st.fans.nicks)}</strong> (${st.fans.value}) · 🔪 más goles en contra: <strong>${names(st.verdugos.nicks)}</strong> (${st.verdugos.value})</p>
+      </div>
+
+      <div class="fs-block">
+        <h3 class="fs-h">🏆 Finalistas más repetidos</h3>
+        <div class="fs-teams">${finRows}</div>
+        <p class="muted fs-note">Marcador estrella del torneo: ${scoreChips}</p>
+      </div>
+
+      <div class="fs-block">
+        <h3 class="fs-h">⚽ Máquinas de goles <span class="muted">· GF agregado (24 quinielas)</span></h3>
+        <div class="fs-teams">${teamCol(fs.teams.goleadores, "gf", "fs-adv", maxGf)}</div>
+      </div>
+
+      <div class="fs-block">
+        <h3 class="fs-h">🕳️ Coladeros <span class="muted">· GC agregado</span></h3>
+        <div class="fs-teams">${teamCol(fs.teams.coladeros, "ga", "fs-elim", maxGa)}</div>
+      </div>
+
+      <div class="fs-block">
+        <h3 class="fs-h">😈 Rebeldes vs 🐑 borregos <span class="muted">· rareza de sus signos de grupo</span></h3>
+        <p class="muted fs-note">La <strong>rareza</strong> mide cuánto te sales del rebaño: en cada partido de grupo se mira solo el signo (1·X·2) y cuánta gente puso el mismo que tú. Rareza del pick = 100 % − % que coincidió contigo; se promedian tus 72 partidos. <strong>0 %</strong> = siempre con la mayoría (de manual); cuanto más alto, más veces elegiste el signo que casi nadie puso. No mide aciertos, solo lo original que es tu quiniela.</p>
+        <p class="fs-note">Más contra corriente: ${rebelList}</p>
+        <p class="fs-note">Más de manual: ${borregoList}</p>
+      </div>
+    </div>
+
+    <h3 class="fs-h">⚽ ¿Quién pinta más goles? <span class="muted">· todos, de más a menos</span></h3>
+    <div class="fs-tablewrap"><table class="standings fs-table">
+      <thead><tr><th>#</th><th>Quiniela</th><th>Goles</th><th>Media</th><th>Empates</th><th>Su goleada máxima</th></tr></thead>
+      <tbody>${goalTable}</tbody></table></div>
+  </section>`;
 }
 
 // Pie de una ronda en la lista de eliminatoria: si la ronda aún no se ha jugado pero ya

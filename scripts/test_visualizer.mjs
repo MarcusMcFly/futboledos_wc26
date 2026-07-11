@@ -77,6 +77,8 @@ has(koMatches, "Dieciseisavos", "ko-matches: ronda R32");
 has(koMatches, "Final", "ko-matches: ronda final");
 has(koMatches, "?komatch=M73", "ko-matches: enlace a detalle de cruce");
 has(koMatches, "dist-seg", "ko-matches: barra de clasificados");
+has(koMatches, "Estadísticas de gala", "ko-matches: módulo de curiosidades al final");
+has(koMatches, "Rey del gol", "ko-matches: premio del módulo de curiosidades");
 
 const koMatch = await route("?komatch=M73");
 has(koMatch, "¿Quién pasa?", "ko-match: distribución de clasificados");

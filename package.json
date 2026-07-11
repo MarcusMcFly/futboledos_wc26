@@ -4,6 +4,6 @@
   "type": "module",
   "description": "Quiniela del Mundial 2026 — sitio estático (GitHub Pages). type:module permite ejecutar los módulos ES de js/ con Node para los tests.",
   "scripts": {
-    "test": "node scripts/test_parse.mjs && node scripts/test_scoring.mjs && node scripts/test_stats.mjs && node scripts/test_history.mjs && node scripts/test_standings.mjs && node scripts/test_projection.mjs && node scripts/test_visualizer.mjs"
+    "test": "node scripts/test_parse.mjs && node scripts/test_scoring.mjs && node scripts/test_stats.mjs && node scripts/test_history.mjs && node scripts/test_standings.mjs && node scripts/test_projection.mjs && node scripts/test_funstats.mjs && node scripts/test_visualizer.mjs"
   }
 }

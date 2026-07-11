@@ -320,6 +320,35 @@ td.lb-mov { width: 2.6rem; }
 .ps-row-dead .ps-team { text-decoration: line-through; text-decoration-thickness: 1px; }
 .ps-dead { font-size: 0.72rem; font-weight: 600; color: var(--danger); text-decoration: none; white-space: nowrap; }
 
+/* Estadísticas de gala (curiosidades, final de la vista de eliminatoria) */
+.funstats { margin: 2.2rem 0 1rem; padding-top: 1.4rem; border-top: 2px solid var(--border); }
+.fs-awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.6rem; margin: 0.8rem 0 1.4rem; }
+.fs-award { display: flex; gap: 0.6rem; padding: 0.6rem 0.7rem; background: var(--panel);
+  border: 1px solid var(--border); border-radius: 10px; }
+.fs-ico { font-size: 1.5rem; line-height: 1; }
+.fs-aw-body { min-width: 0; }
+.fs-aw-t { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted, #8b949e); }
+.fs-aw-w { font-size: 0.98rem; font-weight: 700; margin: 0.05rem 0; }
+.fs-aw-w a { color: var(--accent); text-decoration: none; }
+.fs-aw-w a:hover { text-decoration: underline; }
+.fs-aw-s { font-size: 0.78rem; line-height: 1.25; }
+.fs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 0.9rem; margin: 0.5rem 0 1.4rem; }
+.fs-block { padding: 0.7rem 0.9rem; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+.fs-h { margin: 0.2rem 0 0.6rem; font-size: 0.95rem; }
+.fs-note { margin: 0.5rem 0 0; font-size: 0.82rem; }
+.fs-reach-row, .fs-treow { display: grid; grid-template-columns: 7.5rem 1fr auto; align-items: center; gap: 0.5rem; font-size: 0.84rem; margin: 0.24rem 0; }
+.fs-reach-l, .fs-tname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.fs-bar { display: block; height: 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.fs-adv { display: block; height: 100%; background: var(--accent); }
+.fs-elim { display: block; height: 100%; background: var(--danger); }
+.fs-reach-n, .fs-tn { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fs-chip { display: inline-block; padding: 0.05rem 0.4rem; margin: 0.1rem 0.15rem 0 0; font-size: 0.8rem;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 999px; font-variant-numeric: tabular-nums; }
+.fs-chip-top { border-color: var(--accent); font-weight: 700; }
+.fs-tablewrap { overflow-x: auto; }
+.fs-table { width: 100%; margin-top: 0.4rem; }
+.fs-table td, .fs-table th { font-size: 0.84rem; }
+
 /* Estadísticas de ronda (bajo el "Top acertantes") */
 .kostats { margin: -0.9rem 0 1.4rem; padding: 0.7rem 0.9rem;
   background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
