@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { buildDreamOfficial, ceilingFor, projectUser } from "../js/projection.js";
+import { buildDreamOfficial, ceilingFor, projectUser, repairSemiPairing } from "../js/projection.js";
 import { buildLeaderboard } from "../js/leaderboard.js";
 import { scoreParticipant } from "../js/scoring.js";
 
@@ -78,6 +78,36 @@ const buckets = proj.impossible.length + proj.catchable.length + proj.threat.len
 eq(buckets, board.length - 1, "cada rival en un único bucket");
 // Y (con solo M73 predicho) tiene poco techo → X (que puede sumar M74) debería tenerlo ganado o como amenaza baja.
 ok([...proj.secured, ...proj.threat].some((o) => o.nick === "Y"), "Y clasificado como amenaza/ganado (techo bajo)");
+
+// ── repairSemiPairing: reempareja las semis buggeadas (solo proyección) ───────
+// Cuadro con el bug (M101 = W97-W99 / M102 = W98-W100). Clasificación original del
+// participante: campeón A, subcampeón B, 3.º C, 4.º D. Semifinalistas: A,B (arriba) y C,D.
+const kk = (round, hs, as, home, away, qualified) =>
+  ({ round, home_slot: hs, away_slot: as, home, away, hg: qualified === home ? 1 : 0, ag: qualified === home ? 0 : 1, qualified, pen: null });
+const bugged = {
+  nick: "BUG", groupMatches: {}, groupOrder: {}, thirdsKey: null, thirdsQualified: [], champion: "A", generadoAt: null,
+  knockout: {
+    M97: kk("CUARTOS", "W89", "W90", "A", "x", "A"),
+    M98: kk("CUARTOS", "W93", "W94", "B", "y", "B"),
+    M99: kk("CUARTOS", "W91", "W92", "C", "z", "C"),
+    M100: kk("CUARTOS", "W95", "W96", "D", "w", "D"),
+    M101: kk("SEMIS", "W97", "W99", "A", "C", "A"),   // bug: empareja W97 con W99
+    M102: kk("SEMIS", "W98", "W100", "B", "D", "B"),  // bug: empareja W98 con W100
+    M103: kk("TERCER_PUESTO", "L101", "L102", "C", "D", "C"),
+    M104: kk("FINAL", "W101", "W102", "A", "B", "A"),
+  },
+};
+const fixed = repairSemiPairing(bugged);
+eq([fixed.knockout.M101.home_slot, fixed.knockout.M101.away_slot], ["W97", "W98"], "repair: M101 pasa a W97-W98");
+eq([fixed.knockout.M101.home, fixed.knockout.M101.away, fixed.knockout.M101.qualified], ["A", "B", "A"], "repair: SF1 = A vs B, avanza el mejor (A)");
+eq([fixed.knockout.M102.home, fixed.knockout.M102.away, fixed.knockout.M102.qualified], ["C", "D", "C"], "repair: SF2 = C vs D, avanza el mejor (C)");
+eq([fixed.knockout.M104.home, fixed.knockout.M104.away, fixed.knockout.M104.qualified], ["A", "C", "A"], "repair: final = A vs C, campeón A (se mantiene)");
+eq([fixed.knockout.M103.qualified, fixed.knockout.M103.home === "B" || fixed.knockout.M103.away === "B"], ["B", true], "repair: 3.er puesto lo gana B (subcampeón original), y D (4.º) sigue ahí");
+ok(bugged.knockout.M101.away_slot === "W99", "repair no muta el original (sigue buggeado)");
+// Idempotente: un cuadro ya corregido (M101.away_slot === "W98") se devuelve intacto.
+ok(repairSemiPairing(fixed) === fixed, "repair: cuadro ya corregido se devuelve sin tocar");
+// Cuadro sin semis (el de juguete de arriba, solo dieciseisavos) se devuelve intacto.
+ok(repairSemiPairing(x) === x, "repair: sin semis, devuelve el pred tal cual");
 
 console.log(`\nprojection: ${pass} OK, ${fail} fallos`);
 process.exit(fail ? 1 : 0);

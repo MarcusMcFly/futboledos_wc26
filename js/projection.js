@@ -19,6 +19,52 @@ const koIdsInOrder = (knockout) =>
   Object.keys(knockout).sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
 
 /**
+ * SOLO PARA LA PROYECCIÓN (techo/escenarios), nunca para la puntuación real: reconstruye en
+ * memoria el emparejamiento CORRECTO de las semis (W97-W98 / W99-W100) de una quiniela que
+ * arrastra el bug histórico del cuadro (W97-W99 / W98-W100). Usa la misma regla del panel
+ * "Semifinales corregidas": mantiene campeón y 4.º, y en cada cruce avanza el equipo mejor
+ * clasificado en el cuadro original (campeón > subcampeón > 3.º > 4.º). Así, un participante que
+ * puso a un equipo de la parte alta (p. ej. España) como finalista no ve su techo hundido por
+ * tener ese equipo mal enrutado. Devuelve el pred INTACTO si ya está corregido (M101.away_slot
+ * === "W98") o si el cuadro es incompleto/inconsistente. No muta el original (copia superficial).
+ */
+export function repairSemiPairing(pred) {
+  const ko = pred.knockout || {};
+  const m101 = ko.M101;
+  if (!m101 || m101.away_slot === "W98") return pred;          // ya corregido (o sin semis)
+  const q = (id) => ko[id] && ko[id].qualified;
+  const q97 = q("M97"), q98 = q("M98"), q99 = q("M99"), q100 = q("M100");
+  const champ = pred.champion, m103 = ko.M103, m104 = ko.M104;
+  if (!q97 || !q98 || !q99 || !q100 || !champ || !m103 || !m104 || m104.qualified == null) return pred;
+  // Clasificación original: 1 campeón · 2 subcampeón · 3 tercero · 4 cuarto.
+  const runnerUp = m104.qualified === m104.home ? m104.away : m104.home;
+  const third = m103.qualified;
+  const fourth = m103.qualified === m103.home ? m103.away : m103.home;
+  const rank = new Map([[champ, 1], [runnerUp, 2], [third, 3], [fourth, 4]]);
+  for (const t of [q97, q98, q99, q100]) if (!rank.has(t)) return pred;   // cuadro inconsistente
+  const best = (a, b) => (rank.get(a) <= rank.get(b) ? a : b);
+  const worst = (a, b) => (rank.get(a) <= rank.get(b) ? b : a);
+  const sf1w = best(q97, q98), sf1l = worst(q97, q98);
+  const sf2w = best(q99, q100), sf2l = worst(q99, q100);
+  const finL = worst(sf1w, sf2w);       // subcampeón corregido (el ganador de la final es el campeón)
+  const thW = best(sf1l, sf2l);         // 3.º corregido (el otro perdedor de semis = 4.º)
+  // Cruce corregido: marcador de "techo" (victoria limpia del que avanza), que el sueño luego
+  // replica → se acredita como exacto. Solo tocamos M101-M104; el resto del cuadro no cambia.
+  const mk = (id, hs, as, home, away, qualified) => ({
+    round: ko[id].round, home_slot: hs, away_slot: as, home, away,
+    hg: qualified === home ? 1 : 0, ag: qualified === home ? 0 : 1, qualified, pen: null,
+  });
+  const knockout = {
+    ...ko,
+    M101: mk("M101", "W97", "W98", q97, q98, sf1w),
+    M102: mk("M102", "W99", "W100", q99, q100, sf2w),
+    M103: mk("M103", "L101", "L102", sf1l, sf2l, thW),
+    M104: mk("M104", "W101", "W102", sf1w, sf2w, champ),
+  };
+  return { ...pred, knockout };
+}
+
+/**
  * Construye el resultado oficial HIPOTÉTICO del "mundo ideal" de `pred`: parte del
  * oficial real y, para cada cruce de eliminatoria aún sin resolver, lo cierra como
  * `pred` lo pronosticó (su clasificado avanza con su marcador). Los cruces ya
@@ -63,9 +109,12 @@ export function buildDreamOfficial(pred, official) {
   return H;
 }
 
-/** Techo (máxima puntuación alcanzable) de una predicción = su total en su mundo ideal. */
+/** Techo (máxima puntuación alcanzable) de una predicción = su total en su mundo ideal.
+ * Se puntúa el cuadro con el emparejamiento de semis corregido (`repairSemiPairing`) contra su
+ * propio mundo ideal, para que el bug del cuadro no infravalore el techo. */
 export function ceilingFor(pred, official, rules) {
-  return scoreParticipant(pred, buildDreamOfficial(pred, official), rules).score.total;
+  const fixed = repairSemiPairing(pred);
+  return scoreParticipant(fixed, buildDreamOfficial(fixed, official), rules).score.total;
 }
 
 const SCENARIOS = [
@@ -102,10 +151,12 @@ export function projectUser(nick, { board, byNick, predByNick, official, rules }
   });
 
   // Mundo ideal de X: puntúa a TODOS contra el oficial hipotético de X y ordena con
-  // los desempates oficiales. Aquí se ve la interdependencia (quién sube con X).
-  const dreamOff = buildDreamOfficial(myPred, official);
+  // los desempates oficiales. Aquí se ve la interdependencia (quién sube con X). Se usa el
+  // cuadro con semis corregidas (solo proyección) tanto para construir el sueño como para
+  // puntuar a cada uno, para que el bug del emparejamiento no distorsione techos ni rangos.
+  const dreamOff = buildDreamOfficial(repairSemiPairing(myPred), official);
   const dreamScored = [...predByNick.entries()].map(([n, pred]) => {
-    const sc = scoreParticipant(pred, dreamOff, rules);
+    const sc = scoreParticipant(repairSemiPairing(pred), dreamOff, rules);
     sc.generadoAt = pred.generadoAt || null;
     return sc;
   });

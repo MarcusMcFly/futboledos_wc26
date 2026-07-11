@@ -500,8 +500,17 @@ function maxProjection(ctx, nick) {
         `${link(o.nick)} <span class="muted">(${o.current}→${o.dream}, +${o.gain})</span>`).join(" · ")} <span class="muted">— coincidieron contigo, así que tu acierto es también el suyo.</span></p>`
     : "";
 
+  // Si su cuadro arrastra el bug de emparejamiento de semis (W97-W99 en vez de W97-W98), el
+  // techo se calcula con las semis ya corregidas para no infravalorarlo; se avisa.
+  const myKo = (ctx.predByNick.get(nick) || {}).knockout || {};
+  const buggedPairing = myKo.M101 && myKo.M101.away_slot !== "W98";
+  const pairingNote = buggedPairing
+    ? `<p class="proj-line muted">🔧 Tu cuadro cruza mal las semis (bug histórico W97-W99). Este techo se calcula con el <strong>emparejamiento corregido</strong> (W97-W98), como en el panel “Semifinales corregidas”, para no penalizarte por el fallo de plantilla. La puntuación real no cambia hasta que corrijas tu quiniela.</p>`
+    : "";
+
   return `
     <p>Si a partir de ahora se cumpliera <strong>todo</strong> lo que has pronosticado —tus equipos pasan las eliminatorias con tus marcadores y tu campeón levanta la copa— llegarías a un máximo de <strong>${p.ceiling} pts</strong> (+${p.remaining} sobre tus ${p.current} de ahora). Pero como todos jugáis los <em>mismos</em> partidos, quienes coincidieron contigo también acertarían: en ese escenario ideal <strong>realista</strong> quedarías <strong>#${p.rankAtCeiling}</strong> <span class="muted">(hoy vas #${p.currentRank})</span>.</p>
+    ${pairingNote}
     <div class="cards proj-cards">${cards}</div>
     <p class="legend muted">Escenarios = 100 % / 65 % / 30 % de los ${p.remaining} puntos que aún puedes sumar. El puesto es el <strong>mejor posible</strong> con esa puntuación (si nadie más sumara); como los demás solo pueden subir, tu puesto real sería ese o peor.</p>
     ${blocks.join("")}
