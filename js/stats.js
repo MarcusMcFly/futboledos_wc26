@@ -303,14 +303,31 @@ export function koRoundQualifierLeaders(predictions, official, round) {
  * (ambos equipos propagados) que todavía no se han jugado, e ignora los que aún no tienen equipos
  * o los que ya están resueltos. Así, en semis con solo un cruce definido (p. ej. la primera semi
  * ya conocida y la segunda pendiente de los cuartos), muestra las pre-estadísticas de ese cruce.
- * Devuelve null solo si la ronda no tiene ningún cruce fijado sin jugar. `teams` = [{ id, count,
- * pct, advance:[nick], eliminate:[nick], nicks }] de más a menos seguido (empate → por id);
- * `matches` = nº de cruces de la ronda con equipos, `resolved` = cuántos ya jugados,
- * `pending` = cuántos aún sin equipos, `partial` = true si no todos los cruces están fijados.
+ * CASO ESPECIAL FINAL: si la ronda es la FINAL y aún no hay ningún finalista oficial (las
+ * semis sin jugar), no se puede anclar en equipos reales; entonces el roster se deriva de los
+ * finalistas que cada participante pone en SU cuadro (union de sus dos finalistas), y ▲/▼
+ * pasan a significar "lo hacen campeón" / "subcampeón". Los equipos ya eliminados de verdad se
+ * marcan con `alive:false` para no dar a entender que siguen vivos.
+ *
+ * Devuelve null solo si la ronda no tiene ningún cruce fijado sin jugar (ni finalistas en las
+ * quinielas, en el caso de la final). `teams` = [{ id, count, pct, advance:[nick],
+ * eliminate:[nick], nicks, alive }] de más a menos seguido (empate → por id); `matches` = nº de
+ * cruces de la ronda con equipos, `resolved` = cuántos ya jugados, `pending` = cuántos aún sin
+ * equipos, `partial` = true si no todos los cruces están fijados, `fromBrackets` = true si el
+ * roster salió de las quinielas (final sin finalistas oficiales).
  */
 export function koRoundFollowers(predictions, official, round) {
   const mids = Object.keys(official.knockout).filter((id) => official.knockout[id].round === round);
   if (!mids.length) return null;
+  // Equipos ya eliminados de verdad: perdedores de cualquier cruce oficial ya resuelto.
+  const eliminated = new Set();
+  for (const id of Object.keys(official.knockout)) {
+    const m = official.knockout[id];
+    if (m.hg != null && m.ag != null && m.qualified) {
+      const loser = m.qualified === m.home ? m.away : m.home;
+      if (loser) eliminated.add(loser);
+    }
+  }
   const roster = [];
   let resolved = 0, pending = 0;
   for (const id of mids) {
@@ -319,7 +336,19 @@ export function koRoundFollowers(predictions, official, round) {
     if (m.hg != null && m.ag != null && m.qualified) { resolved++; continue; } // ya jugado → no es "pre"
     roster.push(m.home, m.away);
   }
-  if (!roster.length) return null;                                    // ningún cruce fijado sin jugar
+  // Final aún sin finalistas oficiales: el roster sale de los finalistas de cada quiniela.
+  let fromBrackets = false;
+  if (!roster.length && round === "FINAL" && resolved === 0) {
+    fromBrackets = true;
+    const set = new Set();
+    for (const p of predictions) for (const id of mids) {
+      const m = p.knockout[id];
+      if (m && m.home) set.add(m.home);
+      if (m && m.away) set.add(m.away);
+    }
+    roster.push(...set);
+  }
+  if (!roster.length) return null;                                    // nada que mostrar aún
   const total = predictions.length;
   // Por cada participante: los equipos que da en esta ronda y si los da clasificados (pasa)
   // o eliminados (cae) en su propio cuadro.
@@ -339,10 +368,11 @@ export function koRoundFollowers(predictions, official, round) {
     advance.sort((a, b) => a.localeCompare(b));
     eliminate.sort((a, b) => a.localeCompare(b));
     const count = advance.length + eliminate.length;
-    return { id: t, count, pct: total ? Math.round((count / total) * 100) : 0, advance, eliminate, nicks: [...advance, ...eliminate] };
-  }).sort((a, b) => b.count - a.count || String(a.id).localeCompare(String(b.id)));
-  const matches = roster.length / 2;
-  return { round, total, teams, matches, resolved, pending, partial: pending > 0 || resolved > 0 };
+    return { id: t, count, pct: total ? Math.round((count / total) * 100) : 0, advance, eliminate, nicks: [...advance, ...eliminate], alive: !eliminated.has(t) };
+    // Los equipos vivos van primero; dentro, de más a menos seguido.
+  }).sort((a, b) => (Number(b.alive) - Number(a.alive)) || b.count - a.count || String(a.id).localeCompare(String(b.id)));
+  const matches = fromBrackets ? teams.length : roster.length / 2;
+  return { round, total, teams, matches, resolved, pending, partial: !fromBrackets && (pending > 0 || resolved > 0), fromBrackets };
 }
 
 /**

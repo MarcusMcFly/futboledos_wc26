@@ -941,16 +941,19 @@ function koRoundFooter(ctx, round) {
 function koPreStatsPanel(ctx, round) {
   const data = koRoundFollowers(ctx.predictions, ctx.official, round);
   if (!data || !data.teams.length) return "";
-  const max = data.teams[0].count, min = data.teams[data.teams.length - 1].count;
-  const most = data.teams.filter((t) => t.count === max).map((t) => teamName(t.id));
-  const least = data.teams.filter((t) => t.count === min).map((t) => teamName(t.id));
+  const fb = data.fromBrackets;                 // final sin finalistas oficiales
+  const max = data.teams[0].count;
+  // Barras/▲▼: en una ronda normal es "pasa su cruce / cae"; en la final derivada de las
+  // quinielas es "lo hacen campeón / subcampeón".
   const rows = data.teams.map((t) => {
     // Segmentos relativos al equipo MÁS seguido, para comparar barras entre equipos.
     const advW = max ? (t.advance.length / max) * 100 : 0;
     const elimW = max ? (t.eliminate.length / max) * 100 : 0;
-    const tip = `Pasa (${t.advance.length}): ${t.advance.join(", ") || "—"}  ·  Cae (${t.eliminate.length}): ${t.eliminate.join(", ") || "—"}`;
-    return `<div class="ps-row" title="${esc(tip)}">
-      <span class="ps-team">${esc(teamName(t.id))}</span>
+    const advL = fb ? "Campeón" : "Pasa", elimL = fb ? "Subcampeón" : "Cae";
+    const tip = `${advL} (${t.advance.length}): ${t.advance.join(", ") || "—"}  ·  ${elimL} (${t.eliminate.length}): ${t.eliminate.join(", ") || "—"}`;
+    const dead = !t.alive ? ` <span class="ps-dead">💀 eliminado</span>` : "";
+    return `<div class="ps-row${t.alive ? "" : " ps-row-dead"}" title="${esc(tip)}">
+      <span class="ps-team">${esc(teamName(t.id))}${dead}</span>
       <span class="ps-bar"><span class="ps-adv" style="width:${advW}%"></span><span class="ps-elim" style="width:${elimW}%"></span></span>
       <span class="ps-n">
         <span>${t.count}<span class="muted">/${data.total}</span></span>
@@ -965,6 +968,27 @@ function koPreStatsPanel(ctx, round) {
   const partialNote = data.partial
     ? `<p class="ps-partial muted">🔒 Solo se muestra ${data.matches === 1 ? "el cruce ya fijado" : `los ${data.matches} cruces ya fijados`}${data.pending ? ` · ${data.pending} ${data.pending === 1 ? "cruce" : "cruces"} aún por definir` : ""}.</p>`
     : "";
+  // La final derivada de las quinielas: aviso propio + leyenda campeón/subcampeón, y en vez
+  // de "más/menos seguido" (que con equipos ya muertos despista) se destacan los finalistas
+  // vivos más votados.
+  if (fb) {
+    const alive = data.teams.filter((t) => t.alive);
+    const aliveMax = alive.length ? alive[0].count : 0;
+    const top = alive.filter((t) => t.count === aliveMax).map((t) => teamName(t.id));
+    const topLine = alive.length
+      ? `<p class="ps-extremes">🔥 Finalista vivo más votado${s(top)}: <strong>${top.map(esc).join(" · ")}</strong> <span class="muted">(${aliveMax}/${data.total})</span></p>`
+      : `<p class="ps-extremes muted">Ningún finalista pronosticado sigue vivo.</p>`;
+    return `<div class="prestats">
+      <p class="prestats-h">🔮 Pre-estadísticas de la Final
+        <span class="muted">· a cuántos de los ${data.total} participantes le sale cada equipo en la final de su quiniela</span></p>
+      <p class="ps-partial muted">🔒 Los finalistas aún no están decididos: esto sale de la final de cada cuadro. Los ya eliminados van marcados.</p>
+      <p class="ps-legend muted"><span class="ps-adv-t">▲ verde</span>: lo hacen <strong>campeón</strong> · <span class="ps-elim-t">▼ rojo</span>: <strong>subcampeón</strong>.</p>
+      <div class="ps-list">${rows}</div>
+      ${topLine}</div>`;
+  }
+  const min = data.teams[data.teams.length - 1].count;
+  const most = data.teams.filter((t) => t.count === max).map((t) => teamName(t.id));
+  const least = data.teams.filter((t) => t.count === min).map((t) => teamName(t.id));
   return `<div class="prestats">
     <p class="prestats-h">🔮 Pre-estadísticas de ${ROUND_LABEL[round] || round}
       <span class="muted">· a cuántos de los ${data.total} participantes “sigue” cada equipo (lo metieron en ${(ROUND_LABEL[round] || round).toLowerCase()} en su quiniela)</span></p>

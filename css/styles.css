@@ -316,6 +316,9 @@ td.lb-mov { width: 2.6rem; }
 .ps-adv-t { color: var(--accent); font-weight: 600; }
 .ps-elim-t { color: var(--danger); font-weight: 600; }
 .ps-extremes { margin: 0.55rem 0 0; font-size: 0.84rem; }
+.ps-row-dead { opacity: 0.55; }
+.ps-row-dead .ps-team { text-decoration: line-through; text-decoration-thickness: 1px; }
+.ps-dead { font-size: 0.72rem; font-weight: 600; color: var(--danger); text-decoration: none; white-space: nowrap; }
 
 /* Estadísticas de ronda (bajo el "Top acertantes") */
 .kostats { margin: -0.9rem 0 1.4rem; padding: 0.7rem 0.9rem;
