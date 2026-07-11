@@ -959,9 +959,16 @@ function koPreStatsPanel(ctx, round) {
     </div>`;
   }).join("");
   const s = (arr) => (arr.length > 1 ? "s" : "");
+  // Cuando la ronda solo tiene fijado(s) parte de sus cruces (p. ej. semis con una semifinal
+  // ya conocida y la otra pendiente de los cuartos), se avisa de que las pre-estadísticas
+  // cubren únicamente el/los cruce(s) ya definido(s).
+  const partialNote = data.partial
+    ? `<p class="ps-partial muted">🔒 Solo se muestra ${data.matches === 1 ? "el cruce ya fijado" : `los ${data.matches} cruces ya fijados`}${data.pending ? ` · ${data.pending} ${data.pending === 1 ? "cruce" : "cruces"} aún por definir` : ""}.</p>`
+    : "";
   return `<div class="prestats">
     <p class="prestats-h">🔮 Pre-estadísticas de ${ROUND_LABEL[round] || round}
       <span class="muted">· a cuántos de los ${data.total} participantes “sigue” cada equipo (lo metieron en ${(ROUND_LABEL[round] || round).toLowerCase()} en su quiniela)</span></p>
+    ${partialNote}
     <p class="ps-legend muted"><span class="ps-adv-t">▲ verde</span>: apuestan que <strong>pasa</strong> su cruce · <span class="ps-elim-t">▼ rojo</span>: que <strong>cae</strong>.</p>
     <div class="ps-list">${rows}</div>
     <p class="ps-extremes">🔥 Más seguido${s(most)}: <strong>${most.map(esc).join(" · ")}</strong> <span class="muted">(${max}/${data.total})</span>

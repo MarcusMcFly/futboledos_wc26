@@ -299,20 +299,27 @@ export function koRoundQualifierLeaders(predictions, official, round) {
  * esta ronda (en su cuadro lo dan como clasificado) de los que apuestan que CAE (lo tienen en
  * la ronda pero eliminado).
  *
- * Devuelve null si la ronda no tiene todos sus equipos definidos, o si ya hay algún cruce
- * resuelto (entonces ya no es "pre"). `teams` = [{ id, count, pct, advance:[nick], eliminate:[nick],
- * nicks }] de más a menos seguido (empate → por id).
+ * Trabaja cruce a cruce: incluye en el roster los equipos de los cruces YA FIJADOS de la ronda
+ * (ambos equipos propagados) que todavía no se han jugado, e ignora los que aún no tienen equipos
+ * o los que ya están resueltos. Así, en semis con solo un cruce definido (p. ej. la primera semi
+ * ya conocida y la segunda pendiente de los cuartos), muestra las pre-estadísticas de ese cruce.
+ * Devuelve null solo si la ronda no tiene ningún cruce fijado sin jugar. `teams` = [{ id, count,
+ * pct, advance:[nick], eliminate:[nick], nicks }] de más a menos seguido (empate → por id);
+ * `matches` = nº de cruces de la ronda con equipos, `resolved` = cuántos ya jugados,
+ * `pending` = cuántos aún sin equipos, `partial` = true si no todos los cruces están fijados.
  */
 export function koRoundFollowers(predictions, official, round) {
   const mids = Object.keys(official.knockout).filter((id) => official.knockout[id].round === round);
   if (!mids.length) return null;
   const roster = [];
+  let resolved = 0, pending = 0;
   for (const id of mids) {
     const m = official.knockout[id];
-    if (m.home == null || m.away == null) return null;              // aún no propagados todos
-    if (m.hg != null && m.ag != null && m.qualified) return null;   // ya jugado → no es "pre"
+    if (m.home == null || m.away == null) { pending++; continue; }   // aún sin equipos → no entra
+    if (m.hg != null && m.ag != null && m.qualified) { resolved++; continue; } // ya jugado → no es "pre"
     roster.push(m.home, m.away);
   }
+  if (!roster.length) return null;                                    // ningún cruce fijado sin jugar
   const total = predictions.length;
   // Por cada participante: los equipos que da en esta ronda y si los da clasificados (pasa)
   // o eliminados (cae) en su propio cuadro.
@@ -334,7 +341,8 @@ export function koRoundFollowers(predictions, official, round) {
     const count = advance.length + eliminate.length;
     return { id: t, count, pct: total ? Math.round((count / total) * 100) : 0, advance, eliminate, nicks: [...advance, ...eliminate] };
   }).sort((a, b) => b.count - a.count || String(a.id).localeCompare(String(b.id)));
-  return { round, total, teams };
+  const matches = roster.length / 2;
+  return { round, total, teams, matches, resolved, pending, partial: pending > 0 || resolved > 0 };
 }
 
 /**
