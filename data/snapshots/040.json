@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-12T04:43:12.450Z",
+  "label": "Antes de cuartos M99-M100",
+  "completed_group_matches": 72,
+  "completed_ko_matches": 26,
+  "rankings": [
+    {
+      "nick": "Alberto_Soria",
+      "rank": 1,
+      "points": 687
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 2,
+      "points": 677
+    },
+    {
+      "nick": "Txauri",
+      "rank": 3,
+      "points": 664
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 4,
+      "points": 663
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 5,
+      "points": 657
+    },
+    {
+      "nick": "Marcus",
+      "rank": 6,
+      "points": 638
+    },
+    {
+      "nick": "Morses",
+      "rank": 7,
+      "points": 633
+    },
+    {
+      "nick": "DCJ",
+      "rank": 8,
+      "points": 627
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 9,
+      "points": 626
+    },
+    {
+      "nick": "CMC",
+      "rank": 10,
+      "points": 614
+    },
+    {
+      "nick": "Vic",
+      "rank": 11,
+      "points": 607
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 12,
+      "points": 597
+    },
+    {
+      "nick": "Kike",
+      "rank": 13,
+      "points": 586
+    },
+    {
+      "nick": "JBC",
+      "rank": 14,
+      "points": 561
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 15,
+      "points": 552
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 16,
+      "points": 541
+    },
+    {
+      "nick": "Ales",
+      "rank": 16,
+      "points": 541
+    },
+    {
+      "nick": "VBJ",
+      "rank": 18,
+      "points": 532
+    },
+    {
+      "nick": "Mata",
+      "rank": 19,
+      "points": 506
+    },
+    {
+      "nick": "Verde",
+      "rank": 20,
+      "points": 498
+    },
+    {
+      "nick": "Borja",
+      "rank": 21,
+      "points": 488
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 21,
+      "points": 488
+    },
+    {
+      "nick": "Pollico",
+      "rank": 23,
+      "points": 477
+    },
+    {
+      "nick": "Julio",
+      "rank": 24,
+      "points": 472
+    }
+  ]
+}

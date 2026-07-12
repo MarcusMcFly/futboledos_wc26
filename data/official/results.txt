@@ -127,13 +127,13 @@ completados: 8/8
 [CUARTOS]
 M97 W89 W90 FR 2 0 MA q:FR
 M98 W93 W94 ES 2 1 BE q:ES
-M99 W91 W92 NO - - ENG q:-
-M100 W95 W96 AR - - CH q:-
-completados: 2/4
+M99 W91 W92 NO 1 2 ENG q:ENG
+M100 W95 W96 AR 3 1 CH q:AR
+completados: 4/4
 
 [SEMIS]
 M101 W97 W98 FR - - ES q:-
-M102 W99 W100 ? - - ? q:-
+M102 W99 W100 ENG - - AR q:-
 completados: 0/2
 
 [TERCER_PUESTO]
