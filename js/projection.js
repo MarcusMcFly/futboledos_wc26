@@ -172,18 +172,24 @@ export function projectUser(nick, { board, byNick, predByNick, official, rules }
   // "¿a quién puedo superar?" se decide en TU mundo ideal, no contra los marcadores
   // congelados de hoy. Si tu quiniela se cumple, quienes coincidieron contigo también
   // suben, así que "cazar" a alguien exige quedar por delante de él en ESE escenario.
-  //   · imposible de superar : aun cumpliéndose tu quiniela queda por encima de ti
-  //                            (su rank en tu mundo ideal < el tuyo) → no le adelantas.
+  //   · imposible de superar : va por delante HOY y, aun cumpliéndose tu quiniela, sigue
+  //                            por encima de ti (su rank en tu mundo ideal < el tuyo).
   //   · a tu alcance (arriba) : va por delante HOY, pero en tu mundo ideal quedas por
   //                            encima de él → alcanzable.
   //   · te pueden pasar (abajo): va por detrás/igual y su techo llega a tu actual.
   //   · ganado (abajo)        : su techo < tu actual → no te alcanza jamás.
+  // OJO: "imposible" solo aplica a quien va POR DELANTE hoy. A un rival que va por
+  // debajo ya le superas: tu marcador solo puede crecer, así que como mucho es una
+  // amenaza (puede pasarte), nunca "imposible". El rank en TU mundo ideal no vale para
+  // clasificarlo, porque ese mundo maximiza TU puntuación (y de paso puede inflar la
+  // suya si comparte tus aciertos), no tu POSICIÓN frente a él: existen otros desenlaces
+  // en los que él se hunde y tú aguantas por encima.
   const impossible = [], catchable = [], threat = [], secured = [];
   for (const o of board) {
     if (o.nick === nick) continue;
     const oc = o.score.total, ce = ceilings.get(o.nick);
     const entry = { nick: o.nick, current: oc, ceiling: ce };
-    if (dreamByNick.get(o.nick).rank < myDream.rank) impossible.push(entry);
+    if (oc > current && dreamByNick.get(o.nick).rank < myDream.rank) impossible.push(entry);
     else if (oc > current) catchable.push(entry);
     else if (ce >= current) threat.push(entry);
     else secured.push(entry);
