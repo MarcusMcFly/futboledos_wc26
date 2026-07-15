@@ -130,8 +130,8 @@ function cumulativeReachPoints(rank, r) {
   if (rank >= 2) pts += r.round_of_16;
   if (rank >= 3) pts += r.quarter_final;
   if (rank >= 4) pts += r.semi_final;
-  if (rank >= 6) pts += r.champion;        // campeón sustituye al de finalista (§10.3)
-  else if (rank === 5) pts += r.runner_up; // finalista (perdió la final)
+  if (rank >= 5) pts += r.runner_up; // finalista: ambos finalistas lo cobran
+  if (rank >= 6) pts += r.champion;  // campeón: bonus ADICIONAL por ganar la final (apila, no sustituye)
   return pts;
 }
 
@@ -172,7 +172,7 @@ export function scoreProgression(pred, off, rules) {
 // (mín. entre lo pronosticado y lo conseguido) aporta a la FASE `round`: el escalón que
 // GENERAN los partidos de esa ronda, es decir, avanzar de ella a la siguiente
 // (dieciseisavos → octavos = round_of_16, octavos → cuartos = quarter_final, …, semis →
-// final = runner_up, final → campeón = champion − runner_up). Así cada fase suma solo lo
+// final = runner_up, final → campeón = champion, que apila sobre el finalista). Así cada fase suma solo lo
 // que produce jugarla y el total (sin el round_of_32, que es de grupos) reparte sin
 // solapes. 0 si el equipo no supera esa ronda. `round` = sección del parser.
 export function progressionRoundIncrement(credited, round, r) {

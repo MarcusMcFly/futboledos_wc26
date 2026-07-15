@@ -68,7 +68,7 @@ const champ = scoreProgression(
   { knockout: { M73: { round: "DIECISEISAVOS", home: "C", away: null }, M89: { round: "OCTAVOS", home: "C", away: null }, M97: { round: "CUARTOS", home: "C", away: null }, M101: { round: "SEMIS", home: "C", away: null }, M104: { round: "FINAL", home: "C", away: null, qualified: "C" } } },
   { knockout: { M73: { round: "DIECISEISAVOS", home: "C", away: null }, M89: { round: "OCTAVOS", home: "C", away: null }, M97: { round: "CUARTOS", home: "C", away: null }, M101: { round: "SEMIS", home: "C", away: null }, M104: { round: "FINAL", home: "C", away: null, qualified: "C" } } },
   rules);
-eq(champ.points, 47, "§10.3 campeón acertado → 2+4+6+10+25 = 47");
+eq(champ.points, 62, "campeón acertado → 2+4+6+10+15+25 = 62 (campeón apila sobre finalista)");
 
 // ── Integración: datos reales ────────────────────────────────────────────────
 // El oficial vivo (data/official/results.txt) arranca vacío en la salida del
@@ -117,15 +117,15 @@ eq(progressionRoundIncrement(2, "OCTAVOS", pb), 0, "octavos → 0 si llega a oct
 eq(progressionRoundIncrement(3, "OCTAVOS", pb), pb.quarter_final, "octavos → quarter_final si avanza a cuartos");
 eq(progressionRoundIncrement(4, "CUARTOS", pb), pb.semi_final, "cuartos → semi_final si avanza a semis");
 eq(progressionRoundIncrement(5, "SEMIS", pb), pb.runner_up, "semis → runner_up si avanza a la final (finalista)");
-// La final: el finalista que la pierde no suma nada nuevo; el campeón sube de finalista
-// a campeón (champion − runner_up).
+// La final: el finalista que la pierde no suma nada nuevo; el campeón apila el bonus de
+// campeón sobre el de finalista (escalón = champion completo).
 eq(progressionRoundIncrement(5, "FINAL", pb), 0, "final: finalista que pierde → 0 (no mejora)");
-eq(progressionRoundIncrement(6, "FINAL", pb), pb.champion - pb.runner_up, "final: campeón → champion − runner_up");
+eq(progressionRoundIncrement(6, "FINAL", pb), pb.champion, "final: campeón → champion (apila sobre finalista)");
 // Propiedad clave: las porciones de fase suman el bonus acumulado total MENOS el
 // round_of_32 (reparto sin solapes; el R32 lo genera la fase de grupos, no la KO).
 const cumul = (rank) => (rank >= 1 ? pb.round_of_32 : 0) + (rank >= 2 ? pb.round_of_16 : 0)
   + (rank >= 3 ? pb.quarter_final : 0) + (rank >= 4 ? pb.semi_final : 0)
-  + (rank >= 6 ? pb.champion : rank === 5 ? pb.runner_up : 0);
+  + (rank >= 5 ? pb.runner_up : 0) + (rank >= 6 ? pb.champion : 0);
 eq(sumSlices(6), cumul(6) - pb.round_of_32, "porciones KO = bonus de campeón − R32");
 eq(sumSlices(5), cumul(5) - pb.round_of_32, "porciones KO = bonus de finalista − R32");
 eq(sumSlices(3), cumul(3) - pb.round_of_32, "porciones KO = bonus de cuartofinalista − R32");
