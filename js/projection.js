@@ -154,7 +154,8 @@ export function projectUser(nick, { board, byNick, predByNick, official, rules }
   // los desempates oficiales. Aquí se ve la interdependencia (quién sube con X). Se usa el
   // cuadro con semis corregidas (solo proyección) tanto para construir el sueño como para
   // puntuar a cada uno, para que el bug del emparejamiento no distorsione techos ni rangos.
-  const dreamOff = buildDreamOfficial(repairSemiPairing(myPred), official);
+  const myFixed = repairSemiPairing(myPred);
+  const dreamOff = buildDreamOfficial(myFixed, official);
   const dreamScored = [...predByNick.entries()].map(([n, pred]) => {
     const sc = scoreParticipant(repairSemiPairing(pred), dreamOff, rules);
     sc.generadoAt = pred.generadoAt || null;
@@ -176,14 +177,20 @@ export function projectUser(nick, { board, byNick, predByNick, official, rules }
   //                            por encima de ti (su rank en tu mundo ideal < el tuyo).
   //   · a tu alcance (arriba) : va por delante HOY, pero en tu mundo ideal quedas por
   //                            encima de él → alcanzable.
-  //   · te pueden pasar (abajo): va por detrás/igual y su techo llega a tu actual.
-  //   · ganado (abajo)        : su techo < tu actual → no te alcanza jamás.
+  //   · te pueden pasar (abajo): va por detrás/igual y aún puede acabar por encima de ti.
+  //   · ganado (abajo)        : aun cumpliéndose SU quiniela no te alcanza jamás.
   // OJO: "imposible" solo aplica a quien va POR DELANTE hoy. A un rival que va por
   // debajo ya le superas: tu marcador solo puede crecer, así que como mucho es una
   // amenaza (puede pasarte), nunca "imposible". El rank en TU mundo ideal no vale para
   // clasificarlo, porque ese mundo maximiza TU puntuación (y de paso puede inflar la
   // suya si comparte tus aciertos), no tu POSICIÓN frente a él: existen otros desenlaces
   // en los que él se hunde y tú aguantas por encima.
+  // Y por SIMETRÍA, para decidir si un rival de abajo es amenaza no basta comparar su techo
+  // con tu marcador de HOY: su techo solo se da si SU quiniela se cumple, y en ESE mundo tú
+  // también subes. Así que comparamos su techo contra tu marcador en el MUNDO IDEAL DE ÉL.
+  // Si ni en su mejor escenario te alcanza → lo tienes ganado (no una falsa amenaza).
+  const myScoreInRivalDream = (rivalPred) =>
+    scoreParticipant(myFixed, buildDreamOfficial(repairSemiPairing(rivalPred), official), rules).score.total;
   const impossible = [], catchable = [], threat = [], secured = [];
   for (const o of board) {
     if (o.nick === nick) continue;
@@ -191,7 +198,7 @@ export function projectUser(nick, { board, byNick, predByNick, official, rules }
     const entry = { nick: o.nick, current: oc, ceiling: ce };
     if (oc > current && dreamByNick.get(o.nick).rank < myDream.rank) impossible.push(entry);
     else if (oc > current) catchable.push(entry);
-    else if (ce >= current) threat.push(entry);
+    else if (ce >= myScoreInRivalDream(predByNick.get(o.nick))) threat.push(entry);
     else secured.push(entry);
   }
   impossible.sort((a, b) => a.current - b.current);   // los más cercanos primero
