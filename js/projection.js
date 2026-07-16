@@ -64,18 +64,48 @@ export function repairSemiPairing(pred) {
   return { ...pred, knockout };
 }
 
+// Tope de mundos explorados al enumerar los cruces LIBRES (ver `dreamWorlds`). Con pocos
+// cruces vivos la enumeración es exhaustiva; si hubiera muchos, se explora un subconjunto
+// (DFS) y el sueño elegido deja de ser óptimo garantizado, pero nunca es arbitrario.
+const FREE_WORLDS_CAP = 256;
+
 /**
- * Construye el resultado oficial HIPOTÉTICO del "mundo ideal" de `pred`: parte del
- * oficial real y, para cada cruce de eliminatoria aún sin resolver, lo cierra como
- * `pred` lo pronosticó (su clasificado avanza con su marcador). Los cruces ya
- * jugados se mantienen tal cual (la realidad manda: un equipo eliminado no revive,
- * porque su plaza `Wxx` propaga al ganador REAL, no al soñado). Propaga ganadores
- * (`Wxx`) y perdedores de semis (`Lxx`) igual que el bracket real.
+ * Marcador para un cruce LIBRE (aquel en el que el soñador no se juega nada). Como a él le
+ * da igual, no hay razón para regalar el "exacto" a un rival: se elige el primer marcador
+ * coherente con el clasificado que NADIE haya pronosticado para ese mismo cruce. Sin rivales
+ * a la vista devuelve 1-0 / 0-1, el comportamiento de siempre.
  */
-export function buildDreamOfficial(pred, official) {
+function freeScoreline(id, home, away, qualified, rivals) {
+  const taken = new Set();
+  for (const r of rivals) {
+    const m = (r.knockout || {})[id];
+    if (m && m.home === home && m.away === away && m.hg != null) taken.add(`${m.hg}-${m.ag}`);
+  }
+  for (let g = 1; g <= 9; g++) {
+    const [hg, ag] = qualified === home ? [g, 0] : [0, g];
+    if (!taken.has(`${hg}-${ag}`)) return [hg, ag];
+  }
+  return qualified === home ? [1, 0] : [0, 1];
+}
+
+/**
+ * Construye UN resultado oficial hipotético del "mundo ideal" de `pred`: parte del oficial
+ * real y, para cada cruce de eliminatoria aún sin resolver, lo cierra como `pred` lo
+ * pronosticó (su clasificado avanza con su marcador). Los cruces ya jugados se mantienen tal
+ * cual (la realidad manda: un equipo eliminado no revive, porque su plaza `Wxx` propaga al
+ * ganador REAL, no al soñado). Propaga ganadores (`Wxx`) y perdedores de semis (`Lxx`).
+ *
+ * Cruce LIBRE = aquel cuyo clasificado soñado ya no está vivo (o que no pronosticó). Ahí el
+ * soñador no puntúa el clasificado haga quien haga, así que el desenlace no lo fija él: lo
+ * fija `path` (una elección por cruce libre, en orden de aparición). Sin `path` se toma el
+ * local, que es lo que hacía esta función antes. Devuelve también `freeOpts` (las opciones de
+ * cada cruce libre encontrado) para que `dreamWorlds` pueda ramificar sobre ellas.
+ */
+function buildWorld(pred, official, path = [], rivals = []) {
   const H = { ...official, knockout: {} };
   const slotTeam = {};                       // plaza Wxx/Lxx → equipo que la ocupa
   const predKo = pred.knockout || {};
+  const freeOpts = [];
   for (const id of koIdsInOrder(official.knockout)) {
     const real = official.knockout[id];
     const NN = id.slice(1);
@@ -88,15 +118,20 @@ export function buildDreamOfficial(pred, official) {
       hg = real.hg; ag = real.ag; qualified = real.qualified; pen = real.pen || null;
     } else {
       const pm = predKo[id];
-      // Clasificado soñado: el que pronosticó, si es uno de los dos participantes
-      // reales; si su equipo ya no está (eliminado), no puede soñarlo → cae al local.
-      if (pm && pm.qualified && (pm.qualified === home || pm.qualified === away)) qualified = pm.qualified;
-      else qualified = home || away || null;
-      // Marcador soñado: el suyo si su cruce coincide con los participantes reales
-      // (así se acredita el exacto); si no, uno coherente con el clasificado.
-      if (pm && pm.home === home && pm.away === away && pm.hg != null && pm.ag != null) {
-        hg = pm.hg; ag = pm.ag;
-      } else if (qualified === home) { hg = 1; ag = 0; } else { hg = 0; ag = 1; }
+      if (pm && pm.qualified && (pm.qualified === home || pm.qualified === away)) {
+        // Se juega algo: avanza su clasificado, con su marcador si el cruce coincide con los
+        // participantes reales (así se acredita el exacto); si no, uno coherente.
+        qualified = pm.qualified;
+        if (pm.home === home && pm.away === away && pm.hg != null && pm.ag != null) {
+          hg = pm.hg; ag = pm.ag;
+        } else if (qualified === home) { hg = 1; ag = 0; } else { hg = 0; ag = 1; }
+      } else {
+        // Cruce libre: elige `path`, o el local mientras no haya elección para este.
+        const opts = [home, away].filter(Boolean);
+        qualified = (freeOpts.length < path.length ? path[freeOpts.length] : opts[0]) || null;
+        freeOpts.push(opts);
+        [hg, ag] = qualified ? freeScoreline(id, home, away, qualified, rivals) : [null, null];
+      }
     }
     H.knockout[id] = { round: real.round, home_slot: real.home_slot, away_slot: real.away_slot, home, away, hg, ag, qualified, pen };
     if (qualified) {
@@ -106,16 +141,75 @@ export function buildDreamOfficial(pred, official) {
   }
   const fin = H.knockout["M104"];
   H.champion = fin && fin.qualified ? fin.qualified : official.champion;
-  return H;
+  return { H, freeOpts };
 }
 
-/** Techo (máxima puntuación alcanzable) de una predicción = su total en su mundo ideal.
- * Se puntúa el cuadro con el emparejamiento de semis corregido (`repairSemiPairing`) contra su
- * propio mundo ideal, para que el bug del cuadro no infravalore el techo. */
+/** Compat: el mundo ideal de `pred` resolviendo los cruces libres por el local. */
+export function buildDreamOfficial(pred, official) {
+  return buildWorld(pred, official).H;
+}
+
+/**
+ * Todos los mundos ideales de `pred`: uno por cada combinación de desenlaces de sus cruces
+ * LIBRES. Como qué equipo avanza en un cruce libre cambia los emparejamientos posteriores (y
+ * con ellos qué cruces siguen siendo libres), el árbol se explora en profundidad, ramificando
+ * en el primer cruce libre que aún no tiene elección. Se corta en `FREE_WORLDS_CAP`.
+ */
+function dreamWorlds(pred, official, rivals) {
+  const out = [];
+  const dfs = (path) => {
+    if (out.length >= FREE_WORLDS_CAP) return;
+    const { H, freeOpts } = buildWorld(pred, official, path, rivals);
+    if (freeOpts.length <= path.length) { out.push(H); return; }   // sin decisiones nuevas
+    const opts = freeOpts[path.length];
+    if (opts.length < 2) { dfs([...path, opts[0]]); return; }
+    for (const o of opts) dfs([...path, o]);
+  };
+  dfs([]);
+  return out;
+}
+
+/** Techo (máxima puntuación alcanzable) de una predicción = su mejor total entre sus mundos
+ * ideales. Se puntúa el cuadro con el emparejamiento de semis corregido (`repairSemiPairing`)
+ * contra su propio sueño, para que el bug del cuadro no infravalore el techo. */
 export function ceilingFor(pred, official, rules) {
   const fixed = repairSemiPairing(pred);
-  return scoreParticipant(fixed, buildDreamOfficial(fixed, official), rules).score.total;
+  return dreamWorlds(fixed, official, []).reduce(
+    (max, H) => Math.max(max, scoreParticipant(fixed, H, rules).score.total), -Infinity);
 }
+
+/**
+ * El mundo ideal de `pred` que elegiríamos para juzgarlo frente a `victims`: entre todos sus
+ * mundos ideales, el que (1) le da su MÁXIMA puntuación y, a igualdad —es decir, cuando le da
+ * exactamente igual cómo acabe—, (2) deja por encima de él al menor número de `victims`, y
+ * (3) les da menos puntos en total.
+ *
+ * El punto (2) es la clave: un cruce libre no le suma ni le resta, pero SÍ puede regalarle
+ * puntos a un rival. Resolverlo "por el local" (como se hacía antes) era una decisión
+ * arbitraria del código que podía hundirle un puesto sin que nada en su quiniela lo
+ * justificara. Ante la indiferencia, el sueño se rompe a SU favor, no al del rival.
+ */
+export function bestDreamFor(pred, official, rules, victims) {
+  let best = null, bestKey = null;
+  for (const H of dreamWorlds(pred, official, victims)) {
+    const mine = scoreParticipant(pred, H, rules).score.total;
+    let above = 0, sum = 0;
+    for (const v of victims) {
+      const s = scoreParticipant(v, H, rules).score.total;
+      if (s > mine) above++;
+      sum += s;
+    }
+    const key = [-mine, above, sum];
+    if (!bestKey || lexLess(key, bestKey)) { bestKey = key; best = H; }
+  }
+  return best;
+}
+
+/** ¿`a` va antes que `b` comparando componente a componente (menor gana)? */
+const lexLess = (a, b) => {
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i];
+  return false;
+};
 
 const SCENARIOS = [
   { key: "bueno", pct: 100, icon: "🟢", label: "Bueno" },
@@ -155,7 +249,8 @@ export function projectUser(nick, { board, byNick, predByNick, official, rules }
   // cuadro con semis corregidas (solo proyección) tanto para construir el sueño como para
   // puntuar a cada uno, para que el bug del emparejamiento no distorsione techos ni rangos.
   const myFixed = repairSemiPairing(myPred);
-  const dreamOff = buildDreamOfficial(myFixed, official);
+  const rivalsFixed = [...predByNick.entries()].filter(([n]) => n !== nick).map(([, p]) => repairSemiPairing(p));
+  const dreamOff = bestDreamFor(myFixed, official, rules, rivalsFixed);
   const dreamScored = [...predByNick.entries()].map(([n, pred]) => {
     const sc = scoreParticipant(repairSemiPairing(pred), dreamOff, rules);
     sc.generadoAt = pred.generadoAt || null;
@@ -189,8 +284,10 @@ export function projectUser(nick, { board, byNick, predByNick, official, rules }
   // con tu marcador de HOY: su techo solo se da si SU quiniela se cumple, y en ESE mundo tú
   // también subes. Así que comparamos su techo contra tu marcador en el MUNDO IDEAL DE ÉL.
   // Si ni en su mejor escenario te alcanza → lo tienes ganado (no una falsa amenaza).
+  // Por simetría, el sueño del rival también se rompe a favor de ÉL (víctima = yo): así el
+  // "ganado" es conservador, y solo lo damos por bueno si ni en su escenario más hostil llega.
   const myScoreInRivalDream = (rivalPred) =>
-    scoreParticipant(myFixed, buildDreamOfficial(repairSemiPairing(rivalPred), official), rules).score.total;
+    scoreParticipant(myFixed, bestDreamFor(repairSemiPairing(rivalPred), official, rules, [myFixed]), rules).score.total;
   const impossible = [], catchable = [], threat = [], secured = [];
   for (const o of board) {
     if (o.nick === nick) continue;

@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { buildDreamOfficial, ceilingFor, projectUser, repairSemiPairing } from "../js/projection.js";
+import { bestDreamFor, buildDreamOfficial, ceilingFor, projectUser, repairSemiPairing } from "../js/projection.js";
 import { buildLeaderboard } from "../js/leaderboard.js";
 import { scoreParticipant } from "../js/scoring.js";
 
@@ -78,6 +78,39 @@ const buckets = proj.impossible.length + proj.catchable.length + proj.threat.len
 eq(buckets, board.length - 1, "cada rival en un único bucket");
 // Y (con solo M73 predicho) tiene poco techo → X (que puede sumar M74) debería tenerlo ganado o como amenaza baja.
 ok([...proj.secured, ...proj.threat].some((o) => o.nick === "Y"), "Y clasificado como amenaza/ganado (techo bajo)");
+
+// ── El sueño no regala puntos en los cruces que le dan igual al soñador ──────
+// XF sueña con ZZ en M74, pero M74 lo juegan AR y BR: pase quien pase, XF no puntúa el
+// clasificado. Antes el sueño coronaba al LOCAL (AR) por defecto, lo que regalaba puntos a
+// quien hubiera pronosticado AR y podía hundir a XF un puesto sin que nada de su quiniela lo
+// justificara. Ante la indiferencia, el desempate debe caer del lado de XF.
+const xFree = P("XF", { home: "ZA", away: "CA", hg: 0, ag: 1, qualified: "CA" },
+                      { home: "ZZ", away: "YY", hg: 1, ag: 0, qualified: "ZZ" });
+const rAR = P("RAR", { home: "ZA", away: "CA", hg: 0, ag: 1, qualified: "CA" },
+                     { home: "AR", away: "BR", hg: 1, ag: 0, qualified: "AR" });
+const rBR = P("RBR", { home: "ZA", away: "CA", hg: 0, ag: 1, qualified: "CA" },
+                     { home: "AR", away: "BR", hg: 0, ag: 1, qualified: "BR" });
+eq(buildDreamOfficial(xFree, official).knockout.M74.qualified, "AR",
+  "compat: buildDreamOfficial resuelve el cruce libre por el local");
+const meanDream = bestDreamFor(xFree, official, rules, [rAR]);
+eq(meanDream.knockout.M74.qualified, "BR",
+  "sueño sin regalos: en un cruce que le da igual, no corona al equipo que pronosticó el rival");
+ok(scoreParticipant(rAR, meanDream, rules).score.total
+   < scoreParticipant(rAR, buildDreamOfficial(xFree, official), rules).score.total,
+  "el rival puntúa menos en el sueño sin regalos que con el viejo fallback al local");
+// Y romper el empate a su favor no le cuesta a XF ni un punto: su techo es el mismo.
+eq(scoreParticipant(xFree, meanDream, rules).score.total, ceilingFor(xFree, official, rules),
+  "el sueño sin regalos mantiene intacto el techo de XF");
+// Tampoco se regala el marcador exacto: con rivales en ambos lados, gane quien gane el
+// marcador elegido no debe coincidir con el de ninguno.
+const m74 = bestDreamFor(xFree, official, rules, [rAR, rBR]).knockout.M74;
+ok(![rAR, rBR].some((r) => r.knockout.M74.hg === m74.hg && r.knockout.M74.ag === m74.ag),
+  "el marcador de un cruce libre no coincide con el de ningún rival (no se acredita el exacto)");
+
+// El techo NO puede depender de una decisión arbitraria del código: es el máximo sobre todos
+// los desenlaces de los cruces libres, no el que salga de coronar al local.
+ok(ceilingFor(xFree, official, rules) >= scoreParticipant(xFree, buildDreamOfficial(xFree, official), rules).score.total,
+  "el techo nunca es menor que el del sueño con fallback al local");
 
 // ── repairSemiPairing: reempareja las semis buggeadas (solo proyección) ───────
 // Cuadro con el bug (M101 = W97-W99 / M102 = W98-W100). Clasificación original del

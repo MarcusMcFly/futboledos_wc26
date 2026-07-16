@@ -485,7 +485,7 @@ function maxProjection(ctx, nick) {
   // Bloques de rivales.
   const blocks = [];
   blocks.push(p.impossible.length
-    ? `<p class="proj-line proj-imposs">🚫 <strong>Ya no puedes superar a:</strong> ${nameList(p.impossible)} <span class="muted">— aunque se cumpla toda tu quiniela quedarían por encima de ti (comparten tus aciertos y suben contigo). Tu mejor puesto posible es #${p.rankAtCeiling}.</span></p>`
+    ? `<p class="proj-line proj-imposs">🚫 <strong>Ya no puedes superar a:</strong> ${nameList(p.impossible)} <span class="muted">— aunque se cumpla toda tu quiniela quedarían por encima de ti (comparten tus aciertos y suben contigo). En tu mejor escenario quedarías #${p.rankAtCeiling}.</span></p>`
     : `<p class="proj-line proj-ok">✅ <strong>Nadie está fuera de tu alcance:</strong> si se cumpliera toda tu quiniela quedarías <strong>primero</strong>.</p>`);
   if (p.catchable.length)
     blocks.push(`<p class="proj-line">🎯 <strong>A tu alcance por arriba:</strong> ${nameList(p.catchable)} <span class="muted">— van por delante hoy, pero si se cumple tu quiniela quedarías por encima de ellos.</span></p>`);
