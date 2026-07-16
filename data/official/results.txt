@@ -133,15 +133,15 @@ completados: 4/4
 
 [SEMIS]
 M101 W97 W98 FR 0 2 ES q:ES
-M102 W99 W100 ENG - - AR q:-
-completados: 1/2
+M102 W99 W100 ENG 1 2 AR q:AR
+completados: 2/2
 
 [TERCER_PUESTO]
-M103 L101 L102 FR - - ? q:-
+M103 L101 L102 FR - - ENG q:-
 completados: 0/1
 
 [FINAL]
-M104 W101 W102 ES - - ? q:-
+M104 W101 W102 ES - - AR q:-
 completados: 0/1
 
 campeon: -
