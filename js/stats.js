@@ -306,8 +306,9 @@ export function koRoundQualifierLeaders(predictions, official, round) {
  * CASO ESPECIAL FINAL: si la ronda es la FINAL y aún no hay ningún finalista oficial (las
  * semis sin jugar), no se puede anclar en equipos reales; entonces el roster se deriva de los
  * finalistas que cada participante pone en SU cuadro (union de sus dos finalistas), y ▲/▼
- * pasan a significar "lo hacen campeón" / "subcampeón". Los equipos ya eliminados de verdad se
- * marcan con `alive:false` para no dar a entender que siguen vivos.
+ * pasan a significar "lo hacen campeón" / "subcampeón". SOLO en ese caso los equipos que ya no
+ * pueden llegar a la final se marcan con `alive:false`, para no darlos por vivos; cuando el
+ * roster sale de cruces reales, todos sus equipos están vivos (van a jugar ese partido).
  *
  * Devuelve null solo si la ronda no tiene ningún cruce fijado sin jugar (ni finalistas en las
  * quinielas, en el caso de la final). `teams` = [{ id, count, pct, advance:[nick],
@@ -316,18 +317,24 @@ export function koRoundQualifierLeaders(predictions, official, round) {
  * equipos, `partial` = true si no todos los cruces están fijados, `fromBrackets` = true si el
  * roster salió de las quinielas (final sin finalistas oficiales).
  */
-export function koRoundFollowers(predictions, official, round) {
-  const mids = Object.keys(official.knockout).filter((id) => official.knockout[id].round === round);
-  if (!mids.length) return null;
-  // Equipos ya eliminados de verdad: perdedores de cualquier cruce oficial ya resuelto.
-  const eliminated = new Set();
+/** Equipos que han perdido algún cruce oficial ya resuelto. OJO: "perdió un cruce" no es lo
+ * mismo que "fuera del torneo" — el perdedor de una semi cae al partido por el tercer puesto
+ * (su plaza `Lxx` propaga). Solo sirve para saber quién ya no puede llegar a la FINAL. */
+function koLosers(official) {
+  const out = new Set();
   for (const id of Object.keys(official.knockout)) {
     const m = official.knockout[id];
     if (m.hg != null && m.ag != null && m.qualified) {
       const loser = m.qualified === m.home ? m.away : m.home;
-      if (loser) eliminated.add(loser);
+      if (loser) out.add(loser);
     }
   }
+  return out;
+}
+
+export function koRoundFollowers(predictions, official, round) {
+  const mids = Object.keys(official.knockout).filter((id) => official.knockout[id].round === round);
+  if (!mids.length) return null;
   const roster = [];
   let resolved = 0, pending = 0;
   for (const id of mids) {
@@ -349,6 +356,12 @@ export function koRoundFollowers(predictions, official, round) {
     roster.push(...set);
   }
   if (!roster.length) return null;                                    // nada que mostrar aún
+  // Si el roster sale de cruces REALES ya fijados y sin jugar, sus equipos están vivos por
+  // definición: van a jugar ese partido. Perder la semifinal no elimina a nadie, te manda al
+  // partido por el tercer puesto — marcar ahí a los dos contendientes como muertos era el bug.
+  // La pregunta "¿sigue vivo?" solo tiene sentido cuando el roster lo deducimos de las
+  // quinielas (final sin finalistas oficiales): ahí sí hay equipos que ya no pueden llegar.
+  const eliminated = fromBrackets ? koLosers(official) : new Set();
   const total = predictions.length;
   // Por cada participante: los equipos que da en esta ronda y si los da clasificados (pasa)
   // o eliminados (cae) en su propio cuadro.

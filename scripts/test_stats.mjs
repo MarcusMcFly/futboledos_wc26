@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import {
   groupMatchDistribution, contrarianOutcome, exactHeroes, globalAccuracy, championDistribution,
-  groupComplete, groupStandings, groupCrossStats, koRoundQualifierLeaders,
+  groupComplete, groupStandings, groupCrossStats, koRoundQualifierLeaders, koRoundFollowers,
 } from "../js/stats.js";
 import { buildLeaderboard } from "../js/leaderboard.js";
 
@@ -136,6 +136,46 @@ const lead2 = koRoundQualifierLeaders(
 eq(lead2.leaders.map((r) => [r.nick, r.hits]), [["E", 2]],
   "ko-top set-based: cuenta equipos que pasan aunque estén en otro slot");
 eq(lead2.perfect, 1, "ko-top set-based: pleno aunque los cruces no coincidan por posición");
+
+// ── koRoundFollowers · quién está "vivo" en las pre-estadísticas ─────────────
+const km = (round, home_slot, away_slot, home, away, hg, ag, qualified) =>
+  ({ round, home_slot, away_slot, home, away, hg, ag, qualified, pen: null });
+const fp = (nick, ko) => ({ nick, groupMatches: {}, knockout: ko, champion: null });
+
+// Semis jugadas: FR y ENG las pierden, así que juegan el tercer puesto; ES y AR, la final.
+const offSF = { knockout: {
+  M101: km("SEMIS", "W97", "W98", "FR", "ES", 0, 2, "ES"),
+  M102: km("SEMIS", "W99", "W100", "ENG", "AR", 1, 2, "AR"),
+  M103: km("TERCER_PUESTO", "L101", "L102", "FR", "ENG", null, null, null),
+  M104: km("FINAL", "W101", "W102", "ES", "AR", null, null, null),
+} };
+const fans = [
+  fp("A", { M103: { home: "FR", away: "ENG", hg: 1, ag: 0, qualified: "FR" } }),
+  fp("B", { M103: { home: "FR", away: "ENG", hg: 0, ag: 1, qualified: "ENG" } }),
+];
+const third = koRoundFollowers(fans, offSF, "TERCER_PUESTO");
+// El bug: perder la semi metía a FR y ENG en "eliminados" y salían tachados con 💀 en las
+// pre-estadísticas del partido que estaban a punto de jugar. Perder la semi te manda AL
+// tercer puesto; los dos contendientes de un cruce real y sin jugar están vivos por definición.
+eq(third.teams.length, 2, "tercer puesto: el roster son los dos perdedores de semis");
+ok(third.teams.every((t) => t.alive), "tercer puesto: los perdedores de semis están VIVOS (juegan justo ese partido)");
+ok(!third.fromBrackets, "tercer puesto: el roster sale del cruce real, no de las quinielas");
+ok(koRoundFollowers(fans, offSF, "FINAL").teams.every((t) => t.alive), "final con finalistas oficiales: ambos vivos");
+
+// Pero cuando la final AÚN no tiene finalistas y el roster se deduce de las quinielas, sí hay
+// que marcar a quien ya no puede llegar: ahí `alive:false` es correcto y debe conservarse.
+const offPartial = { knockout: {
+  M101: km("SEMIS", "W97", "W98", "FR", "ES", 0, 2, "ES"),          // jugada → FR no llega a la final
+  M102: km("SEMIS", "W99", "W100", "ENG", "AR", null, null, null),  // pendiente
+  M104: km("FINAL", "W101", "W102", null, null, null, null, null),  // sin finalistas todavía
+} };
+const fbFinal = koRoundFollowers(
+  [fp("A", { M104: { home: "FR", away: "AR", hg: 1, ag: 0, qualified: "FR" } })], offPartial, "FINAL");
+ok(fbFinal.fromBrackets, "final sin finalistas oficiales: el roster sale de las quinielas");
+eq(fbFinal.teams.find((t) => t.id === "FR").alive, false,
+  "final desde quinielas: FR perdió su semi y ya no puede llegar → sigue marcándose eliminado");
+eq(fbFinal.teams.find((t) => t.id === "AR").alive, true,
+  "final desde quinielas: AR sigue vivo (su semi no se ha jugado)");
 
 function round1(n) { return Math.round(n * 10) / 10; }
 console.log(`\nstats: ${pass} OK, ${fail} fallos`);
