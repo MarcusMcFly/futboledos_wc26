@@ -1056,7 +1056,9 @@ function funStatsModule(ctx) {
 // tiene equipos (p. ej. cuartos), las PRE-estadísticas de equipos más/menos seguidos; y,
 // cuando hay resultados, el "top de puntos", el "top acertantes" y las estadísticas.
 function koRoundFooter(ctx, round) {
-  return koPreStatsPanel(ctx, round) + koRoundPointsPanel(ctx, round) + koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round);
+  return koPreStatsPanel(ctx, round)
+    + (round === "FINAL" ? finalTitleRacePanel(ctx) : "")
+    + koRoundPointsPanel(ctx, round) + koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round);
 }
 
 // PRE-estadísticas de una ronda todavía sin jugar (equipos ya definidos): a cuántos
@@ -1122,6 +1124,100 @@ function koPreStatsPanel(ctx, round) {
     <div class="ps-list">${rows}</div>
     <p class="ps-extremes">🔥 Más seguido${s(most)}: <strong>${most.map(esc).join(" · ")}</strong> <span class="muted">(${max}/${data.total})</span>
       · 🥶 Menos seguido${s(least)}: <strong>${least.map(esc).join(" · ")}</strong> <span class="muted">(${min}/${data.total})</span></p>
+  </div>`;
+}
+
+// "La carrera por el título": con la final (M104) y el 3.er puesto (M103) aún sin jugar
+// pero los cruces ya fijados, simula TODOS los desenlaces relevantes (marcadores exactos
+// que alguien pronosticó + un representante genérico por signo, incl. empate a penaltis
+// para cada finalista) y determina, con el motor real, quién puede acabar 1.º y de qué
+// depende. Se pinta bajo las Pre-estadísticas de la Final. "" si la final ya se jugó o aún
+// no tiene finalistas. El desempate del pool (SPEC §13) resuelve los empates a puntos, así
+// que el "campeón" de cada escenario es el primero de la clasificación ya desempatada.
+function finalTitleRacePanel(ctx) {
+  const ko = ctx.official.knockout || {};
+  const M104 = ko.M104, M103 = ko.M103;
+  if (!M104 || !M104.home || !M104.away || M104.hg != null) return ""; // final ya jugada o sin finalistas
+  const f1 = M104.home, f2 = M104.away;
+  const thirdSet = !!(M103 && M103.home && M103.away && M103.hg == null);
+  const t1 = thirdSet ? M103.home : null, t2 = thirdSet ? M103.away : null;
+
+  const participants = [...ctx.predByNick].map(([nick, prediction]) => ({ nick, prediction }));
+
+  // Desenlaces representativos de un cruce (local H, visitante A): cada marcador exacto que
+  // algún participante puso con ESE emparejamiento (para cubrir el bonus de marcador exacto)
+  // + genéricos por signo (9-0 gana H, 0-9 gana A, 8-8 empate resuelto a favor de H o de A)
+  // que, por imposibles, nunca coinciden con una predicción real. Un empate pronosticado se
+  // desdobla en las dos posibilidades de penaltis.
+  const reps = (mid, H, A) => {
+    const set = new Map();
+    const add = (hg, ag, q) => set.set(`${hg}-${ag}-${q}`, { hg, ag, qualified: q });
+    for (const { prediction } of participants) {
+      const pm = prediction.knockout && prediction.knockout[mid];
+      if (!pm || pm.home !== H || pm.away !== A || pm.hg == null || pm.ag == null) continue;
+      if (pm.hg > pm.ag) add(pm.hg, pm.ag, H);
+      else if (pm.hg < pm.ag) add(pm.hg, pm.ag, A);
+      else { add(pm.hg, pm.ag, H); add(pm.hg, pm.ag, A); }
+    }
+    add(9, 0, H); add(0, 9, A); add(8, 8, H); add(8, 8, A);
+    return [...set.values()];
+  };
+  const finalReps = reps("M104", f1, f2);
+  const thirdReps = thirdSet ? reps("M103", t1, t2) : [{ skip: true, qualified: null }];
+
+  const canWin = new Set();               // nicks que pueden acabar 1.º (tras desempate)
+  const tree = new Map();                 // `${campeon}|${3ºganador}` -> Set(nick 1.º)
+  const tieAt = new Set();                // ramas con empate a puntos en cabeza
+  for (const fr of finalReps) for (const tr of thirdReps) {
+    const o = JSON.parse(JSON.stringify(ctx.official));
+    const m4 = o.knockout.M104; m4.hg = fr.hg; m4.ag = fr.ag; m4.qualified = fr.qualified; o.champion = fr.qualified;
+    if (!tr.skip) { const m3 = o.knockout.M103; m3.hg = tr.hg; m3.ag = tr.ag; m3.qualified = tr.qualified; }
+    const b = buildLeaderboard(participants, o, ctx.rules);
+    const champ = b[0].nick;
+    canWin.add(champ);
+    const key = `${fr.qualified}|${tr.qualified ?? "?"}`;
+    if (!tree.has(key)) tree.set(key, new Set());
+    tree.get(key).add(champ);
+    if (b[1] && b[1].score.total === b[0].score.total) tieAt.add(key);
+  }
+  if (!canWin.size) return "";
+
+  const curPts = (nick) => (ctx.byNick.get(nick) ? ctx.byNick.get(nick).score.total : 0);
+  const contenders = [...canWin].sort((a, b) => curPts(b) - curPts(a));
+  const chById = (nick) => { const p = ctx.predByNick.get(nick); return p && p.champion; };
+  const contList = contenders.map((n) =>
+    `<li><strong>${esc(n)}</strong> <span class="muted">· ${curPts(n)} pts · apostó campeón: ${esc(teamName(chById(n)))}</span></li>`).join("");
+
+  const winnersForChamp = (C) => {
+    const s = new Set();
+    for (const [k, w] of tree) if (k.split("|")[0] === C) for (const x of w) s.add(x);
+    return s;
+  };
+  const treeHtml = [f1, f2].map((C) => {
+    const wc = winnersForChamp(C);
+    if (wc.size === 1)
+      return `<li><span class="tr-cond">Si gana <strong>${esc(teamName(C))}</strong> la final</span> → 🏆 <strong>${esc([...wc][0])}</strong> <span class="muted">, decidido (da igual el 3.<sup>er</sup> puesto y el marcador).</span></li>`;
+    const subs = [t1, t2].filter(Boolean).map((T) => {
+      const key = `${C}|${T}`;
+      const w = tree.has(key) ? [...tree.get(key)] : [];
+      const tie = tieAt.has(key) ? ` <span class="muted">(puede haber empate a puntos; lo resuelve el desempate del pool)</span>` : "";
+      return `<li><span class="tr-cond">…y el 3.<sup>er</sup> puesto lo gana <strong>${esc(teamName(T))}</strong></span> → 🏆 <strong>${esc(w.join(" / "))}</strong>${tie}</li>`;
+    }).join("");
+    return `<li><span class="tr-cond">Si gana <strong>${esc(teamName(C))}</strong> la final:</span><ul class="tr-sub">${subs}</ul></li>`;
+  }).join("");
+
+  const soloDos = contenders.length === 2
+    ? `<p class="tr-note muted">Nadie más puede alcanzarlos: en las ${finalReps.length * thirdReps.length} combinaciones simuladas de final y 3.<sup>er</sup> puesto, el 1.<sup>er</sup> puesto siempre cae en uno de estos dos.</p>`
+    : "";
+
+  return `<div class="prestats titlerace">
+    <p class="prestats-h">🎯 La carrera por el título
+      <span class="muted">· simulado con el motor de puntuación sobre todos los desenlaces posibles de los 2 partidos que faltan</span></p>
+    <p class="tr-sub-h">Con opciones reales de acabar 1.º:</p>
+    <ul class="tr-cont">${contList}</ul>
+    ${soloDos}
+    <p class="tr-sub-h">Cómo se decide (todo pasa por la final):</p>
+    <ul class="tr-tree">${treeHtml}</ul>
   </div>`;
 }
 
