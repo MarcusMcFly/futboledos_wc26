@@ -1168,6 +1168,7 @@ function finalTitleRacePanel(ctx) {
   const canWin = new Set();               // nicks que pueden acabar 1.º (tras desempate)
   const tree = new Map();                 // `${campeon}|${3ºganador}` -> Set(nick 1.º)
   const tieAt = new Set();                // ramas con empate a puntos en cabeza
+  const leaf = new Map();                 // `${campeon}|${3ºganador}` -> [Set×5] ocupantes de cada puesto
   for (const fr of finalReps) for (const tr of thirdReps) {
     const o = JSON.parse(JSON.stringify(ctx.official));
     const m4 = o.knockout.M104; m4.hg = fr.hg; m4.ag = fr.ag; m4.qualified = fr.qualified; o.champion = fr.qualified;
@@ -1179,6 +1180,9 @@ function finalTitleRacePanel(ctx) {
     if (!tree.has(key)) tree.set(key, new Set());
     tree.get(key).add(champ);
     if (b[1] && b[1].score.total === b[0].score.total) tieAt.add(key);
+    if (!leaf.has(key)) leaf.set(key, [new Set(), new Set(), new Set(), new Set(), new Set()]);
+    const lt = leaf.get(key);
+    for (let i = 0; i < 5 && i < b.length; i++) lt[i].add(b[i].nick);
   }
   if (!canWin.size) return "";
 
@@ -1210,6 +1214,28 @@ function finalTitleRacePanel(ctx) {
     ? `<p class="tr-note muted">Nadie más puede alcanzarlos: en las ${finalReps.length * thirdReps.length} combinaciones simuladas de final y 3.<sup>er</sup> puesto, el 1.<sup>er</sup> puesto siempre cae en uno de estos dos.</p>`
     : "";
 
+  // Top 5 según el desenlace: una tarjeta por hoja del árbol (campeón × ganador del 3.er
+  // puesto). Cuando una casilla puede tener a más de uno (según el marcador exacto) se listan
+  // con "/"; son puestos que pueden intercambiarse.
+  const leafOrder = [];
+  for (const C of [f1, f2]) for (const T of (thirdSet ? [t1, t2] : [null])) leafOrder.push(`${C}|${T ?? "?"}`);
+  let anySwap = false;
+  const top5Html = leafOrder.filter((k) => leaf.has(k)).map((k) => {
+    const [C, T] = k.split("|");
+    const rows = leaf.get(k).map((set) => {
+      const nicks = [...set];
+      if (nicks.length > 1) anySwap = true;
+      return `<li>${esc(nicks.join(" / "))}</li>`;
+    }).join("");
+    const head = thirdSet
+      ? `Campeón <strong>${esc(teamName(C))}</strong> · 3.º <strong>${esc(teamName(T))}</strong>`
+      : `Campeón <strong>${esc(teamName(C))}</strong>`;
+    return `<div class="tr-leaf"><p class="tr-leaf-h">${head}</p><ol class="tr-rank">${rows}</ol></div>`;
+  }).join("");
+  const swapNote = anySwap
+    ? `<p class="tr-note muted">Los puestos con dos nombres (A / B) pueden intercambiarse según el marcador exacto de los partidos.</p>`
+    : "";
+
   return `<div class="prestats titlerace">
     <p class="prestats-h">🎯 La carrera por el título
       <span class="muted">· simulado con el motor de puntuación sobre todos los desenlaces posibles de los 2 partidos que faltan</span></p>
@@ -1218,6 +1244,9 @@ function finalTitleRacePanel(ctx) {
     ${soloDos}
     <p class="tr-sub-h">Cómo se decide (todo pasa por la final):</p>
     <ul class="tr-tree">${treeHtml}</ul>
+    <p class="tr-sub-h">Así quedaría el top 5:</p>
+    <div class="tr-leaves">${top5Html}</div>
+    ${swapNote}
   </div>`;
 }
 
