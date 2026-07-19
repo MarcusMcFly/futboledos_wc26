@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-19T22:03:24.257Z",
+  "label": "Antes de M104 (final Espana-Argentina)",
+  "completed_group_matches": 72,
+  "completed_ko_matches": 31,
+  "rankings": [
+    {
+      "nick": "Alberto_Soria",
+      "rank": 1,
+      "points": 756
+    },
+    {
+      "nick": "Fuentes",
+      "rank": 2,
+      "points": 720
+    },
+    {
+      "nick": "Benjamin",
+      "rank": 3,
+      "points": 717
+    },
+    {
+      "nick": "Blazquez_96",
+      "rank": 4,
+      "points": 707
+    },
+    {
+      "nick": "Txauri",
+      "rank": 5,
+      "points": 692
+    },
+    {
+      "nick": "CMC",
+      "rank": 6,
+      "points": 675
+    },
+    {
+      "nick": "Morses",
+      "rank": 7,
+      "points": 665
+    },
+    {
+      "nick": "Marcus",
+      "rank": 8,
+      "points": 664
+    },
+    {
+      "nick": "DCJ",
+      "rank": 9,
+      "points": 660
+    },
+    {
+      "nick": "JesusGG",
+      "rank": 10,
+      "points": 646
+    },
+    {
+      "nick": "Vic",
+      "rank": 11,
+      "points": 634
+    },
+    {
+      "nick": "Asturfutbol",
+      "rank": 12,
+      "points": 630
+    },
+    {
+      "nick": "Kike",
+      "rank": 13,
+      "points": 625
+    },
+    {
+      "nick": "JBC",
+      "rank": 14,
+      "points": 600
+    },
+    {
+      "nick": "Carlos-Seco",
+      "rank": 15,
+      "points": 574
+    },
+    {
+      "nick": "VBJ",
+      "rank": 16,
+      "points": 570
+    },
+    {
+      "nick": "Ales",
+      "rank": 17,
+      "points": 567
+    },
+    {
+      "nick": "Mata",
+      "rank": 18,
+      "points": 544
+    },
+    {
+      "nick": "ivancalle10",
+      "rank": 19,
+      "points": 543
+    },
+    {
+      "nick": "Verde",
+      "rank": 20,
+      "points": 527
+    },
+    {
+      "nick": "Borja",
+      "rank": 21,
+      "points": 505
+    },
+    {
+      "nick": "Pollico",
+      "rank": 22,
+      "points": 498
+    },
+    {
+      "nick": "Julio",
+      "rank": 23,
+      "points": 493
+    },
+    {
+      "nick": "Jacobo",
+      "rank": 24,
+      "points": 490
+    }
+  ]
+}

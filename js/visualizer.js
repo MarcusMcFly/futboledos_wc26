@@ -200,14 +200,51 @@ function welcomeBanner(official) {
   return `<div class="banner welcome">🎉 <strong>¡El torneo da comienzo!</strong> Las predicciones están echadas y ahora solo queda rodar el balón. Mucha suerte a todos y… <strong>¡Feliz Mundial 2026!</strong> ⚽🌎</div>`;
 }
 
+// Mensaje de FIN DE TORNEO: solo cuando hay campeón oficial (final ya jugada). Corona a
+// los ganadores de la porra con el podio de la clasificación (top 4) y enlaza a su ficha.
+// "" mientras el torneo siga vivo, así que se prepara solo y aparece al registrar la Final.
+// La medalla y la etiqueta van por RANGO real (ctx.board ya trae rangos compartidos §13),
+// no por índice: si hay empate a puntos en cabeza, ambos figuran como campeones (sin 2.º).
+const FINALE_MEDAL = { 1: "🥇", 2: "🥈", 3: "🥉", 4: "4.º" };
+const FINALE_LABEL = { 1: "Campeón de la porra", 2: "Subcampeón", 3: "Tercer puesto", 4: "Cuarto puesto" };
+function tournamentFinalePanel(ctx) {
+  if (!ctx.official.champion) return "";
+  const top = ctx.board.slice(0, 4);
+  if (!top.length) return "";
+  const leaders = ctx.board.filter((s) => s.rank === 1);   // co-líderes si hay empate a puntos
+  const tied = leaders.length > 1;
+  const rows = top.map((s) => {
+    const medal = FINALE_MEDAL[s.rank] || `${s.rank}.º`;
+    const label = tied && s.rank === 1 ? "Co-campeón de la porra" : (FINALE_LABEL[s.rank] || `Puesto ${s.rank}`);
+    const cls = s.rank <= 4 ? `fin-${s.rank}` : "fin-4";
+    return `<a class="fin-row ${cls}" href="?nick=${encodeURIComponent(s.nick)}">
+      <span class="fin-medal">${medal}</span>
+      <span class="fin-body"><span class="fin-nick">${esc(s.nick)}</span>
+        <span class="fin-label muted">${label}</span></span>
+      <span class="fin-pts"><b>${s.score.total}</b> pts</span></a>`;
+  }).join("");
+  // Titular: campeón único, o empate a puntos resuelto por el desempate del pool (§13).
+  const sub = tied
+    ? `Empate en cabeza: ${leaders.map((s) => `<strong>${esc(s.nick)}</strong>`).join(" y ")} terminan igualados a <strong>${leaders[0].score.total}</strong> puntos. El desempate del pool (§13) deja primero a <strong>${esc(ctx.board[0].nick)}</strong>. ¡Enhorabuena a ambos! 🎉`
+    : `Y el ganador de la porra es… <strong>${esc(top[0].nick)}</strong> con <strong>${top[0].score.total}</strong> puntos. ¡Enhorabuena! 🎉`;
+  return `<div class="finale">
+    <p class="finale-h">🏆 ¡Torneo finalizado!</p>
+    <p class="finale-sub">Campeón oficial del Mundial 2026: <strong>${esc(teamName(ctx.official.champion))}</strong>. ${sub}</p>
+    <div class="finale-podium">${rows}</div>
+    <p class="finale-foot muted">Podio final de la clasificación general. Pulsa un nombre para ver su desglose.</p>
+  </div>`;
+}
+
 function renderHome(ctx) {
   document.title = "Clasificación · Futboledos WC26";
+  const over = !!ctx.official.champion;
   $app.innerHTML = `
     ${welcomeBanner(ctx.official)}
     ${deadlineBanner(ctx.rules)}
     ${simulationBanner(ctx.rules)}
-    ${statusBanner(ctx.official)}
-    ${completedRoundBanner(ctx) || completedGroupsBanner(ctx.official)}
+    ${over
+      ? tournamentFinalePanel(ctx)
+      : statusBanner(ctx.official) + (completedRoundBanner(ctx) || completedGroupsBanner(ctx.official))}
     <div class="view-head"><h1>Clasificación general</h1><span class="muted">${ctx.board.length} participantes</span></div>
     ${leaderboardTable(ctx, ctx.board, { showPools: true })}
     ${ctx.movements.hasSnapshot ? `<h2 class="section">Movimiento <span class="muted">· desde ${esc(ctx.snapshot.label || "el último corte")}</span></h2>${topMoversPanel(ctx)}` : ""}

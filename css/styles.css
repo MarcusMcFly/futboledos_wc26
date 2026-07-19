@@ -120,6 +120,26 @@ h2.section { font-size: 1.1rem; margin: 1.8rem 0 0.6rem; border-top: 1px solid v
 .back:hover { color: var(--text); }
 .banner.ok-banner { background: rgba(46,160,67,0.12); border: 1px solid var(--accent); }
 
+/* Mensaje de fin de torneo: podio del pool (top 4) */
+.finale { margin: 0 0 1.4rem; padding: 1.2rem 1.3rem; border-radius: 14px;
+  border: 1px solid var(--accent);
+  background: linear-gradient(135deg, rgba(210,153,34,0.16), rgba(46,160,67,0.12) 55%, transparent); }
+.finale-h { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+.finale-sub { margin: 0.35rem 0 1rem; font-size: 0.98rem; line-height: 1.4; }
+.finale-podium { display: grid; gap: 0.45rem; }
+.fin-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.8rem;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); text-decoration: none; }
+.fin-row:hover { border-color: var(--muted); }
+.fin-medal { font-size: 1.4rem; line-height: 1; width: 1.9rem; text-align: center; font-weight: 700; }
+.fin-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.fin-nick { font-weight: 700; font-size: 1.02rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fin-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.fin-pts { font-size: 0.85rem; white-space: nowrap; color: var(--muted); }
+.fin-pts b { font-size: 1.2rem; color: var(--accent); }
+.fin-1 { border-color: #d4af37; box-shadow: inset 0 0 0 1px #d4af37; background: rgba(212,175,55,0.08); }
+.finale-foot { margin: 0.8rem 0 0; font-size: 0.8rem; }
+
 /* Tabla de clasificación / pools */
 table.lb { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 table.lb th, table.lb td { padding: 0.5rem 0.45rem; border-bottom: 1px solid var(--border); text-align: center; }

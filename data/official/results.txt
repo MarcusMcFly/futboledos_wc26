@@ -141,10 +141,10 @@ M103 L101 L102 FR 4 6 ENG q:ENG
 completados: 1/1
 
 [FINAL]
-M104 W101 W102 ES - - AR q:-
-completados: 0/1
+M104 W101 W102 ES 1 0 AR q:ES
+completados: 1/1
 
-campeon: -
+campeon: ES
 
 clasificacion: https://marcusmcfly.github.io/futboledos_wc26/?view=all
 
