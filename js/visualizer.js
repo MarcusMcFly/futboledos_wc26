@@ -1057,7 +1057,76 @@ function funStatsModule(ctx) {
 // cuando hay resultados, el "top de puntos", el "top acertantes" y las estadísticas.
 function koRoundFooter(ctx, round) {
   return koPreStatsPanel(ctx, round)
-    + koRoundPointsPanel(ctx, round) + koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round);
+    + koRoundPointsPanel(ctx, round) + koRoundLeadersPanel(ctx, round) + koRoundStatsPanel(ctx, round)
+    + koPodiumPanel(ctx, round);
+}
+
+// "Quién acertó el podio": para el Tercer puesto (M103 → 3.º y 4.º) y para la Final
+// (M104 → 1.º y 2.º), lista quién clavó el equipo de cada plaza. El acierto es POR RANURA,
+// igual que el motor (§10.5): el ganador del cruce que pusiste es tu 3.º/1.º y el otro tu
+// 4.º/2.º; solo cuenta si el equipo coincide con el de esa misma plaza en el oficial. Si el
+// cruce todavía no se ha jugado (típicamente la Final) muestra un PREVIEW con los dos
+// desenlaces posibles y quién acertaría el podio en cada uno. "" si la ronda no es una de
+// esas dos o el cruce aún no tiene los dos equipos definidos.
+function koPodiumPanel(ctx, round) {
+  const conf = round === "TERCER_PUESTO"
+    ? { mid: "M103", winL: "🥉 3.º", loseL: "🏅 4.º", what: "el podio (3.º y 4.º)" }
+    : round === "FINAL"
+    ? { mid: "M104", winL: "🥇 1.º", loseL: "🥈 2.º", what: "el podio (1.º y 2.º)" }
+    : null;
+  if (!conf) return "";
+  const oM = ctx.official.knockout[conf.mid];
+  if (!oM || !oM.home || !oM.away) return "";              // cruce sin equipos definidos aún
+  const total = ctx.predByNick.size;
+  const other = (m, team) => (team === m.home ? m.away : m.home);
+  const curPts = (n) => (ctx.byNick.get(n) ? ctx.byNick.get(n).score.total : 0);
+  const bySort = (a, b) => curPts(b) - curPts(a) || a.localeCompare(b);
+
+  // Para cada participante, su ganador (= 1.º/3.º) y su perdedor (= 2.º/4.º) de ESE cruce,
+  // según su q:. Solo cuentan quienes tienen el cruce con ambos equipos y un q: válido.
+  const preds = [];
+  for (const [nick, pred] of ctx.predByNick) {
+    const pm = (pred.knockout || {})[conf.mid];
+    if (!pm || !pm.qualified || !pm.home || !pm.away) continue;
+    preds.push({ nick, win: pm.qualified, lose: other(pm, pm.qualified) });
+  }
+
+  const rowHtml = (posL, team, nicks) => {
+    const sorted = nicks.slice().sort(bySort);
+    const who = sorted.length ? chipList(sorted) : `<span class="muted">nadie</span>`;
+    return `<div class="pod-row">
+      <p class="pod-pos">${posL} <strong>${esc(teamName(team))}</strong>
+        <span class="muted">· ${sorted.length}/${total} ${sorted.length === 1 ? "acertante" : "acertantes"}</span></p>
+      <div class="pod-who">${who}</div></div>`;
+  };
+
+  const played = oM.qualified && oM.hg != null && oM.ag != null;
+  if (played) {
+    const offWin = oM.qualified, offLose = other(oM, oM.qualified);
+    const winHits = preds.filter((p) => p.win === offWin).map((p) => p.nick);
+    const loseHits = preds.filter((p) => p.lose === offLose).map((p) => p.nick);
+    return `<div class="kolead podium">
+      <p class="kolead-h">🏅 Quién acertó ${conf.what}
+        <span class="muted">· ${koScoreText(oM)} · clavando el equipo de cada plaza</span></p>
+      ${rowHtml(conf.winL, offWin, winHits)}
+      ${rowHtml(conf.loseL, offLose, loseHits)}</div>`;
+  }
+
+  // Preview: el cruce ya tiene los dos equipos pero no se ha jugado (la Final). Los dos
+  // desenlaces posibles, con quién acertaría el podio en cada uno.
+  const scenarios = [oM.home, oM.away].map((champ) => {
+    const runner = other(oM, champ);
+    const champHits = preds.filter((p) => p.win === champ).map((p) => p.nick);
+    const runnerHits = preds.filter((p) => p.lose === runner).map((p) => p.nick);
+    return `<div class="pod-scn">
+      <p class="pod-scn-h">Si gana <strong>${esc(teamName(champ))}</strong> la final</p>
+      ${rowHtml(conf.winL, champ, champHits)}
+      ${rowHtml(conf.loseL, runner, runnerHits)}</div>`;
+  }).join("");
+  return `<div class="kolead podium">
+    <p class="kolead-h">🔮 Quién acertaría ${conf.what}
+      <span class="muted">· ${esc(teamName(oM.home))} vs ${esc(teamName(oM.away))} · aún sin jugar, se decide en la Final</span></p>
+    <div class="pod-scns">${scenarios}</div></div>`;
 }
 
 // PRE-estadísticas de una ronda todavía sin jugar (equipos ya definidos): a cuántos

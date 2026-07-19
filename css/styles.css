@@ -299,6 +299,15 @@ td.lb-mov { width: 2.6rem; }
 .kolead-gap { align-self: center; padding: 0 0.15rem; }
 .kolead-perfect { color: var(--accent); }
 
+/* Quién acertó el podio (3.º/4.º y 1.º/2.º) */
+.podium .pod-row { margin: 0.55rem 0 0; }
+.pod-pos { margin: 0 0 0.3rem; font-size: 0.88rem; }
+.pod-who { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.pod-who .chip { margin-left: 0; }
+.pod-scns { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.5rem 1rem; margin-top: 0.4rem; }
+.pod-scn { padding: 0.55rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; }
+.pod-scn-h { margin: 0 0 0.1rem; font-size: 0.82rem; font-weight: 700; }
+
 /* Pre-estadísticas de una ronda sin jugar (equipos más/menos seguidos) */
 .prestats { margin: 0.5rem 0 1.3rem; padding: 0.6rem 0.8rem;
   background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
