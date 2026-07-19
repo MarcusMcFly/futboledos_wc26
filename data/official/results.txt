@@ -137,8 +137,8 @@ M102 W99 W100 ENG 1 2 AR q:AR
 completados: 2/2
 
 [TERCER_PUESTO]
-M103 L101 L102 FR - - ENG q:-
-completados: 0/1
+M103 L101 L102 FR 4 6 ENG q:ENG
+completados: 1/1
 
 [FINAL]
 M104 W101 W102 ES - - AR q:-
