@@ -320,25 +320,6 @@ td.lb-mov { width: 2.6rem; }
 .ps-row-dead .ps-team { text-decoration: line-through; text-decoration-thickness: 1px; }
 .ps-dead { font-size: 0.72rem; font-weight: 600; color: var(--danger); text-decoration: none; white-space: nowrap; }
 
-/* La carrera por el título (bajo las pre-estadísticas de la Final) */
-.titlerace { border-color: var(--accent); }
-.tr-sub-h { margin: 0.7rem 0 0.35rem; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted, #8b949e); }
-.tr-cont { margin: 0 0 0.3rem; padding-left: 1.1rem; }
-.tr-cont li { font-size: 0.9rem; margin: 0.15rem 0; }
-.tr-note { margin: 0.3rem 0 0; font-size: 0.8rem; }
-.tr-tree { margin: 0; padding-left: 1.1rem; }
-.tr-tree > li { font-size: 0.88rem; margin: 0.3rem 0; }
-.tr-sub { margin: 0.2rem 0 0.2rem; padding-left: 1.1rem; list-style: none; }
-.tr-sub li { font-size: 0.86rem; margin: 0.18rem 0; }
-.tr-sub li::before { content: "↳ "; color: var(--muted, #8b949e); }
-.tr-cond { font-weight: 500; }
-.tr-leaves { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.6rem; margin: 0.35rem 0 0; }
-.tr-leaf { padding: 0.55rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; }
-.tr-leaf-h { margin: 0 0 0.4rem; font-size: 0.82rem; }
-.tr-rank { margin: 0; padding-left: 1.4rem; }
-.tr-rank li { font-size: 0.86rem; margin: 0.12rem 0; }
-.tr-rank li:first-child { font-weight: 700; }
-
 /* Estadísticas de gala (curiosidades, final de la vista de eliminatoria) */
 .funstats { margin: 2.2rem 0 1rem; padding-top: 1.4rem; border-top: 2px solid var(--border); }
 .fs-awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.6rem; margin: 0.8rem 0 1.4rem; }
