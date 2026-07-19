@@ -225,7 +225,7 @@ function tournamentFinalePanel(ctx) {
   }).join("");
   // Titular: campeón único, o empate a puntos resuelto por el desempate del pool (§13).
   const sub = tied
-    ? `Empate en cabeza: ${leaders.map((s) => `<strong>${esc(s.nick)}</strong>`).join(" y ")} terminan igualados a <strong>${leaders[0].score.total}</strong> puntos. El desempate del pool (§13) deja primero a <strong>${esc(ctx.board[0].nick)}</strong>. ¡Enhorabuena a ambos! 🎉`
+    ? `Empate en cabeza: ${leaders.map((s) => `<strong>${esc(s.nick)}</strong>`).join(" y ")} terminan igualados a <strong>${leaders[0].score.total}</strong> puntos, campeones de la porra ex aequo. ¡Enhorabuena a ambos! 🎉`
     : `Y el ganador de la porra es… <strong>${esc(top[0].nick)}</strong> con <strong>${top[0].score.total}</strong> puntos. ¡Enhorabuena! 🎉`;
   return `<div class="finale">
     <p class="finale-h">🏆 ¡Torneo finalizado!</p>
